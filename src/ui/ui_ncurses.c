@@ -313,14 +313,14 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
     return s;
 }
 
-UiSurface *ui_sfc_box_ll(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *wtitle) {
+UiSurface *ui_surface_box(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *wtitle) {
     if (!ui)
         return NULL;
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
     if (lines > maxy || cols > maxx) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "ui_sfc_box_ll failed for lines: %d, cols: %d", lines, cols);
+        ssnprintf(em1, MAXLEN - 1, "ui_surface_box failed for lines: %d, cols: %d", lines, cols);
         ssnprintf(em2, MAXLEN - 1, "maxy: %d, maxx: %d", maxy, maxx);
         ui_display_error(em0, em1, em2, nullptr);
         return NULL;

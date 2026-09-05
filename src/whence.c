@@ -283,8 +283,8 @@ void ABEND(char *pgmid, int rc, char *err_msg) {
 size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     char *e;
     size_t len = 0;
-    if (s == nullptr || d == nullptr || max_len == 0) {
-        if (d != nullptr && max_len > 0)
+    if (max_len == 0) {
+        if (max_len > 0)
             *d = '\0';
         return 0;
     }
@@ -312,8 +312,8 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
 size_t strnz__cat(char *d, const char *s, size_t max_len) {
     char *e;
     size_t len = 0;
-    if (s == nullptr || d == nullptr || max_len == 0) {
-        if (d != nullptr && max_len > 0)
+    if (max_len == 0) {
+        if (max_len > 0)
             *d = '\0';
         return 0;
     }

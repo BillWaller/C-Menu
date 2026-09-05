@@ -105,8 +105,6 @@ bool verify_dir(char *, uint);
 bool locate_file_in_path(char *, char *);
 size_t canonicalize_file_spec(char *);
 size_t ssnprintf(char *, size_t, const char *, ...);
-size_t strnz__cpy(char *, const char *, size_t);
-size_t strnz__cat(char *, const char *, size_t);
 size_t string_cpy(String *, const String *);
 size_t string_cat(String *, const String *);
 size_t string_ncat(String *, const String *, size_t);
@@ -389,6 +387,8 @@ size_t trim(char *s) {
     @returns number of characters that would have been written if enough space
    had been available */
 size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
+    if (buf == nullptr || format == nullptr || buf_size == 0)
+        return 0;
     size_t n;
     va_list args;
 
@@ -409,7 +409,9 @@ size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
    problems.
     @note The caller is responsible for deallocating the strings in argv. */
 int str_to_args(char **argv, char *arg_str, uint max_args) {
-    if (arg_str == nullptr || *arg_str == '\0')
+    if (argv == nullptr || arg_str == nullptr || max_args == 0)
+        return 0;
+    if (*arg_str == '\0')
         return 0;
     uint argc = 0;
     char *p = arg_str;
@@ -513,10 +515,12 @@ bool str_to_upper(char *s) {
     @param max_len - maximum length to copy
     @returns length of resulting string */
 size_t strnz__cpy(char *d, const char *s, size_t max_len) {
+    if (d == nullptr || s == nullptr)
+        return 0;
     char *e;
     size_t len = 0;
-    if (s == nullptr || d == nullptr || max_len == 0) {
-        if (d != nullptr && max_len > 0)
+    if (max_len == 0) {
+        if (max_len > 0)
             *d = '\0';
         return 0;
     }
@@ -542,10 +546,12 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
    could cause issues.
  */
 size_t strnz__cat(char *d, const char *s, size_t max_len) {
+    if (d == nullptr || s == nullptr)
+        return 0;
     char *e;
     size_t len = 0;
-    if (s == nullptr || d == nullptr || max_len == 0) {
-        if (d != nullptr && max_len > 0)
+    if (max_len == 0) {
+        if (max_len > 0)
             *d = '\0';
         return 0;
     }
@@ -584,9 +590,11 @@ size_t strz(char *s) {
      @details The use case is to ensure that strings read from files or user
    input do not contain embedded newlines or carriage returns. */
 size_t strnz(char *s, size_t max_len) {
+    if (s == nullptr || *s == '\0' || max_len == 0)
+        return 0;
     char *e;
     size_t len = 0;
-    if (s == nullptr || *s == '\0' || max_len == 0)
+    if (*s == '\0' || max_len == 0)
         return 0;
     e = s + max_len;
     while (*s != '\0' && *s != '\n' && *s != '\r' && s < e) {
@@ -602,9 +610,11 @@ size_t strnz(char *s, size_t max_len) {
     @param max_len maximum length to scan
     @returns length of resulting string */
 size_t strnlf(char *s, size_t max_len) {
+    if (s == nullptr || *s == '\0' || max_len == 0)
+        return 0;
     char *e;
     size_t len = 0;
-    if (s == nullptr || *s == '\0' || max_len == 0)
+    if (*s == '\0' || max_len == 0)
         return 0;
     e = s + max_len;
     while (*s != '\0' && *s != '\n' && *s != '\r' && s < e) {
@@ -623,9 +633,11 @@ size_t strnlf(char *s, size_t max_len) {
      @param l - maximum length to copy
      @returns pointer to allocated memory */
 char *strnz_dup(char *s, size_t l) {
+    if (s == nullptr || *s == '\0' || l == 0)
+        return nullptr;
     char *p, *ms, *e;
     size_t m;
-    if (s == nullptr || *s == '\0' || l == 0)
+    if (*s == '\0' || l == 0)
         return nullptr;
     for (p = s, m = 1; *p != '\0'; p++, m++)
         ;
@@ -659,9 +671,11 @@ char *strnz_dup(char *s, size_t l) {
    responsibility to ensure that they are valid and that "l" is appropriate for
    the operation. */
 bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, uint l) {
+    if (d == nullptr || s == nullptr || Withstr == nullptr || l == 0)
+        return false;
     char *e;
-    if (s == nullptr || d == nullptr || Withstr == nullptr || l == 0) {
-        if (d != nullptr && l > 0)
+    if (l == 0) {
+        if (l > 0)
             *d = '\0';
         return false;
     }
@@ -687,8 +701,6 @@ bool str_subc(char *d, char *s, char ReplaceChr, char *Withstr, uint l) {
    if the operation was successful (i.e., if the string was modified or if it
    was valid), and false if the input string was null or empty. */
 bool strip_quotes(char *s) {
-    if (s == nullptr)
-        return false;
     uint l = strlen(s);
     if (l > 1 && s[l - 1] == '\"') {
         memmove(s, s + 1, l - 2);
@@ -702,7 +714,9 @@ bool strip_quotes(char *s) {
     @returns true if quotes were removed
     @details Same as STRIP_QUOTES but returns true if quotes were removed */
 bool stripz_quotes(char *s) {
-    if (s == nullptr || strlen(s) < 2)
+    if (s == nullptr || *s == '\0')
+        return false;
+    if (strlen(s) < 2)
         return false;
     uint l = strlen(s);
     if (l > 1 && s[0] == '\"' && s[l - 1] == '\"') {
@@ -738,10 +752,14 @@ bool chrep(char *s, char old_chr, char new_chr) {
     @details Accepts positive integers only.
     Sets a_toi_error to (-1) on error */
 int a_toi(char *s, bool *a_toi_error) {
+    if (s == nullptr || *s == '\0') {
+        *a_toi_error = true;
+        return -1;
+    }
     int rc = -1;
     *a_toi_error = false;
     errno = 0;
-    if (s && *s != 0)
+    if (*s != 0)
         rc = (uint)strtol(s, nullptr, 10);
     if (rc < 0 || errno) {
         rc = -1;
@@ -1400,8 +1418,6 @@ bool is_valid_regex(const char *pattern) {
    "rep_s". The caller should ensure that "tgt_s" and "rep_s" are distinct
    to avoid this issue. */
 char *rep_substring(const char *org_s, const char *tgt_s, const char *rep_s) {
-    if (org_s == nullptr || tgt_s == nullptr || rep_s == nullptr)
-        return nullptr;
     if (*org_s == '\0' || *tgt_s == '\0' || *rep_s == '\0')
         return nullptr;
     if (strstr(org_s, tgt_s) == nullptr)

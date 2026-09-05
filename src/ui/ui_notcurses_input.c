@@ -107,7 +107,6 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
     memset(ev, 0, sizeof(*ev));
 
     ncinput ni;
-    ui_cursor_enable(s, w, true);
     // tcflush(0, TCIFLUSH);
     if (timeout_ms < 0) {
         do {
@@ -152,7 +151,6 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
             }
         }
     }
-    notcurses_cursor_disable(ui->nc);
     return ni.id;
 }
 
@@ -190,8 +188,6 @@ int ui_get_event_no_mouse(UiSurface *target, ss_t w, UiEvent *ev) {
 }
 
 uint ui_get_plane_idx(UiSurface *s, struct ncplane *plane) {
-    if (!s)
-        return -1;
     for (ss_t w = BOX; w < SUB_SFC_MAX; ++w) {
         if (s->mplane[w] == plane)
             return w;

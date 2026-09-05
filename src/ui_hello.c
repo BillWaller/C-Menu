@@ -21,8 +21,8 @@ int main(int argc, char **argv) {
     ui_init(&ui_config, init->sio);
     // ------------------------------------------------------------------
     // 2 - UI Create surface
-    if (ui_sfc_box_com(12, 50, 5, 5, "Test UI Application")) {
-        ui_log(ERROR, "ui_sfc_box_win_new failed");
+    if (ui_tracked_sfc_box(12, 50, 5, 5, "Test UI Application")) {
+        ui_log(ERROR, "ui_surface_box_win_new failed");
         exit(EXIT_FAILURE);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];

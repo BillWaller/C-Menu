@@ -770,34 +770,22 @@ int ui_erase();
 int ui_suspend();
 int ui_resume();
 
-int ui_sfc_box_com(uint wlines, uint wcols, uint wbegy, uint wbegx, const char *wtitle);
-UiSurface *ui_sfc_box_ll(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *title);
-
-int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, const char *wtitle);
-
+int ui_tracked_sfc_box(uint wlines, uint wcols, uint wbegy, uint wbegx, const char *wtitle);
+int ui_tracked_sfc_split_box(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, const char *wtitle);
+UiSurface *ui_surface_box(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *title);
 UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x);
-
 int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint y, uint x);
 int ui_surface_addpad(UiSurface *s, ss_t w, uint view_win, uint lines, uint cols, uint begy, uint begx);
 void ui_surface_destroy(UiSurface *s);
 int ui_wresize(UiSurface *s, ss_t w, uint lines, uint cols);
-
 int ui_wclear(UiSurface *s, ss_t w);
-
 int ui_werase(UiSurface *s, ss_t w);
-
 int ui_wshow(UiSurface *s, ss_t w);
-
 int ui_whide(UiSurface *s, ss_t w);
-
 int ui_get_event_no_mouse(UiSurface *surface, ss_t w, UiEvent *ev);
-
 int ui_wmove(UiSurface *s, ss_t w, uint y, uint x);
-
 int ui_cursor_enable(UiSurface *s, ss_t w, bool visible);
-
 int ui_cursor_enable_yx(UiSurface *s, ss_t w, uint y, uint x, bool visible);
-
 int ui_curs_set(int visibility);
 int ui_wscrl(UiSurface *s, ss_t w, int rows);
 int ui_wclrtoeol(UiSurface *s, ss_t w);
@@ -809,7 +797,6 @@ int ui_draw_ch_yx(UiSurface *s, ss_t w, uint y, uint x, const char c);
 int ui_draw_text(UiSurface *s, ss_t w, uint y, uint x, const char *text);
 int ui_draw_text_n(UiSurface *s, ss_t w, uint y, uint x, const char *text, int m);
 int ui_draw_text_fill(UiSurface *s, ss_t w, uint y, uint x, const char *text, int m);
-
 int ui_getch();
 int ui_waddch(UiSurface *s, ss_t w, const char c);
 int ui_mvwaddch(UiSurface *s, ss_t w, uint y, uint x, const char c);
@@ -922,9 +909,9 @@ uint ui_add_color_hex(char *s);
 int ui_wch_to_utf8(const wchar_t fill_ch);
 int ui_get_nccell(const UiCell *cell, wchar_t *wstr, UiStyle *style, UiPairIdx *pair);
 int ui_set_nccell(UiCell *cell, const wchar_t *wstr, const UiStyle *style, ushort *pair);
-uint ui_get_plane_idx(UiSurface *s, NcPlane *n) __attribute__((nonnull(1, 2)));
+uint ui_get_plane_idx(UiSurface *s, NcPlane *n);
 NcPlane *ui_ncplane_clicked(UiSurface *s, ss_t w, NcInput *ni);
-struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const char *image_file, int y, int x, int begy, int begx) __attribute__((nonnull(1, 2, 3)));
+struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const char *image_file, int y, int x, int begy, int begx);
 #else
 int ui_color_from_rgb(RGB *rgb);
 int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, ushort *pair, void *opts);

@@ -443,7 +443,7 @@ void ui_abend(int ec, char *s) {
 // -----------------------------------------------------------------------------
 // High Level Surface Instantiation
 // -----------------------------------------------------------------------------
-/** surface_box_win_new
+/** ui_tracked_sfc_box_com
     @brief Create a new surface with a box window
     @ingroup window_support
     @param wlines Number of lines for the window
@@ -458,7 +458,7 @@ void ui_abend(int ec, char *s) {
    ui_surface array, and the surface pointer (sfc_ptr) is incremented. The window
    is then rendered on the screen.
  */
-int ui_sfc_box_com(uint wlines, uint wcols, uint wbegy, uint wbegx, const char *wtitle) {
+int ui_tracked_sfc_box(uint wlines, uint wcols, uint wbegy, uint wbegx, const char *wtitle) {
     if (sfc_ptr >= SFC_MAX) {
         ui_log(ERROR, "Maximum number of surfaces (%d) exceeded", SFC_MAX);
         exit(EXIT_FAILURE);
@@ -468,8 +468,8 @@ int ui_sfc_box_com(uint wlines, uint wcols, uint wbegy, uint wbegx, const char *
     wlines = min(wlines, maxy);
     wcols = min(wcols, maxx);
     sfc_ptr++;
-    // ------------------->    UAL_win_box    <-------------------
-    ui_surface[sfc_ptr] = ui_sfc_box_ll(nullptr, 0, wlines + 2, wcols + 2, wbegy, wbegx, wtitle);
+    // ------------------->    UI_win_box    <-------------------
+    ui_surface[sfc_ptr] = ui_surface_box(nullptr, 0, wlines + 2, wcols + 2, wbegy, wbegx, wtitle);
     UiSurface *sfc = ui_surface[sfc_ptr];
     ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
     ui_render();
@@ -496,7 +496,7 @@ int ui_sfc_box_com(uint wlines, uint wcols, uint wbegy, uint wbegx, const char *
    window and the split window are then rendered on the screen, with a separator
    line drawn at the specified Y position.
  */
-int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, const char *wtitle) {
+int ui_tracked_sfc_split_box(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, const char *wtitle) {
     if (sfc_ptr >= SFC_MAX) {
         ui_log(ERROR, "Maximum number of surfaces (%d) exceeded", SFC_MAX);
         exit(EXIT_FAILURE);
@@ -510,7 +510,7 @@ int ui_surface_split_box_win_new(uint wlines, uint wcols, uint split_y, uint spl
     wcols = min(wcols, maxx);
     sfc_ptr++;
     // ------------------->    surface_new    <-------------------
-    ui_surface[sfc_ptr] = ui_sfc_box_ll(nullptr, 0, split_wlines + 2, wcols + 2, wbegy, wbegx, wtitle);
+    ui_surface[sfc_ptr] = ui_surface_box(nullptr, 0, split_wlines + 2, wcols + 2, wbegy, wbegx, wtitle);
     UiSurface *sfc = ui_surface[sfc_ptr];
 
     ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
@@ -1076,8 +1076,8 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     pos = ((maxx - msg_l) - 4) / 2;
     line = (maxy - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (ui_sfc_box_com(5, msg_l, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "ui_sfc_box_com(%d, %d, %d, %d, %s) failed", 5,
+    if (ui_tracked_sfc_box(5, msg_l, line, pos, title)) {
+        ssnprintf(title, MAXLEN - 1, "ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
         ui_destroy_chyron(chyron);
         ui_abend(-1, title);
@@ -1142,8 +1142,8 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     pos = ((maxx - msg_l) - 4) / 2;
     line = (maxy - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (ui_sfc_box_com(5, msg_l, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "ui_sfc_box_com(%d, %d, %d, %d, %s) failed", 5,
+    if (ui_tracked_sfc_box(5, msg_l, line, pos, title)) {
+        ssnprintf(title, MAXLEN - 1, "ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
         ui_destroy_chyron(chyron);
         ui_abend(-1, title);
@@ -1201,8 +1201,8 @@ int ui_perror(char *emsg_str) {
     pos = (maxx - cols - 4) / 2;
     line = (maxy - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
-    if (ui_sfc_box_com(2, cols, line, pos, title)) {
-        ssnprintf(tmp_str, MAXLEN - 1, "ui_sfc_box_com(%d, %d, %d, %d, %s, %b) failed",
+    if (ui_tracked_sfc_box(2, cols, line, pos, title)) {
+        ssnprintf(tmp_str, MAXLEN - 1, "ui_tracked_sfc_box(%d, %d, %d, %d, %s, %b) failed",
                   4, line, line, pos, title);
         ui_log(ERROR, "%s", tmp_str);
         ui_destroy_chyron(chyron);
@@ -1245,8 +1245,8 @@ bool ui_action_disposition(char *title, char *action_str) {
     ui_get_screen_size(&maxy, &maxx);
     col = (maxx - len - 4) / 2;
     line = (maxy - 4) / 2;
-    if (ui_sfc_box_com(2, len, line, col, title)) {
-        ssnprintf(em0, MAXLEN - 1, "ui_sfc_box_com(%d, %d, %d, %d, %s) failed", 4,
+    if (ui_tracked_sfc_box(2, len, line, col, title)) {
+        ssnprintf(em0, MAXLEN - 1, "ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed", 4,
                   line, line, col, title);
         ui_perror(em0);
     }

@@ -829,8 +829,8 @@ int open_pick_win(Init *init) {
     Pick *pick = init->pick;
     pick = init->pick;
     int ui_split_win_lines = 2; // 1 text, 1 chyron
-    if (ui_surface_split_box_win_new(pick->lines, pick->width, ui_split_win_lines, 0, pick->begy, pick->begx, pick->title)) {
-        ssnprintf(tmp_str, MAXLEN - 1, "ui_surface_split_box_win_new(%d, %d, %d, %d, %d, %d, %s) failed",
+    if (ui_tracked_sfc_split_box(pick->lines, pick->width, ui_split_win_lines, 0, pick->begy, pick->begx, pick->title)) {
+        ssnprintf(tmp_str, MAXLEN - 1, "ui_tracked_sfc_split_box(%d, %d, %d, %d, %d, %d, %s) failed",
                   pick->lines, pick->width, ui_split_win_lines, 0, pick->begy, pick->begx, pick->title);
         ui_perror(tmp_str);
         return (1);

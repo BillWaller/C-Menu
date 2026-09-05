@@ -353,7 +353,7 @@ struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const 
 
     // 5b. Allocate the perfectly sized UI surfaces
 
-    mm->sfc = ui_sfc_box_ll(stdsfc, BOX, rows + 2, cols + 2, begy, 0, image_file);
+    mm->sfc = ui_surface_box(stdsfc, BOX, rows + 2, cols + 2, begy, 0, image_file);
     ui_surface_addwin(mm->sfc, WIN, BOX, rows, cols, 1, 1);
 
     // 6. Setup the blit options to create a subplane for you

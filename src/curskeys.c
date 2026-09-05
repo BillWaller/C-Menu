@@ -38,8 +38,8 @@ int popup_ckeys() {
     ui_get_screen_size(&maxy, &maxx);
     uint begy = (maxy - lines) / 3;
     uint begx = (maxx - cols) / 2;
-    if (ui_sfc_box_com(lines, cols, begy, begx, Title)) {
-        strnz__cpy(tmp, "ui_sfc_box_com failed: ", MAXLEN - 1);
+    if (ui_tracked_sfc_box(lines, cols, begy, begx, Title)) {
+        strnz__cpy(tmp, "ui_tracked_sfc_box failed: ", MAXLEN - 1);
         strnz__cat(tmp, Title, MAXLEN - 1);
         ui_perror(tmp);
         exit(EXIT_FAILURE);

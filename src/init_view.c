@@ -165,7 +165,7 @@ int init_view_boxwin(Init *init) {
     // -------------------> 1. BOX / WIN <-------------------
     view_calc_boxwin_dimensions(init);
 
-    view->sfc = ui_sfc_box_ll(NULL, 0, view->lines + 2, view->cols + 2, view->begy, view->begx, NULL);
+    view->sfc = ui_surface_box(NULL, 0, view->lines + 2, view->cols + 2, view->begy, view->begx, NULL);
 
     ui_surface_addwin(view->sfc, WIN, BOX, view->lines, view->cols, 1, 1);
     // -------------------> 2. LNNO <-------------------

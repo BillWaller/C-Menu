@@ -738,6 +738,7 @@ int get_cmd_char(View *view, off_t *n) {
     UiEvent event;
     pad_refresh(view);
     ui_mvwadd_wch(sfc, CMDLN, view->cmd_line, view->curx++, &cell_ran);
+    ui_top_surface(sfc, CMDLN);
     ui_cursor_enable_yx(sfc, CMDLN, 0, view->curx, true);
     while (1) {
         if (i == 1 && !once) {
@@ -749,6 +750,7 @@ int get_cmd_char(View *view, off_t *n) {
             ui_mvwaddch(sfc, CMDLN, view->cmd_line, view->curx++, c);
         }
         ui_render();
+        ui_cursor_enable(sfc, CMDLN, false);
         event.y = event.x = -1;
         c = ui_get_event(sfc, CMDLN, NULL, &event, -1);
         switch (c) {

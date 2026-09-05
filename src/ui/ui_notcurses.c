@@ -225,7 +225,7 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
     return s;
 }
 
-UiSurface *ui_sfc_box_ll(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *wtitle) {
+UiSurface *ui_surface_box(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *wtitle) {
     if (!ui)
         return NULL;
     UiSurface *s = calloc(1, sizeof(*s));

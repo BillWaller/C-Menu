@@ -34,10 +34,10 @@ int main(int argc, char **argv) {
     ui_init(&ui_config, init->sio);
     // ------------------------------------------------------------------
     // 2 - UI Create surface
-    UiSurface *sfc = ui_sfc_box_ll(stdsfc, BOX, 24, 95, 0, 0, "Test UI Application");
+    UiSurface *sfc = ui_surface_box(stdsfc, BOX, 24, 95, 0, 0, "Test UI Application");
     //
     if (sfc == NULL) {
-        ui_log(ERROR, "ui_sfc_box_win_new failed");
+        ui_log(ERROR, "ui_surface_box failed");
         exit(EXIT_FAILURE);
     }
     if (ui_surface_addwin(sfc, WIN, BOX, 22, 93, 1, 1)) {
@@ -135,7 +135,7 @@ struct ncvisual *display_image(struct notcurses *nc, const char *image_file, int
 
     // 5b. Allocate the perfectly sized UI surfaces
 
-    UiSurface *visual_sfc = ui_sfc_box_ll(stdsfc, BOX, rows + 2, cols + 2, begy, 0, image_file);
+    UiSurface *visual_sfc = ui_surface_box(stdsfc, BOX, rows + 2, cols + 2, begy, 0, image_file);
     ui_surface_addwin(visual_sfc, WIN, BOX, rows, cols, 1, 1);
 
     // 6. Setup the blit options to create a subplane for you

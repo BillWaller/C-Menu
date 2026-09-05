@@ -365,11 +365,11 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
     bool f_quote = true;
     char *s1;
     char *s2;
-    char s1_s[MAXLEN];
-    char s2_s[MAXLEN];
-    char file_name[MAXLEN];
-    char try_spec[MAXLEN];
-    char idio_spec[MAXLEN];
+    char s1_s[MAXLEN] = {};
+    char s2_s[MAXLEN] = {};
+    char file_name[MAXLEN] = {};
+    char try_spec[MAXLEN] = {};
+    char idio_spec[MAXLEN] = {};
 
     if (!org_spec[0])
         return false;
