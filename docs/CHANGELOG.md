@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-05T08:47:05-05:00* - FIXES: pick_engine: fixed several issues related to live view in pick 
+
+*2026-09-05T06:42:20-05:00* - Update CHANGELOG.md 
+
 *2026-09-05T06:36:57-05:00* - FIX: The line of code that set the pointer to the view structure was accidentally removed in the last commit. This caused a crash when trying to access the view structure. The line has been restored to fix the issue. 
 
 *2026-09-04T22:48:42-05:00* - Update CHANGELOG.md 
