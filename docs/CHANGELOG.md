@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-05T10:59:52-05:00* - FIX: Cursor wasn't appearing on view command line. fixed. 
+
+*2026-09-05T10:32:52-05:00* - Update CHANGELOG.md 
+
 *2026-09-05T10:16:25-05:00* - FIXES: The UAL retrofit involved thousands of code lines. We are now reviewing, testing, and fixing. 
 
 *2026-09-05T08:48:29-05:00* - Update CHANGELOG.md 
