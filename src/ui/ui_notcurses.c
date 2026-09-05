@@ -382,13 +382,18 @@ void ui_shutdown() {
 void ui_surface_destroy(UiSurface *s) {
     if (!s)
         return;
-    for (int w = SUB_SFC_MAX; w >= 0; w--)
+    ss_t w = SUB_SFC_MAX;
+    while (1) {
         if (s->mplane[w] != NULL) {
             ui_log(INFO, "Destroying mplane[%d]", w);
             ncplane_erase(s->mplane[w]);
             ncplane_destroy(s->mplane[w]);
             s->mplane[w] = NULL;
         }
+        if (w == BOX)
+            break;
+        w--;
+    };
     if (s != NULL) {
         ui_log(INFO, "Destroying surface: s");
         free(s);

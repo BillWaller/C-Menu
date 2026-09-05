@@ -276,20 +276,20 @@ void ui_restore_wins() {
 /* -------------------------------------------------------------------------
    Image Display
    ------------------------------------------------------------------------- */
-struct ncvisual *ui_display_image(struct notcurses *nc, const char *image_file, int y, int x, int begy, int begx) {
+struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const char *image_file, int y, int x, int begy, int begx) {
     // 1. Get the current standard plane size
     struct ncplane *stdn = notcurses_stdplane(nc);
     unsigned term_rows, term_cols;
     ncplane_dim_yx(stdn, &term_rows, &term_cols);
-    struct ncvisual *ncv = ncvisual_from_file(image_file);
-    if (!ncv) {
+    mm->ncv = ncvisual_from_file(image_file);
+    if (!mm->ncv) {
         fprintf(stderr, "Error: Could not load image file.\n");
         return nullptr;
     }
     // 3. Query the image cell dimensions
     struct ncvgeom geom;
-    if (ncvisual_geom(nc, ncv, NULL, &geom) < 0) {
-        ncvisual_destroy(ncv);
+    if (ncvisual_geom(nc, mm->ncv, NULL, &geom) < 0) {
+        ncvisual_destroy(mm->ncv);
         return nullptr;
     }
     // 4. Calculate available bounding box below the UI
@@ -314,7 +314,7 @@ struct ncvisual *ui_display_image(struct notcurses *nc, const char *image_file, 
     int max_rows = y - 2;
     int max_cols = x - 2;
     if (max_rows <= 0) {
-        ncvisual_destroy(ncv);
+        ncvisual_destroy(mm->ncv);
         return nullptr;
     }
     // 5. Scale image to fit the bounding box while preserving aspect ratio
@@ -332,15 +332,15 @@ struct ncvisual *ui_display_image(struct notcurses *nc, const char *image_file, 
     };
     struct ncplane *tmp_bound_plane = ncplane_create(stdn, &nopts);
     if (!tmp_bound_plane) {
-        ncvisual_destroy(ncv);
+        ncvisual_destroy(mm->ncv);
         return nullptr;
     }
     vopts_calc.n = tmp_bound_plane;
 
     // Let Notcurses populate rcelly and rcellx based on the bounding box plane
-    if (ncvisual_geom(nc, ncv, &vopts_calc, &geom) < 0) {
+    if (ncvisual_geom(nc, mm->ncv, &vopts_calc, &geom) < 0) {
         ncplane_destroy(tmp_bound_plane);
-        ncvisual_destroy(ncv);
+        ncvisual_destroy(mm->ncv);
         return nullptr;
     }
 
@@ -353,17 +353,17 @@ struct ncvisual *ui_display_image(struct notcurses *nc, const char *image_file, 
 
     // 5b. Allocate the perfectly sized UI surfaces
 
-    UiSurface *visual_sfc = ui_sfc_box_ll(stdsfc, BOX, rows + 2, cols + 2, begy, 0, image_file);
-    ui_surface_addwin(visual_sfc, WIN, BOX, rows, cols, 1, 1);
+    mm->sfc = ui_sfc_box_ll(stdsfc, BOX, rows + 2, cols + 2, begy, 0, image_file);
+    ui_surface_addwin(mm->sfc, WIN, BOX, rows, cols, 1, 1);
 
     // 6. Setup the blit options to create a subplane for you
     struct ncvisual_options vopts = {
-        .n = visual_sfc->mplane[WIN],
+        .n = mm->sfc->mplane[WIN],
         .scaling = NCSCALE_SCALE_HIRES,
         .blitter = NCBLIT_PIXEL,
-        .flags = NCVISUAL_OPTION_CHILDPLANE,
+        //      .flags = NCVISUAL_OPTION_CHILDPLANE,
     };
-    ncvisual_blit(nc, ncv, &vopts);
+    ncvisual_blit(nc, mm->ncv, &vopts);
     notcurses_render(nc);
-    return ncv;
+    return mm->ncv;
 }

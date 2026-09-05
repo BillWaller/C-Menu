@@ -101,6 +101,7 @@ typedef uint16_t UiStyle;
 typedef uint16_t UiPairIdx;
 typedef uint UiColorIdx;
 typedef struct ncinput NcInput;
+typedef struct ncvisual NcVisual;
 
 // ---------------------------------------------------------------
 // Input
@@ -736,7 +737,12 @@ struct SIO {
     ushort cp_chk;         /**< checkmark color pair index */
     ushort cp_bold;        /**< bold color pair index */
 }; /**< Shared Internal Objects */
-/** available to the application and the backend implementation */
+/* available to the application and the backend implementation */
+
+typedef struct {
+    NcVisual *ncv;
+    UiSurface *sfc;
+} UiMultiMedia;
 
 /* @name UI Backend API
    @ingroup ui_backend
@@ -916,9 +922,9 @@ uint ui_add_color_hex(char *s);
 int ui_wch_to_utf8(const wchar_t fill_ch);
 int ui_get_nccell(const UiCell *cell, wchar_t *wstr, UiStyle *style, UiPairIdx *pair);
 int ui_set_nccell(UiCell *cell, const wchar_t *wstr, const UiStyle *style, ushort *pair);
-uint ui_get_plane_idx(UiSurface *s, NcPlane *n);
+uint ui_get_plane_idx(UiSurface *s, NcPlane *n) __attribute__((nonnull(1, 2)));
 NcPlane *ui_ncplane_clicked(UiSurface *s, ss_t w, NcInput *ni);
-struct ncvisual *ui_display_image(struct notcurses *nc, const char *image_file, int y, int x, int begy, int begx);
+struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const char *image_file, int y, int x, int begy, int begx) __attribute__((nonnull(1, 2, 3)));
 #else
 int ui_color_from_rgb(RGB *rgb);
 int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, ushort *pair, void *opts);

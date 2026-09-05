@@ -45,7 +45,7 @@ void remove_right_angle(Pick *);
 void pick_std_chyron(Pick *);
 int pipe_fd[2];
 
-struct ncvisual *ncv;
+UiMultiMedia ui_mm;
 
 char const pagers_editors[12][10] = {"view", "view", "less", "more",
                                      "vi", "vim", "nano", "nvim",
@@ -185,8 +185,23 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     ui_compile_chyron(pick->chyron);
     pick_engine(init);
     ui_cm_surface_destroy(pick->surface);
-    if (pick->p_view_files)
-        destroy_pick_view(init);
+    if (pick->p_view_files) {
+        if (init->view) {
+            destroy_pick_view(init);
+            init->view = nullptr;
+        }
+#ifdef NOTCURSES_UI
+        if (ui_mm.ncv != nullptr) {
+            ncvisual_destroy(ui_mm.ncv);
+            ui_mm.ncv = nullptr;
+        }
+        if (ui_mm.sfc != nullptr) {
+            ui_surface_destroy(ui_mm.sfc);
+            ui_mm.sfc = nullptr;
+        }
+        ui_render();
+#endif
+    }
     return 0;
 }
 
@@ -198,8 +213,10 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
    view window and view structure to free associated resources.
  */
 void destroy_pick_view(Init *init) {
-    Pick *pick = init->pick;
+    if (!init->view)
+        return;
     View *view = init->view;
+    Pick *pick = init->pick;
     ui_surface_destroy(view->sfc);
     if (pick->p_view_files) {
         if (view->buf != nullptr) {
@@ -933,6 +950,7 @@ int picker(Init *init, char *field) {
                 pick_std_chyron(pick);
                 ui_compile_chyron(pick->chyron);
                 ui_display_chyron(sfc, WIN2, pick->chyron, 1, pick->chyron->l);
+                ui_mvwadd_wchnstr(sfc, WIN2, 0, 0, &cell_ran, 1);
                 reverse_object(pick);
                 ui_top_surface(sfc, WIN);
                 ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, true);
@@ -1517,8 +1535,11 @@ void new_view_file(Init *init, char *file) {
         view->buf = nullptr;
     }
 #ifdef NOTCURSES_UI
-    if (ncv != nullptr) {
-        ncvisual_destroy(ncv);
+    if (ui_mm.ncv != nullptr) {
+        ncvisual_destroy(ui_mm.ncv);
+        ui_mm.ncv = nullptr;
+        ui_surface_destroy(ui_mm.sfc);
+        ui_mm.sfc = nullptr;
         ui_render();
     }
 #endif
@@ -1526,18 +1547,26 @@ void new_view_file(Init *init, char *file) {
     switch (ft) {
     case FT_IMAGE:
 #ifdef NOTCURSES_UI
-        ncv = ui_display_image(ui->nc, file, -1, -1, 30, 0);
-        if (ncv == nullptr) {
-            ui_perror("ncvisual_from_file() failed in new_view_file");
+        ui_display_image(ui->nc, &ui_mm, file, -1, -1, 30, 0);
+        if (ui_mm.sfc == nullptr) {
+            ui_log(ERROR, "ui_display_image() failed in new_view_file");
+            return;
+        }
+        if (ui_mm.ncv == nullptr) {
+            ui_log(ERROR, "ui_display_image() failed in new_view_file");
             return;
         }
 #endif
         break;
     case FT_VIDEO:
 #ifdef NOTCURSES_UI
-        ncv = ncvisual_from_file(file);
-        if (ncv == nullptr) {
-            ui_perror("ncvisual_from_file() failed in new_view_file");
+        ui_display_image(ui->nc, &ui_mm, file, -1, -1, 30, 0);
+        if (ui_mm.sfc == nullptr) {
+            ui_log(ERROR, "ui_display_image() failed in new_view_file");
+            return;
+        }
+        if (ui_mm.ncv == nullptr) {
+            ui_log(ERROR, "ui_display_image() failed in new_view_file");
             return;
         }
 #endif
