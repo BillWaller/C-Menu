@@ -57,6 +57,9 @@ and audio.
 
 ---
 
+The program below displays the same image as Pick above in only 22 lines of code! That demonstrates how simple it is to use the UAL to create terminal-based applications with advanced features. The UAL provides a set of high-level functions that make it easy to create windows, menus, forms, and other UI elements, as well as handle input events and manage the terminal display.
+
+
 ![NEW! Example Program Using UAL](screenshots/ui_hello.png)
 
 ---
