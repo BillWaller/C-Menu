@@ -774,17 +774,24 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
 int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint y, uint x);
 int ui_surface_addpad(UiSurface *s, ss_t w, uint view_win, uint lines, uint cols, uint begy, uint begx);
 void ui_surface_destroy(UiSurface *s);
-
 int ui_wresize(UiSurface *s, ss_t w, uint lines, uint cols);
+
 int ui_wclear(UiSurface *s, ss_t w);
+
 int ui_werase(UiSurface *s, ss_t w);
 
 int ui_wshow(UiSurface *s, ss_t w);
+
 int ui_whide(UiSurface *s, ss_t w);
+
 int ui_get_event_no_mouse(UiSurface *surface, ss_t w, UiEvent *ev);
+
 int ui_wmove(UiSurface *s, ss_t w, uint y, uint x);
+
 int ui_cursor_enable(UiSurface *s, ss_t w, bool visible);
+
 int ui_cursor_enable_yx(UiSurface *s, ss_t w, uint y, uint x, bool visible);
+
 int ui_curs_set(int visibility);
 int ui_wscrl(UiSurface *s, ss_t w, int rows);
 int ui_wclrtoeol(UiSurface *s, ss_t w);

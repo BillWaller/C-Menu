@@ -883,7 +883,7 @@ uint64_t ui_get_channels_from_pair(uint16_t pair) {
     // ui_channels is a struct that holds the foreground and background color
     // channels
     // use channels.fb to get the combined foreground and background color channels
-    UiChannels ui_channels = {0};
+    UiChannels ui_channels = {};
     ui_get_pair(pair, &fg, &bg);
     ui_color_content(fg, &ui_channels.f_r, &ui_channels.f_g, &ui_channels.f_b);
     ui_channels.f_a = 0x40;

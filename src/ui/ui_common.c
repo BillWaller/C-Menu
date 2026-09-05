@@ -291,7 +291,7 @@ bool ui_init_clr_palette(SIO *sio) {
    fails. The output array is null-terminated. */
 void ui_mbc_to_wc(wchar_t wc[2], const char mbc) {
     wc[0] = wc[1] = L'\0';
-    mbstate_t state = {0};
+    mbstate_t state = {};
     size_t len = mbrtowc(wc, &mbc, MB_CUR_MAX, &state);
     if (len <= 0) {
         wc[0] = L'?';
@@ -311,7 +311,7 @@ void ui_mbc_to_wc(wchar_t wc[2], const char mbc) {
    fails, it returns nullptr. */
 wchar_t *ui_mbstr_to_wcstr(const char *mb_str) {
     const char *src_ptr = mb_str;
-    mbstate_t state = {0};
+    mbstate_t state = {};
     size_t wc_count = mbsrtowcs(NULL, &src_ptr, 0, &state);
     if (wc_count == (size_t)-1)
         return nullptr;
@@ -352,7 +352,7 @@ uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_
         pos = &p1;
     uint i = 0, len = 0;
     const char *s;
-    UiCell cc = {0};
+    UiCell cc = {};
     wchar_t wstr[5];
     getcchar(cell_base, &wstr[0], &attrs, &cp, nullptr);
     mbstate_t mbstate;

@@ -46,7 +46,7 @@ static struct argp_option options[] = {
     {"setuid", 's', 0, 0, "setuid only", 0},
     {"executable", 'x', 0, 0, "executable only", 0},
     {"verbose", 'v', 0, 0, "verbose messages", 0},
-    {0}};
+    {}};
 
 struct wh_opts {
     int flags;
@@ -88,7 +88,7 @@ static struct argp argp = {options, parse_opt, args_doc, doc,
                            nullptr, nullptr, nullptr};
 
 int main(int argc, char **argv) {
-    struct wh_opts wh_opts = {0};
+    struct wh_opts wh_opts = {};
     wh_opts.flags = 0;
     wh_opts.argv[0] = nullptr;
     int i = 0;

@@ -34,7 +34,6 @@ int main(int argc, char **argv) {
     ui_init(&ui_config, init->sio);
     // ------------------------------------------------------------------
     // 2 - UI Create surface
-    //
     UiSurface *sfc = ui_sfc_box_ll(stdsfc, BOX, 24, 95, 0, 0, "Test UI Application");
     //
     if (sfc == NULL) {

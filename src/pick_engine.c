@@ -1548,6 +1548,7 @@ void new_view_file(Init *init, char *file) {
         if (!pick->p_view_files)
             return;
         new_pick_view(init);
+        view = init->view;
         strnz__cpy(view->provider_cmd, "tree-sitter highlight ", MAXLEN - 1);
         strnz__cat(view->provider_cmd, file, MAXLEN - 1);
         strnz__cpy(view->title, file, MAXLEN - 1);

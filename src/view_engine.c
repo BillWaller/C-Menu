@@ -1108,7 +1108,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
     attr_t attr;
     ushort cpx;
 #endif
-    UiCell cc = {0};
+    UiCell cc = {};
     off_t prev_ln_no;
     bool f_page = false;
     UiSurface *sfc = view->sfc;
@@ -2082,7 +2082,7 @@ int fmt_line(View *view) {
     uint char_width;
     attr_t attr = WA_NORMAL;
     ushort cpx = cp_nt;
-    UiCell cc = {0};
+    UiCell cc = {};
     wchar_t wstr[2] = {L'\0', L'\0'};
     char *in_str = view->line_in_s;
     uint sl_cols = 0;

@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 int main() {
-    struct notcurses_options nopts = {0};
+    struct notcurses_options nopts = {};
     struct notcurses *nc = notcurses_init(&nopts, NULL);
     if (!nc) {
         fprintf(stderr, "Error: Unable to initialize notcurses.\n");

@@ -36,7 +36,7 @@ int wccp_to_str(wchar_t cp, uint8_t *buffer) {
 
 int main() {
     wchar_t smiley = L'\U0001f600';
-    uint8_t utf_s[4] = {0};
+    uint8_t utf_s[4] = {};
 
     int bytes_written = wccp_to_str(smiley, utf_s);
     printf("Smiley: %s\n", utf_s);
@@ -48,7 +48,7 @@ int main() {
     printf("\n");
 
     wchar_t underscore = L'\U0000ff3f';
-    uint8_t utf_s2[4] = {0};
+    uint8_t utf_s2[4] = {};
     // convert wide character code point to UTF-8 bytes
     bytes_written = wccp_to_str(underscore, utf_s2);
     printf("underscore: %s\n", utf_s2);

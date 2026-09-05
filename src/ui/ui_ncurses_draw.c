@@ -237,7 +237,7 @@ int mbstr_to_cc(char *in_str, UiCell *cmplx_buf_s) {
     uint char_width;
     attr_t attr = WA_NORMAL;
     uint cpx = cp_nt;
-    UiCell cc = {0};
+    UiCell cc = {};
     wchar_t wstr[2] = {L'\0', L'\0'};
     UiCell *cmplx_buf = cmplx_buf_s;
     mbstate_t mbstate;

@@ -30,7 +30,7 @@ UiFramedSurface ui_framed_surface_new(UiSurface *parent, UiRect rect) {
     if (!ui || rect.lines < 3 || rect.cols < 3)
         return fs;
 
-    // char title[64] = {0};
+    // char title[64] = {};
     fs.outer = ui_surface_new(w, parent, 0, rect.lines, rect.cols, rect.y, rect.x);
     if (!fs.outer)
         return fs;
