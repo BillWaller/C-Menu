@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-05T22:31:32-05:00* - FEATURE UPDATE: Added image of the hello program code and updated the README.md file. 
+
+*2026-09-05T22:21:00-05:00* - Update CHANGELOG.md 
+
 *2026-09-05T22:18:24-05:00* - FEATURE UPDATE: Example programs ui_hello.c and ui_visual.c have been updated to show how easy it is to create working programs that can use either NCurses or Notcurses by changing a single compile time flag. 
 
 *2026-09-05T15:22:09-05:00* - Update CHANGELOG.md 
