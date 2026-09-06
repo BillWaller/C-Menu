@@ -37,11 +37,13 @@ Below is a screenshot of a simple example program using the UAL. You may notice
 that many function names are simply the equivalent NCurses function name, but
 with a "ui_" prepended. 
 
-That is, except for the high-level functions like ui_surface_box_win_new() for which neither NCurses nor Notcurses has an equivalent. This particular function creates a new surface surrounded by an immutable box (so you can't overwrite it with misplaced text), and up to seven sub-surfaces inside the box.
+That is, except for the high-level functions like ui_tracked_sfc_box() for which neither NCurses nor Notcurses has an equivalent. This particular function creates a new surface surrounded by an immutable box (so you can't overwrite it with misplaced text), and up to seven sub-surfaces inside the box.
 
 You may also notice ui_get_event(), another high-level feature not found in NCurses or Notcurses. Like getch(), this function reads keyboard and mouse input, but it goes much further. It handles interrupt signals, mouse positioning, 5 buttons, a scroll wheel, regular text, and Unicode. The data structure returned by ui_get_event() includes the surface and sub-surface on which the event occurred and switch case matching codes for a zoned chyron.
 
 The program compiles and runs with either NCurses or Notcurses, and the UAL handles the differences in the two backends. The UAL is designed to be easy to use and understand, and it provides a consistent interface for developers to work with, regardless of the underlying backend.
+
+![ui_hello.c](screenshots/hello.png)
 
 ---
 

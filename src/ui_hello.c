@@ -10,7 +10,6 @@ int main(int argc, char **argv) {
     ui_init(&ui_config, init->sio);
     ui_tracked_sfc_box(12, 50, 5, 5, "Test UI Application");
     UiSurface *sfc = ui_surface[sfc_ptr];
-    ui_keypad(sfc, WIN, true);
     ui_mvwaddstr(sfc, WIN, 1, 4, "Hello!");
     ui_mvwaddstr(sfc, WIN, 3, 4, "Press a key or activate the mouse:");
     ui_render();
