@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     ui_init(&ui_config, init->sio);
     ui_display_image(ui->nc, &mm, image_file, -1, -1, 30, 0);
     UiEvent ev;
-    int c = ui_get_event(mm.sfc, WIN, NULL, &ev, -1);
+    ui_get_event(mm.sfc, WIN, NULL, &ev, -1);
     ncvisual_destroy(mm.ncv);
     ui_surface_destroy(mm.sfc);
     ui_render();
