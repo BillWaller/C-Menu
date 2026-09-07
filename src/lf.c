@@ -1,13 +1,19 @@
-/** NOTICE: This file is part of the lf project, which is currently under
- * development. There are two reasons not to use it at this time. First,
- * it is not yet fully functional and may contain bugs or incomplete,
- * unoptimized code. Second, the API and features are still being finalized,
- * so using it now may lead to compatibility issues in the future as changes
- * are made. Once the project is more mature and stable, this file will be
- * ready for use. In the meantime, it serves as a work in progress and may
- * be subject to significant changes as development continues.
+/** ANNOUNCEMENT: This file is part of the lf project, which is currently being
+ * tested in anticipation of public release. The test suite consists of a test
+ * script, lf_tests.sh, which uses diff to compare the output with find. There
+ * is also an accompanying markdown file, lf_tests.md, that outlines the testing
+ * methodology, cases, and expected results.
  *
- * Thank you for your patience and understanding.
+ * One test run resulted in six files out of 600,000 listed by find that weren't
+ * listed by lf. These were temporary files created by Google browser, Microsoft
+ * Edge, and Thunderbird. lf rejected them because their inodes were fictitious.
+ * find listed them without distinguising them from the other 599,993 normal
+ * files. With find, you would never know about them. As a design choice, lf
+ * segregates those files as errors. We aren't necessarily locked into our
+ * design choices. Your feedback and suggestions are always welcome.
+ *
+ * Feel free to run the test script on your own system, and if you encounter any
+ * issues, please report them to the author.
  */
 
 /** @file lf.c
@@ -85,6 +91,7 @@ typedef struct {
     pthread_mutex_t queue_mutex;
     pthread_cond_t cond_var;
     pthread_mutex_t output_mutex;
+    pthread_t *threads;
     atomic_int active_tasks;
     int shut_down;
     atomic_size_t file_count;
@@ -281,7 +288,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
                                  // LF_HIDE = 1 - suppress hidden files
         break;
     case 'i':
-        lf->flags |= LF_ICASE;
+        lf->ignore_case = true;
         break;
     case 'L':
         lf->follow_links = true; // follow symbolic links
@@ -565,7 +572,7 @@ bool init_find(LfContext *lf, int argc, char **argv) {
     lf->include_hidden = !(lf->flags & LF_HIDE);
     int reti = 0;
     lf->reg_flags = REG_EXTENDED;
-    if (lf->flags & LF_ICASE)
+    if (lf->ignore_case)
         lf->reg_flags |= REG_ICASE;
     if (lf->flags & LF_REGEX) {
         reti = regcomp(&lf->compiled_re, lf->re, lf->reg_flags);
@@ -611,10 +618,14 @@ bool init_find(LfContext *lf, int argc, char **argv) {
             child_task->history[0].dev = st.st_dev;
             child_task->history[0].ino = st.st_ino;
             enqueue_dir(lf, child_task);
-            pthread_t threads[lf->nthreads];
+            lf->threads = calloc(lf->nthreads, sizeof(*lf->threads));
+            if (!lf->threads) {
+                fprintf(stderr, "Out of memory allocating threads\n");
+                return false;
+            }
             for (unsigned int i = 0; i < lf->nthreads; i++) {
                 rc = pthread_create(
-                    &threads[i],
+                    &lf->threads[i],
                     NULL,
                     finder,
                     lf);
@@ -623,25 +634,31 @@ bool init_find(LfContext *lf, int argc, char **argv) {
                     fprintf(stderr, "Error: Unable to create thread %d\n", rc);
                     lf->shut_down = 1;
                     lf->termination_status = TS_ERROR;
-                    return 0;
+                    return false;
                 }
             }
             pthread_mutex_lock(&lf->queue_mutex);
-            while (!lf->shut_down) {
+            while (!lf->shut_down)
                 pthread_cond_wait(&lf->cond_var, &lf->queue_mutex);
-            }
             pthread_mutex_unlock(&lf->queue_mutex);
             for (unsigned int i = 0; i < lf->nthreads; i++)
-                pthread_join(threads[i], NULL);
+                pthread_join(lf->threads[i], NULL);
         } else {
             fprintf(stderr,
                     "Warning: Base path '%s' is not a directory. No "
                     "files will be found.\n",
                     lf->base_path);
+            lf->termination_status = TS_ERROR;
+            return false;
         }
     }
     //--------------------------------------------------------------------
     // End Program
+    rc = pthread_mutex_destroy(&lf->queue_mutex);
+    rc = pthread_cond_destroy(&lf->cond_var);
+    rc = pthread_mutex_destroy(&lf->output_mutex);
+    if (rc != 0)
+        perror("Mutex initialization failed");
     if (lf->flags & LF_REGEX) {
         regfree(&lf->compiled_re);
     }
@@ -652,6 +669,7 @@ bool init_find(LfContext *lf, int argc, char **argv) {
     free(lf->user_name);
     free(lf->re);
     free(lf->ere);
+    free(lf->threads);
     free(lf);
     if (reti)
         return false;
@@ -906,7 +924,6 @@ TaskNode *dequeue_dir(LfContext *lf) {
 void *finder(void *arg) {
     LfContext *lf = (LfContext *)arg;
     char lnk_path[PATH_MAX] = {'\0'};
-    // regmatch_t pmatch;
 
     while (1) {
         TaskNode *current_task = dequeue_dir(lf);
@@ -924,6 +941,9 @@ void *finder(void *arg) {
         // error (if debugging is enabled), clean up resources for the
         // current task, and continue to the next iteration of the loop to
         // process another task.
+        // --------------------------------------------------------------------
+        // INITIALIZE DIRECTORY - PRIMING READ
+        // --------------------------------------------------------------------
         int dir_fd =
             openat(AT_FDCWD, current_task->dir_path, O_RDONLY | O_DIRECTORY);
         if (dir_fd == -1) {
@@ -959,15 +979,26 @@ void *finder(void *arg) {
             pthread_cond_broadcast(&lf->cond_var);
             continue;
         }
-        // unsigned char real_type;
-        //-------------------------------------------------------------
+        //--------------------------------------------------------------------
+        // MAIN LOOP - READ DIRECTORY ENTRIES
+        //--------------------------------------------------------------------
+        // Read the directory entries and process each one. We use readdir to
+        // iterate over the entries in the directory. For each entry, we
+        // construct the full path and use fstatat to get the metadata of
+        // the entry. If the entry is a symbolic link, we check if the user
+        // has chosen to follow links and get the metadata of the target it
+        // points to. We then determine the effective type of the entry and
+        // apply the specified filters (e.g., hidden files, max depth) to
+        // decide whether to process it further or enqueue it for searching.
+        //--------------------------------------------------------------------
         unsigned char effective_type;
         char full_path[PATH_MAX] = {'\0'};
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
             struct stat st;
-            stpcpy(stpcpy(stpcpy(full_path, current_task->dir_path), "/"),
-                   entry->d_name);
+            strnz__cpy(full_path, current_task->dir_path, PATH_MAX - 1);
+            strnz__cat(full_path, "/", PATH_MAX - 1);
+            strnz__cat(full_path, entry->d_name, PATH_MAX - 1);
             // Get link's metadata
             int rc;
             // We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata
@@ -977,6 +1008,7 @@ void *finder(void *arg) {
             // whether to follow links or not). If fstatat fails, we log the
             // error (if debugging is enabled) and continue to the next
             // entry without processing this one further.
+            effective_type = entry->d_type;
             rc = fstatat(AT_FDCWD, full_path, &st, AT_SYMLINK_NOFOLLOW);
             if (rc == -1) {
                 atomic_fetch_add(&lf->error_count, 1);
@@ -990,6 +1022,9 @@ void *finder(void *arg) {
                 continue;
             }
             effective_type = (st.st_mode & S_IFMT) >> 12;
+            if (entry->d_type != effective_type) {
+                fprintf(stderr, "entry->d_type %08b, effective_type %08b\n", entry->d_type, effective_type);
+            }
             // Determine the real type of the entry. If the entry is a
             // symbolic link, we set real_type to DT_LNK and then attempt to
             // get the metadata of the target it points to using fstatat
@@ -1001,8 +1036,9 @@ void *finder(void *arg) {
             // metadata, we log the error (if debugging is enabled) but
             // continue processing the entry based on its symbolic link
             // metadata.
+            // if (effective_type == DT_LNK) {
+            // Get the target's metadata
             if (S_ISLNK(st.st_mode)) {
-                // Get the target's metadata
                 rc = fstatat(AT_FDCWD, full_path, &st, 0);
                 if (rc == -1) {
                     atomic_fetch_add(&lf->error_count, 1);
@@ -1239,11 +1275,13 @@ int scan_file(char *file_spec, LfContext *lf,
                 l = ssnprintf(outbuf, sizeof(outbuf), "%s/", file_spec);
             else
                 l = strnz__cpy(outbuf, file_spec, sizeof(outbuf));
+            outbuf[l] = '\n';
+            outbuf[l + 1] = '\0';
             pthread_mutex_lock(&lf->output_mutex);
             if (l > 2 && outbuf[0] == '.' && outbuf[1] == '/')
-                puts(&outbuf[2]);
+                fputs_unlocked(&outbuf[2], stdout);
             else
-                puts(outbuf);
+                fputs_unlocked(outbuf, stdout);
             pthread_mutex_unlock(&lf->output_mutex);
         }
         break;

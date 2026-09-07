@@ -1,4 +1,5 @@
 # lf_tests.md
+---
 
 ## Introduction
 
@@ -19,81 +20,61 @@ but until we do, it's better that lf rejects files it cannot verify.
 The following information is not verbatim output from lf_tests.sh, but edited
 slightly for readability. The actual output is in lf_tests.txt.
 
+---
+
 ## Empty Directory
 
-: PASS
-
-## Small Directory
-
-Running lf
-lf complete, found 307 files
-
-Running find
-find complete, found 307 files
-
-no differences: PASS
+```
+empty directory: PASS
+```
 
 ---
 
-## Large directory 501863 files
+## Small Directory
 
+```
+========================== . ==========================
 Running lf
-Errors: 7
-Command exited with non-zero status 1
-17.49
-lf complete, found 501856 valid files
-plus 7 files with invalid inodes
+lf complete, found 522 files
+----------------------------------------------------------------
+Running find
+find complete, found 522 files
+----------------------------------------------------------------
+no differences: PASS
 
-lf -H -D458 lists only directory entries that are invalid
-It listed the missing files as follows:
-
-```files
-STAT_FAIL,/home/bill/.thunderbird/z1w8j69z.default-esr/lock,No such file or directory
-STAT_FAIL,/home/bill/.config/google-chrome/SingletonCookie,No such file or directory
-STAT_FAIL,/home/bill/.config/microsoft-edge-dev/SingletonCookie,No such file or directory
-STAT_FAIL,/home/bill/.config/google-chrome/SingletonLock,No such file or directory
-STAT_FAIL,/home/bill/.config/microsoft-edge-dev/SingletonLock,No such file or directory
-STAT_FAIL,/home/bill/.config/mozilla/firefox/CFmctgAX.Profile 2/lock,No such file or directory
-STAT_FAIL,/home/bill/.config/mozilla/firefox/yqxm5v5q.default-release-1/lock,No such file or directory
 ```
 
-----------------------------------------------------------------
+---
 
+## Large Directory
+
+```
+================== /home/bill 507305 =================
+Running lf
+Errors: 3
+Command exited with non-zero status 1
+15.60
+lf complete, found 507302 valid files
+    plus 3 pseudo-files with invalid inodes
+STAT_FAIL,/home/bill/.thunderbird/z1w8j69z.default-esr/lock,No such file or directory
+STAT_FAIL,/home/bill/.config/mozilla/firefox/CFmctgAX.Profile 2/lock,No such file or directory
+STAT_FAIL,/home/bill/.config/mozilla/firefox/yqxm5v5q.default-release-1/lock,No such file or directory
+----------------------------------------------------------------
 Running find
-11.65
-find complete, found 501863 files
+11.68
+find complete, found 507305 files
 ----------------------------------------------------------------
 differences found: FAIL
-
-find listed the following files that lf rejected bacause of invalid inodes:
-
-```files
-find2:  /home/bill/.config/google-chrome/SingletonCookie
-find2:  /home/bill/.config/google-chrome/SingletonLock
-find2:  /home/bill/.config/microsoft-edge-dev/SingletonCookie
-find2:  /home/bill/.config/microsoft-edge-dev/SingletonLock
+find found 3 more files than lf
+lf rejected 3 files with invalid inodes
 find2:  /home/bill/.config/mozilla/firefox/CFmctgAX.Profile 2/lock
 find2:  /home/bill/.config/mozilla/firefox/yqxm5v5q.default-release-1/lock
 find2:  /home/bill/.thunderbird/z1w8j69z.default-esr/lock
-```
-
-reported 7 more files than lf, but lf rejected them because of invalid inodes
-
 ----------------------------------------------------------------
 
-output files lf2.out and find2.out
+output files are lf2.out and find2.out
 termination_status: FAIL
 
-----------------------------------------------------------------
+```
 
-Known problems
-
-1 - lf is not as fast as find at 17.49 seconds compared to find at 11.65 seconds
-This is no doubt, at least in part, due to the cyclic tracking
-
-2 - lf considers files that point to nowhere an error, though these files no 
-doubt use some unknown scheme for using their metadata to find network files, but it 
-is not linux.
-
-3 - lf doesn't report the top-level directory provided as the starting point for 
-the find operation.
+---

@@ -28,8 +28,8 @@ else
 	DEBUG_FLAGS= -DDEBUG_COLOR
 #	-DDEBUG_RESIZE -DDEBUG_LOG -DDEBUG_LAYOUT
 #	-DDEBUG_IMMEDOK
-	DEBUG_FLAGS=-DDEBUG_LOG -DDEBUG_WRAP -DDEBUG_UI
-	CFLAGS:=-O0 -g3 -fPIC $(DEBUG_FLAGS) -pthread -fno-omit-frame-pointer \
+	DEBUG_FLAGS=
+	CFLAGS:=-O3 -g3 -fPIC $(DEBUG_FLAGS) -pthread -fno-omit-frame-pointer \
 		-rdynamic $(UI)
 	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread
 endif
