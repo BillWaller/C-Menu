@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-07T17:23:17-05:00* - FIXES: Testing and review of lf. Cleaning up a few things and adding some tests. 
+
+*2026-09-07T09:38:40-05:00* - Update CHANGELOG.md 
+
 *2026-09-07T09:38:05-05:00* - FIXES: Preemptive bug fixes in lf.c 
 
 *2026-09-07T08:23:14-05:00* - Update CHANGELOG.md 
