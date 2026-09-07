@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-07T09:38:05-05:00* - FIXES: Preemptive bug fixes in lf.c 
+
+*2026-09-07T08:23:14-05:00* - Update CHANGELOG.md 
+
 *2026-09-07T08:22:44-05:00* - FIXES: Corrected several issues with lf.c 
 
 *2026-09-05T22:32:50-05:00* - Update CHANGELOG.md 
