@@ -42,6 +42,14 @@
 #include <time.h>
 #include <unistd.h>
 
+typedef enum {
+    TS_SUCCESS = 0,
+    TS_ERROR = 1,
+    TS_MATCH = 2,
+    TS_MATCH_PLUS_ERROR = 3,
+} TerminationStatus;
+TerminationStatus termination_status = TS_ERROR;
+
 #define print_file_type(mask, lf_type, dt_type, name)           \
     {                                                           \
         fprintf(stderr, "%c %08b (%3d) %08b (%2d) %s\n",        \
@@ -131,16 +139,17 @@ TaskNode *qhead = NULL;
 TaskNode *qtail = NULL;
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond_var = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t output_mutex = PTHREAD_MUTEX_INITIALIZER;
 atomic_int active_tasks = 0;
 int shut_down = 0;
-int termination_status = EXIT_SUCCESS;
 int lfargc;
 char *lfargs[3];
 char *exec;
 char *file_types_p;
 char *perms_p;
 char *debug_p;
-size_t file_count = 0;
+atomic_size_t file_count = 0;
+atomic_size_t error_count = 0;
 void debug_out(SearchFilters *, int, char **, int);
 bool init_find(SearchFilters *, int, char **);
 void sort_lf_output(SearchFilters *, int, char **);
@@ -172,12 +181,12 @@ static struct argp_option options[] = {
      "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, "
      "8-only_errors",
      0},
-    {"include_hidden", 'H', "o", 0, "Include hidden files (o=hidden only)", 0},
+    {"include_hidden", 'H', "o", OPTION_ARG_OPTIONAL, "Include hidden files (o=hidden only)", 0},
     {"follow_links", 'L', 0, 0, "Follow symbolic links", 0},
     {"sort_reverse", 'R', 0, 0, "Sort in Reverse order", 0},
     {"sort", 'S', 0, 0, "Sort in Ascending order", 0},
     {"nthreads", 'T', "threads", 0, "Number of nthreads", 0},
-    {"count", 'c', "s", 0, "Count (s only report count)", 0},
+    {"count", 'c', "s", OPTION_ARG_OPTIONAL, "Count (s only report count)", 0},
     {0}};
 
 /** @brief Parse a single option.  */
@@ -360,7 +369,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             f->flags |= LF_USER;
         } else {
             fprintf(stderr, "User '%s' not found.\n", arg);
-            exit(EXIT_FAILURE);
+            exit(termination_status);
         }
         break;
 #ifdef EXPERIMENTAL
@@ -417,7 +426,7 @@ int main(int argc, char **argv) {
                 stderr,
                 "lf: arg1: '%s' is neither a directory nor a valid regex.\n",
                 lfargs[0]);
-            exit(EXIT_FAILURE);
+            exit(termination_status);
         }
     }
     if (lfargc > 1) {
@@ -435,20 +444,26 @@ int main(int argc, char **argv) {
                     "lf: '%s' is neither a directory nor a valid regular "
                     "expression.\n",
                     lfargs[1]);
-            exit(EXIT_FAILURE);
+            exit(termination_status);
         }
     }
     if (f->base_path == nullptr || f->base_path[0] == '\0')
         f->base_path = strdup(".");
+    termination_status = TS_SUCCESS;
     if (!f->sort) {
         init_find(f, argc, argv);
     } else
         sort_lf_output(f, argc, argv);
-    if (f->count)
-        fprintf(stderr, "Files: %zu\n", file_count);
-    if (file_count == 0)
-        return 1;
-    return 0;
+    if (f->count) {
+        size_t count = atomic_load(&file_count);
+        fprintf(stderr, "Files: %zu\n", count);
+    }
+    atomic_load(&error_count);
+    if (error_count > 0) {
+        fprintf(stderr, "Errors: %zu\n", error_count);
+        termination_status |= TS_ERROR;
+    }
+    exit(termination_status);
 }
 // Initialize and transfer control to the finder
 /** If sorting is requested, execute the finder and pipe its output
@@ -480,7 +495,7 @@ void sort_lf_output(SearchFilters *f, int argc, char **argv) {
         close(fds[0]);              // Close the original read end of the pipe
         execvp(eargv[0], eargv);    // Execute the sort command
         fprintf(stderr, "Failed to execute sort: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
+        exit(termination_status);
     }
     // fclose(stdout);
     dup2(fds[1], STDOUT_FILENO);         // Clone write pipe to STDOUT_FILENO
@@ -550,18 +565,22 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
         }
     }
     unsigned int nprocs = get_nprocs();
-    if (nthreads > 1 && nthreads < nprocs)
-        nthreads += nprocs;
-    else {
-        if (nthreads == 0)
-            nthreads = ((nprocs * 40) / 99) + 1;
-    }
-    if (nthreads > nprocs)
-        nthreads = nprocs - 1;
+    if (nprocs == 0)
+        nprocs = 1;
 
+    if (nthreads == 0) {
+        nthreads = (nprocs > 1) ? (nprocs - 1) : 1;
+    } else {
+        if (nthreads < 1)
+            nthreads = 1;
+        if (nthreads > nprocs)
+            nthreads = nprocs;
+    }
     debug_out(f, argc, argv, nthreads);
     //--------------------------------------------------------------------
     // Create and enqueue the first TaskNode
+    termination_status = TS_SUCCESS;
+    int rc = 0;
     struct stat st;
     if (stat(f->base_path, &st) == 0) {
         if (S_ISDIR(st.st_mode)) {
@@ -575,7 +594,13 @@ bool init_find(SearchFilters *f, int argc, char **argv) {
             enqueue_dir(child_task);
             pthread_t threads[nthreads];
             for (unsigned int i = 0; i < nthreads; i++) {
-                pthread_create(&threads[i], NULL, finder, f);
+                rc = pthread_create(&threads[i], NULL, finder, f);
+                if (rc != 0) {
+                    fprintf(stderr, "Error: Unable to create thread %d\n", rc);
+                    shut_down = 1;
+                    termination_status = TS_ERROR;
+                    return 0;
+                }
             }
             pthread_mutex_lock(&queue_mutex);
             while (!shut_down) {
@@ -740,7 +765,7 @@ void debug_out(SearchFilters *f, int argc, char **argv, int threads) {
         if (f->sort_reverse)
             fprintf(stderr, "Sort output in reverse order.\n\n");
         if (f->report_config && !f->report_all)
-            exit(EXIT_SUCCESS);
+            exit(TS_ERROR);
     }
     return;
 }
@@ -878,11 +903,13 @@ void *finder(void *arg) {
         int dir_fd =
             openat(AT_FDCWD, current_task->dir_path, O_RDONLY | O_DIRECTORY);
         if (dir_fd == -1) {
+            atomic_fetch_add(&error_count, 1);
             if (f->debug && (f->report_warnings || f->report_errors ||
-                             f->report_badlinks || f->report_all))
-                fprintf(stderr, "OPEN_FAIL,%s,%s\n", current_task->dir_path,
-                        strerror(errno));
-            termination_status = EXIT_FAILURE;
+                             f->report_badlinks || f->report_all)) {
+                pthread_mutex_lock(&output_mutex);
+                fprintf(stderr, "OPEN_FAIL,%s,%s\n", current_task->dir_path, strerror(errno));
+                pthread_mutex_unlock(&output_mutex);
+            }
             free(current_task->dir_path);
             free(current_task->history);
             free(current_task);
@@ -892,12 +919,15 @@ void *finder(void *arg) {
         }
         DIR *dir = fdopendir(dir_fd);
         if (dir == NULL) {
+            atomic_fetch_add(&error_count, 1);
             if (f->debug && (f->report_warnings || f->report_errors ||
-                             f->report_badlinks || f->report_all))
+                             f->report_badlinks || f->report_all)) {
+                pthread_mutex_lock(&output_mutex);
                 fprintf(stderr, "\nFDOPENDIR_FAIL,%s,%s\n",
                         current_task->dir_path, strerror(errno));
+                pthread_mutex_unlock(&output_mutex);
+            }
             close(dir_fd);
-            termination_status = EXIT_FAILURE;
             free(current_task->dir_path);
             free(current_task->history);
             free(current_task);
@@ -925,11 +955,14 @@ void *finder(void *arg) {
             // entry without processing this one further.
             rc = fstatat(AT_FDCWD, full_path, &st, AT_SYMLINK_NOFOLLOW);
             if (rc == -1) {
+                atomic_fetch_add(&error_count, 1);
                 if (f->debug && (f->report_errors || f->report_warnings ||
-                                 f->report_badlinks || f->report_all))
+                                 f->report_badlinks || f->report_all)) {
+                    pthread_mutex_lock(&output_mutex);
                     fprintf(stderr, "LSTAT_FAIL,%s,%s\n", full_path,
                             strerror(errno));
-                termination_status = EXIT_FAILURE;
+                    pthread_mutex_unlock(&output_mutex);
+                }
                 continue;
             }
             effective_type = (st.st_mode & S_IFMT) >> 12;
@@ -948,12 +981,14 @@ void *finder(void *arg) {
                 // Get the target's metadata
                 rc = fstatat(AT_FDCWD, full_path, &st, 0);
                 if (rc == -1) {
+                    atomic_fetch_add(&error_count, 1);
                     if (f->debug && (f->report_all || f->report_warnings ||
                                      f->report_errors || f->report_badlinks)) {
+                        pthread_mutex_lock(&output_mutex);
                         fprintf(stderr, "STAT_FAIL,%s,%s\n", full_path,
                                 strerror(errno));
+                        pthread_mutex_unlock(&output_mutex);
                     }
-                    termination_status = EXIT_FAILURE;
                     continue;
                 }
                 if (f->follow_links)
@@ -984,16 +1019,21 @@ void *finder(void *arg) {
                 // from parent directories. If a match is found, it
                 // indicates a cycle and we skip processing this directory.
                 bool cycle_found = false;
-                if (f->debug && (f->report_trace || f->report_all))
+                if (f->debug && (f->report_trace || f->report_all)) {
+                    pthread_mutex_lock(&output_mutex);
                     fprintf(stderr, "Checking for cycles in: %s\n", full_path);
+                    pthread_mutex_unlock(&output_mutex);
+                }
                 for (int i = 0; i < current_task->depth; i++) {
                     if (f->debug && (f->report_trace || f->report_all)) {
+                        pthread_mutex_lock(&output_mutex);
                         if (current_task->history[i].ino == st.st_ino)
                             fprintf(stderr, "%3d %ju %ju<===========\n", i,
                                     current_task->history[i].ino, st.st_ino);
                         else
                             fprintf(stderr, "%3d %ju %ju\n", i,
                                     current_task->history[i].ino, st.st_ino);
+                        pthread_mutex_unlock(&output_mutex);
                     }
                     if (current_task->history[i].dev == st.st_dev &&
                         current_task->history[i].ino == st.st_ino) {
@@ -1002,19 +1042,21 @@ void *finder(void *arg) {
                     }
                 }
                 if (cycle_found) {
+                    atomic_fetch_add(&error_count, 1);
                     if (f->debug && (f->report_warnings || f->report_errors ||
                                      f->report_trace || f->report_badlinks ||
                                      f->report_all)) {
                         ssize_t len =
                             readlink(full_path, lnk_path, sizeof(lnk_path) - 1);
+                        pthread_mutex_lock(&output_mutex);
                         if (len != -1) {
                             lnk_path[len] = '\0';
                             fprintf(stderr, "CYCLIC_LINK,%s,%s\n", full_path,
                                     lnk_path);
                         } else
                             fprintf(stderr, "CYCLIC_LINK,%s\n", full_path);
+                        pthread_mutex_unlock(&output_mutex);
                     }
-                    termination_status = EXIT_FAILURE;
                     continue;
                 }
                 //-------------------------------------------------------
@@ -1087,50 +1129,32 @@ bool is_dirsys(const char *name) {
  */
 int scan_file(char *file_spec, const SearchFilters *f,
               const unsigned char effective_type) {
-    regmatch_t pmatch[2];
     bool stat_cached = false;
 
     while (1) {
         if (f->debug && (f->report_trace || f->report_all)) {
+            pthread_mutex_lock(&output_mutex);
             printf("suppress %08b, effective %08b, lf_mask %08b, & %08b %s\n",
                    f->suppress_types, effective_type, lf_mask[effective_type], f->suppress_types & lf_mask[effective_type], file_spec);
+            pthread_mutex_unlock(&output_mutex);
         }
         if (f->suppress_types & lf_mask[effective_type])
             break;
         // Exclude non-matching files
         if (f->flags & LF_REGEX) {
             int reti =
-                regexec(&f->compiled_re, file_spec, f->compiled_re.re_nsub + 1,
-                        pmatch, f->reg_flags);
-            if (reti == REG_NOMATCH) {
-                if (f->debug && (f->report_info || f->report_all))
-                    fprintf(stderr, "Regex no match: %s\n", file_spec);
+                regexec(&f->compiled_re, file_spec, 0, NULL, 0);
+            if (reti == REG_NOMATCH)
                 break;
-            } else if (reti) {
-                char errbuf[MAXLEN];
-                regerror(reti, &f->compiled_re, errbuf, sizeof(errbuf));
-                if (f->debug && (f->report_errors || f->report_all))
-                    fprintf(stderr, "regex error: %s\n", errbuf);
-                termination_status = EXIT_FAILURE;
-                return 0;
-            }
+            termination_status |= TS_MATCH;
         }
         // Exclude matching files
         if (f->flags & LF_EXC_REGEX) {
             int reti =
-                regexec(&f->compiled_ere, file_spec, f->compiled_re.re_nsub + 1,
-                        pmatch, f->reg_flags);
-            if (reti == 0) // Match
+                regexec(&f->compiled_ere, file_spec, 0, NULL, 0);
+            if (reti == 0) {
+                termination_status |= TS_MATCH;
                 break;
-            if (reti != REG_NOMATCH) {
-                if (reti) {
-                    char errbuf[MAXLEN];
-                    regerror(reti, &f->compiled_ere, errbuf, sizeof(errbuf));
-                    if (f->debug && (f->report_errors || f->report_all))
-                        fprintf(stderr, "Exclude regex error: %s\n", errbuf);
-                    termination_status = EXIT_FAILURE;
-                    return 0;
-                }
             }
         }
         stat_cached = false;
@@ -1181,20 +1205,22 @@ int scan_file(char *file_spec, const SearchFilters *f,
             if (stat_cached && sb.st_size < f->file_size_min)
                 break;
         }
-        if (effective_type == DT_DIR) {
-            char *file_p = file_spec;
-            while (*file_p++ != '\0')
-                ;
-            *file_p = '/';
-        }
         if (f->only_errors)
             break;
-        file_count++;
+        atomic_fetch_add(&file_count, 1);
         if (!f->count_silently) {
-            if (file_spec[0] == '.' && file_spec[1] == '/')
-                printf("%s\n", &file_spec[2]);
+            size_t l = 0;
+            char outbuf[PATH_MAX + 2];
+            if (effective_type == DT_DIR)
+                l = ssnprintf(outbuf, sizeof(outbuf), "%s/", file_spec);
             else
-                printf("%s\n", file_spec);
+                l = strnz__cpy(outbuf, file_spec, sizeof(outbuf));
+            pthread_mutex_lock(&output_mutex);
+            if (l > 2 && outbuf[0] == '.' && outbuf[1] == '/')
+                puts(&outbuf[2]);
+            else
+                puts(outbuf);
+            pthread_mutex_unlock(&output_mutex);
         }
         break;
     }

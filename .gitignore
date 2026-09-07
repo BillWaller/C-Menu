@@ -41,6 +41,7 @@ src/rsh_pam
 src/vars
 src/photos
 src/visual
+src/work
 src/ui_hello
 src/ui_visual
 build/.cmake

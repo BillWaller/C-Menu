@@ -10,6 +10,7 @@ ifneq ($(CMENU_HOME),)
 	PREFIX:=$(HOME)/menuapp
 endif
 DISPLAY_MANIFEST=0
+BUILD_TYPE=Release
 BUILD_TYPE=Debug
 # UI backend selection:
 #   NCURSES_UI    — legacy ncurses direct-use (default)
@@ -20,7 +21,7 @@ include UI.mk
 # UI?=-DNCURSES_UI
 # UI?="-DNOTCURSES_UI"
 ifeq ($(BUILD_TYPE), Release)
-	CFLAGS=-Ofast -s -fPIC -pthread $(UI)
+	CFLAGS=-O3 -s -fPIC -pthread $(UI)
 	EXTRA_CFLAGS=-flto
 	LINKOPT= -pthread -s
 else
