@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-07T08:22:44-05:00* - FIXES: Corrected several issues with lf.c 
+
+*2026-09-05T22:32:50-05:00* - Update CHANGELOG.md 
+
 *2026-09-05T22:31:32-05:00* - FEATURE UPDATE: Added image of the hello program code and updated the README.md file. 
 
 *2026-09-05T22:21:00-05:00* - Update CHANGELOG.md 
