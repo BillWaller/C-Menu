@@ -1132,10 +1132,9 @@ void *finder(void *arg) {
             } else {
                 if (is_dirsys(entry->d_name))
                     continue;
-                size_t full_path_len = 0;
                 if (!build_full_path(full_path, sizeof(full_path),
                                      current_task->dir_path,
-                                     entry->d_name, &full_path_len)) {
+                                     entry->d_name, nullptr)) {
                     atomic_fetch_add(&lf->error_count, 1);
                     if (lf->debug && (lf->report_errors || lf->report_warnings ||
                                       lf->report_badlinks || lf->report_all)) {
@@ -1237,10 +1236,9 @@ void *finder(void *arg) {
             }
             if (lf->hidden_only && !is_hidden(entry->d_name))
                 continue;
-            size_t full_path_len = 0;
             if (!build_full_path(full_path, sizeof(full_path),
                                  current_task->dir_path,
-                                 entry->d_name, &full_path_len)) {
+                                 entry->d_name, nullptr)) {
                 atomic_fetch_add(&lf->error_count, 1);
                 if (lf->debug && (lf->report_errors || lf->report_warnings ||
                                   lf->report_badlinks || lf->report_all)) {
@@ -1323,16 +1321,17 @@ int scan_file(const char *file_spec, LfContext *lf,
             }
         }
         //  Exclude files not owned by specified user
-        if ((lf->flags & LF_USER) && stat(file_spec, &sb) == 0) {
-            stat_cached = true;
-            if (sb.st_uid != lf->user_id)
+        if (lf->flags & LF_USER) {
+            if (!stat_cached && stat(file_spec, &sb) == 0)
+                stat_cached = true;
+            if (!stat_cached || sb.st_uid != lf->user_id)
                 break;
         }
         if (lf->include_perms) {
-            if (!stat_cached) {
-                if (stat(file_spec, &sb) == 0)
-                    stat_cached = true;
-            }
+            if (!stat_cached && stat(file_spec, &sb) == 0)
+                stat_cached = true;
+            if (!stat_cached)
+                break;
             if ((lf->include_perms & LF_IRUSR) && !(sb.st_mode & S_IRUSR))
                 break;
             else if ((lf->include_perms & LF_IWUSR) && !(sb.st_mode & S_IWUSR))
@@ -1345,26 +1344,20 @@ int scan_file(const char *file_spec, LfContext *lf,
                 break;
         }
         if (lf->before) {
-            if (!stat_cached) {
-                if (stat(file_spec, &sb) == 0)
-                    stat_cached = true;
-            }
+            if (!stat_cached && stat(file_spec, &sb) == 0)
+                stat_cached = true;
             if (stat_cached && sb.st_mtime > lf->before)
                 break;
         }
         if (lf->after) {
-            if (!stat_cached) {
-                if (stat(file_spec, &sb) == 0)
-                    stat_cached = true;
-            }
+            if (!stat_cached && stat(file_spec, &sb) == 0)
+                stat_cached = true;
             if (stat_cached && sb.st_mtime < lf->after)
                 break;
         }
         if (lf->file_size_min) {
-            if (!stat_cached) {
-                if (stat(file_spec, &sb) == 0)
-                    stat_cached = true;
-            }
+            if (!stat_cached && stat(file_spec, &sb) == 0)
+                stat_cached = true;
             if (stat_cached && sb.st_size < lf->file_size_min)
                 break;
         }
