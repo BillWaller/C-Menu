@@ -2,6 +2,8 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-08T21:53:30-05:00* - Update CHANGELOG.md 
+
 *2026-09-08T21:41:06-05:00* - FIXES: Extensive testing and hardening of lf. Corrected problem when viewing "bat" highlighted files because Notcurses doesn't digest Unicode code points. Notcurses expects UTF-8 encoded strings, but "bat" prints Unicode code points for its line drawing characters. The abstraction layer has been modified to automatically convert Unicode code points to UTF-8 encoded strings before passing them to Notcurses. 
 
 *2026-09-07T17:24:07-05:00* - Update CHANGELOG.md 
