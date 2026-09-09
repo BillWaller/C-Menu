@@ -83,13 +83,9 @@ typedef enum {
 typedef struct {
     union {
         uint32_t u32;
-        wchar_t w32[2];
-        wchar_t ww32;
-        uint8_t u8[4];
+        wchar_t w32;
         char c[4];
     };
-    uint8_t backstop;
-    uint8_t width;
 } GCluster;
 
 typedef struct UiRuntime UiRuntime;
@@ -637,25 +633,24 @@ static inline int unicode_to_utf8_gcluster(uint32_t cp, GCluster *g) {
     if (cp <= 0x7F) {
         g->c[0] = (char)cp;
         g->c[1] = '\0';
-        g->width = 1;
+        return 1;
     } else if (cp <= 0x7FF) {
         g->c[0] = (char)(0xC0 | (cp >> 6));
         g->c[1] = (char)(0x80 | (cp & 0x3F));
         g->c[2] = '\0';
-        g->width = 2;
+        return 2;
     } else if (cp <= 0xFFFF) {
         g->c[0] = (char)(0xE0 | (cp >> 12));
         g->c[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
         g->c[2] = (char)(0x80 | (cp & 0x3F));
         g->c[3] = '\0';
-        g->width = 3;
+        return 3;
     } else if (cp <= 0x10FFFF) {
         g->c[0] = (char)(0xF0 | (cp >> 18));
         g->c[1] = (char)(0x80 | ((cp >> 12) & 0x3F));
         g->c[2] = (char)(0x80 | ((cp >> 6) & 0x3F));
         g->c[3] = (char)(0x80 | (cp & 0x3F));
-        g->backstop = '\0';
-        g->width = 4;
+        return 4;
     }
     return 0;
 }
@@ -899,7 +894,6 @@ int ui_mvwadd_wchnstr(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cell, 
 // Wide Character Cell conversions
 // ---------------------------------------------------------------
 UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *bg);
-uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
 void ui_mbc_to_wc(wchar_t wc[2], const char mbc);
 wchar_t *ui_mbstr_to_wcstr(const char *mb_str);
 // ---------------------------------------------------------------
@@ -948,7 +942,6 @@ extern uint LINES, COLS;
 void ui_cursor_yx(int *y, int *x);
 void ui_abs_yx(UiSurface *s, ss_t w, int *y, int *x);
 int mk_chimera(UiCell *cell, char c);
-int ui_setcchar(UiCell *cell, const wchar_t *wstr, const attr_t style, ushort pair, const void *opts);
 int ui_getcchar(const UiCell *cell, wchar_t *wstr, UiStyle *style, UiPairIdx *pair, const void *opts);
 // How do you convert "NCurses" to "Notcurses"?
 // Insert "ot" after "N".
@@ -963,11 +956,33 @@ uint ui_color_from_rgb(RGB *rgb);
 uint ui_add_color_hex(char *s);
 int ui_pair_content(uint16_t pair, uint *fg, uint *bg);
 int ui_wch_to_utf8(const wchar_t fill_ch);
-int ui_get_nccell(const UiCell *cell, wchar_t *wstr, UiStyle *style, UiPairIdx *pair);
-int ui_set_nccell(UiCell *cell, const wchar_t *wstr, const UiStyle *style, ushort *pair);
 uint ui_get_plane_idx(UiSurface *s, NcPlane *n);
 NcPlane *ui_ncplane_clicked(UiSurface *s, ss_t w, NcInput *ni);
 struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const char *image_file, int y, int x, int begy, int begx);
+uint ui_mbstr_to_cellstr(UiSurface *sfc, ss_t w, UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
+
+int ui_get_nccell(
+    UiSurface *sfc,
+    ss_t w,
+    const UiCell *cell,
+    wchar_t *wstr,
+    UiStyle *style,
+    ushort *pair);
+
+#define ui_get_cell(sfc, w, cell, wstr, style, cp, opts) \
+    ui_get_nccell(sfc, w, cell, wstr, style, cp);
+
+int ui_set_nccell(
+    UiSurface *sfc,
+    ss_t w,
+    UiCell *cell,
+    const wchar_t *wstr,
+    const UiStyle style,
+    ushort pair);
+
+#define ui_set_cell(sfc, w, cell, wstr, attr, cp, opts) \
+    ui_set_nccell(sfc, w, cell, wstr, attr, cp);
+
 #else
 // ---------------------------------------------------------------
 // NCURSES Specific
@@ -977,14 +992,19 @@ uint ui_add_pair(uint fg, uint bg);
 int ui_chg_pair(uint pair, uint fg, uint bg);
 int ui_color_content(uint color, uint *r, uint *g, uint *b);
 int ui_color_from_rgb(RGB *rgb);
-int ui_setcchar(UiCell *wch, const wchar_t *wc, const attr_t attrs, short pair, const void *opts);
-int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, ushort *pair, void *opts);
 void destroy_curses();
 int ui_get_pair(uint pair, uint *fg, uint *bg);
 int ui_init_color(uint color, uint r, uint g, uint b);
 int ui_init_pair(uint pair, uint fg, uint bg);
 SCREEN *ui_ncurses_get_screen();
 int ui_pair_content(uint pair, uint *fg, uint *bg);
+uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
+
+#define ui_get_cell(s, w, cell, wstr, attr, pair, opts) \
+    getcchar(cell, wstr, attr, pair, nullptr);
+
+#define ui_set_cell(s, w, cell, wstr, attrs, pair, nullptr) \
+    setcchar(cell, wstr, attrs, pair, nullptr);
 #endif
 
 extern STDRGB std_color[];
@@ -1014,7 +1034,7 @@ typedef struct {
     // wchar_t wstr[MAXLEN];        /**< the chyron wide character string */
     uint l;                /**< length of the chyron string, for display */
     struct UiSurface *sfc; /** pointer to surface for the chyron */
-    uint win;              /** index to window of surface */
+    ss_t w;                /** index to window of surface */
     uint y;                /** y coordinante of the chyron in the window */
 } UiChyron;
 
@@ -1024,18 +1044,18 @@ typedef struct {
 void ui_activate_chyron_key(UiChyron *chyron, uint k);
 void ui_activate_all_chyron_keys(UiChyron *chyron);
 int ui_assign_chyron_win(UiChyron *chyron, UiSurface *sfc, ss_t w, char *y);
-void ui_compile_chyron(UiChyron *);
 void ui_deactivate_chyron_key(UiChyron *chyron, uint k);
 void ui_deactivate_all_chyron_keys(UiChyron *chyron);
 UiChyron *ui_destroy_chyron(UiChyron *chyron);
 void ui_display_chyron(UiSurface *sfc, ss_t w, UiChyron *chyron, uint line, uint col);
 int ui_get_chyron_key(UiChyron *chyron, uint x);
 bool ui_is_set_chyron_key(UiChyron *chyron, uint k);
-UiChyron *ui_new_chyron();
+UiChyron *ui_new_chyron(UiSurface *sfc, ss_t w);
 void ui_set_chyron_key(UiChyron *chyron, uint k, char *s, uint kc);
 void ui_set_chyron_key_cb(UiChyron *chyron, uint k, char *s, uint kc, UiCell cell_base);
 void ui_unset_chyron_key(UiChyron *chyron, uint k);
 int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeout_ms);
+void ui_compile_chyron(UiChyron *);
 
 // ---------------------------------------------------------------
 // Logging

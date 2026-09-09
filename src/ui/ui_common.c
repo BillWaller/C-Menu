@@ -393,7 +393,7 @@ void destroy_curses() {
 }
 // -----------------------------------------------------------------------------
 #else
-uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
+uint ui_mbstr_to_cellstr(UiSurface *sfc, ss_t w, UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
     ushort cp;
     uint p1 = 0;
     uint *pos = &p1;
@@ -404,7 +404,7 @@ uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_
     attr_t style;
     UiCell cc;
     wchar_t wstr[5];
-    ui_getcchar(cell_base, &wstr[0], &style, &cp, nullptr);
+    ui_get_nccell(sfc, w, cell_base, &wstr[0], &style, &cp);
     mbstate_t mbstate;
     memset(&mbstate, 0, sizeof(mbstate));
     if (pos && *pos >= atmost - 1)
@@ -420,7 +420,7 @@ uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_
         wstr[1] = L'\0';
         if (*pos > atmost)
             break;
-        if (ui_setcchar(&cc, wstr, style, cp, nullptr) != ERR) {
+        if (ui_set_nccell(sfc, w, &cc, wstr, style, cp) != ERR) {
             if (len > 0 && (*pos + len) < atmost)
                 cmplx_buf[(*pos)++] = cc;
         }
@@ -428,7 +428,7 @@ uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_
     }
     wstr[0] = L'\0';
     wstr[1] = L'\0';
-    ui_setcchar(&cc, wstr, style, cp, nullptr);
+    ui_set_nccell(sfc, w, &cc, wstr, style, cp);
     cmplx_buf[*pos] = cc;
     return *pos;
 }
@@ -501,8 +501,16 @@ int ui_tracked_sfc_split_box(uint wlines, uint wcols, uint split_y, uint split_x
         ui_log(ERROR, "Maximum number of surfaces (%d) exceeded", SFC_MAX);
         exit(EXIT_FAILURE);
     }
+    if (wlines == 0 || wcols == 0) {
+        ui_log(ERROR, "Invalid window size: lines=%d, cols=%d", wlines, wcols);
+        return -1;
+    }
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
+    if (wbegy > maxy || wbegx > maxx) {
+        ui_log(ERROR, "Invalid window position: wbegy=%d, wbegx=%d, wlines=%d, wcols=%d", wbegy, wbegx, wlines, wcols);
+        return -1;
+    }
     wlines = min(wlines, maxy);
     wcols = min(wcols, maxx);
     split_x = min(split_x, maxx); // not implemented yet
@@ -681,12 +689,14 @@ int ui_border_title(UiSurface *sfc, const char *title) {
    to the newly created chyron. If memory allocation fails, it calls ui_abend() to
    terminate the program with an error message.
  */
-UiChyron *ui_new_chyron() {
+UiChyron *ui_new_chyron(UiSurface *sfc, ss_t w) {
     UiChyron *chyron = (UiChyron *)calloc(1, sizeof(UiChyron));
     if (!chyron) {
         ui_abend(-1, "calloc chyron failed");
         return nullptr;
     }
+    chyron->sfc = sfc;
+    chyron->w = w;
     for (int i = 0; i < CHYRON_KEYS; i++) {
         chyron->key[i] = (UiChyronKey *)calloc(1, sizeof(UiChyronKey));
         if (!chyron->key[i]) {
@@ -717,7 +727,7 @@ int ui_assign_chyron_win(UiChyron *chyron, UiSurface *sfc, ss_t w, char *y) {
     if (!sfc)
         return -1;
     chyron->sfc = sfc;
-    chyron->win = w;
+    chyron->w = w;
     if (*y == '-')
         chyron->y = ui_getmaxy(sfc, w) - 1;
     else {
@@ -875,20 +885,22 @@ void ui_compile_chyron(UiChyron *chyron) {
         cell_base = chyron->key[k]->cell_base;
         if (end_pos == 0) {
             cx = chyron->cmplx_buf;
-            ui_mbstr_to_cellstr(cx,
+            ui_mbstr_to_cellstr(chyron->sfc, chyron->w,
+                                cx,
                                 " ",
                                 &cell_base,
                                 &pos,
                                 MAXLEN - 1);
         } else {
-            ui_mbstr_to_cellstr(chyron->cmplx_buf,
+            ui_mbstr_to_cellstr(chyron->sfc, chyron->w,
+                                chyron->cmplx_buf,
                                 "|",
                                 &cell_base,
                                 &pos,
                                 MAXLEN - 1);
         }
         cx = chyron->cmplx_buf;
-        ui_mbstr_to_cellstr(cx, chyron->key[k]->text, &cell_base, &pos, MAXLEN - 1);
+        ui_mbstr_to_cellstr(chyron->sfc, chyron->w, cx, chyron->key[k]->text, &cell_base, &pos, MAXLEN - 1);
         end_pos = pos;
         chyron->l = end_pos;
         chyron->key[k]->end_pos = end_pos;
@@ -896,7 +908,7 @@ void ui_compile_chyron(UiChyron *chyron) {
                   chyron->key[k]->text, chyron->key[k]->end_pos);
         k++;
     }
-    ui_mbstr_to_cellstr(chyron->cmplx_buf, " ", &cell_base, &pos, MAXLEN - 1);
+    ui_mbstr_to_cellstr(chyron->sfc, chyron->w, chyron->cmplx_buf, " ", &cell_base, &pos, MAXLEN - 1);
     chyron->l = end_pos;
 }
 /** display_chyron
@@ -1055,12 +1067,6 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
         fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", msg0, msg1, msg2, msg3);
         return 1;
     }
-    UiChyron *chyron = ui_new_chyron();
-    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
-    ui_set_chyron_key(chyron, 2, "N - No", 'n');
-    ui_set_chyron_key(chyron, 3, "Y - Yes", 'y');
-    ui_compile_chyron(chyron);
-
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
     msg0_l = strnz(msg0, maxx - 4);
@@ -1070,7 +1076,7 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     msg_l = max(msg0_l, msg1_l);
     msg_l = max(msg_l, msg2_l);
     msg_l = max(msg_l, msg3_l);
-    msg_l = max(msg_l, chyron->l);
+    msg_l = max(msg_l, 50);
     msg_l = min(msg_l, maxx - 4);
 
     pos = ((maxx - msg_l) - 4) / 2;
@@ -1079,10 +1085,15 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     if (ui_tracked_sfc_box(5, msg_l, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
-        ui_destroy_chyron(chyron);
         ui_abend(-1, title);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
+    UiChyron *chyron = ui_new_chyron(sfc, WIN);
+    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
+    ui_set_chyron_key(chyron, 2, "N - No", 'n');
+    ui_set_chyron_key(chyron, 3, "Y - Yes", 'y');
+    ui_compile_chyron(chyron);
+
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, msg0);
     ui_draw_text(sfc, WIN, 1, 1, msg1);
@@ -1121,12 +1132,6 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
         return 1;
     }
 
-    UiChyron *chyron = ui_new_chyron();
-    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
-    ui_set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
-    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
-    ui_compile_chyron(chyron);
-
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
     msg0_l = strnz(msg0, maxx - 4);
@@ -1136,7 +1141,7 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     msg_l = max(msg0_l, msg1_l);
     msg_l = max(msg_l, msg2_l);
     msg_l = max(msg_l, msg3_l);
-    msg_l = max(msg_l, chyron->l);
+    msg_l = max(msg_l, 50);
     msg_l = min(msg_l, maxx - 4);
 
     pos = ((maxx - msg_l) - 4) / 2;
@@ -1145,10 +1150,14 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     if (ui_tracked_sfc_box(5, msg_l, line, pos, title)) {
         ssnprintf(title, MAXLEN - 1, "ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed", 5,
                   msg_l + 2, line, pos, title);
-        ui_destroy_chyron(chyron);
         ui_abend(-1, title);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
+    UiChyron *chyron = ui_new_chyron(sfc, WIN);
+    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
+    ui_set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
+    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
+    ui_compile_chyron(chyron);
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, msg0);
     ui_draw_text(sfc, WIN, 1, 1, msg1);
@@ -1188,15 +1197,10 @@ int ui_perror(char *emsg_str) {
         fprintf(stderr, "\n%s\n", emsg);
         return 1;
     }
-    UiChyron *chyron = ui_new_chyron();
-    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
-    ui_set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
-    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
-    ui_compile_chyron(chyron);
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
     cols = strnz(emsg, maxx - 4);
-    cols = max(cols, chyron->l);
+    cols = max(cols, 50);
     ui_get_screen_size(&maxy, &maxx);
     pos = (maxx - cols - 4) / 2;
     line = (maxy - 4) / 2;
@@ -1205,10 +1209,14 @@ int ui_perror(char *emsg_str) {
         ssnprintf(tmp_str, MAXLEN - 1, "ui_tracked_sfc_box(%d, %d, %d, %d, %s, %b) failed",
                   4, line, line, pos, title);
         ui_log(ERROR, "%s", tmp_str);
-        ui_destroy_chyron(chyron);
         exit(EXIT_FAILURE);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
+    UiChyron *chyron = ui_new_chyron(sfc, WIN);
+    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
+    ui_set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
+    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
+    ui_compile_chyron(chyron);
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, emsg_str);
     ui_display_chyron(sfc, WIN, chyron, 1, chyron->l + 1);
@@ -1237,9 +1245,6 @@ bool ui_action_disposition(char *title, char *action_str) {
         fprintf(stderr, "%s\n", action_str);
         return true;
     }
-    UiChyron *chyron = ui_new_chyron();
-    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
-    ui_compile_chyron(chyron);
     len = max(strlen(title), strlen(action_str));
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
@@ -1251,6 +1256,9 @@ bool ui_action_disposition(char *title, char *action_str) {
         ui_perror(em0);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
+    UiChyron *chyron = ui_new_chyron(sfc, WIN);
+    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
+    ui_compile_chyron(chyron);
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, action_str);
     ui_display_chyron(sfc, WIN, chyron, 1, 0);

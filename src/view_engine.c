@@ -1106,7 +1106,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
     memset(&mbstate, 0, sizeof(mbstate));
 #ifdef UAL_UI
     wchar_t wstr[2] = {L'\0', L'\0'};
-    attr_t attr;
+    attr_t attrs;
     ushort cpx;
 #endif
     UiCell cc = {};
@@ -1215,9 +1215,9 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
             for (uint i = match_idx; i < match_idx + match_len; i++) {
                 cc = view->cmplx_buf[i];
 #ifdef UAL_UI
-                ui_getcchar(&cc, wstr, &attr, &cpx, nullptr);
+                ui_get_cell(view->sfc, PAD, &cc, wstr, &attrs, &cpx, nullptr);
                 cpx = cp_nt_rev;
-                ui_setcchar(&cc, wstr, attr, cpx, nullptr);
+                ui_set_cell(view->sfc, PAD, &cc, wstr, attrs, cpx, nullptr);
 #else
                 cc.channels = cell_nt_rev.channels;
 #endif
@@ -2081,7 +2081,7 @@ int fmt_line(View *view) {
     uint len = 0;
     uint tab_spaces = 0;
     uint char_width;
-    attr_t attr = WA_NORMAL;
+    attr_t attrs = WA_NORMAL;
     ushort cpx = cp_nt;
     UiCell cc = {};
     wchar_t wstr[2] = {L'\0', L'\0'};
@@ -2129,7 +2129,7 @@ int fmt_line(View *view) {
                         i += len;
                         continue;
                     }
-                    parse_ansi_str(ansi_tok, &attr, &cpx);
+                    parse_ansi_str(ansi_tok, &attrs, &cpx);
                     i += len;
                 } else {
                     i++;
@@ -2141,7 +2141,7 @@ int fmt_line(View *view) {
                         break;
                     (in_str[i] == '-') ? (wstr[0] = L'-') : (wstr[0] = L' ');
                     wstr[1] = L'\0';
-                    ui_setcchar(&cc, wstr, attr, cpx, nullptr);
+                    ui_set_cell(view->sfc, PAD, &cc, wstr, attrs, cpx, nullptr);
                     view->stripped_line_out[x++] = in_str[i];
                     cmplx_buf[j++] = cc;
                     if (view->wrap) {
@@ -2170,7 +2170,7 @@ int fmt_line(View *view) {
                         break;
                     wstr[0] = L' ';
                     wstr[1] = L'\0';
-                    ui_setcchar(&cc, wstr, attr, cpx, nullptr);
+                    ui_set_cell(view->sfc, PAD, &cc, wstr, attrs, cpx, nullptr);
                     for (uint z = 0; z < tab_spaces; z++) {
                         view->stripped_line_out[x++] = ' ';
                         cmplx_buf[j++] = cc;
@@ -2196,7 +2196,7 @@ int fmt_line(View *view) {
                 if (char_width > 1)
                     for (uint n = 1; n < char_width; n++)
                         view->stripped_line_out[x++] = ' ';
-                ui_setcchar(&cc, wstr, attr, cpx, nullptr);
+                ui_set_cell(view->sfc, PAD, &cc, wstr, attrs, cpx, nullptr);
                 cmplx_buf[j++] = cc;
                 i += len;
                 if (view->wrap) {
@@ -2230,7 +2230,7 @@ int fmt_line(View *view) {
                     wchar_t wstr_chk[CCHARW_MAX];
                     attr_t attr_chk;
                     ushort cpx_chk;
-                    ui_getcchar(&sl_cc[safe_cells], wstr_chk, &attr_chk, &cpx_chk, nullptr);
+                    ui_get_cell(view->sfc, PAD, &sl_cc[safe_cells], wstr_chk, &attr_chk, &cpx_chk, nullptr);
                     uint cw = wcwidth(wstr_chk[0]);
                     if (safe_cols + cw > sl_maxlen)
                         break;
@@ -2279,7 +2279,7 @@ int fmt_line(View *view) {
     //-------------------------------------------------------------------------
     wstr[0] = '\0';
     wstr[1] = '\0';
-    ui_setcchar(&cc, wstr, WA_NORMAL, cpx, nullptr);
+    ui_set_cell(view->sfc, PAD, &cc, wstr, WA_NORMAL, cpx, nullptr);
     cmplx_buf[j] = cc;
     view->stripped_line_out[x] = '\0';
     return j;
@@ -2319,9 +2319,9 @@ void log_cc_buf(View *view) {
         memset(tmp_str, 0, sizeof(tmp_str));
         for (uint c = 0; c < view->cur.sl_cells[k]; c++) {
             wchar_t wstr[CCHARW_MAX];
-            attr_t attr;
+            attr_t attrs;
             ushort cpx;
-            ui_getcchar(&view->cur.sl_cc[k][c], wstr, &attr, &cpx, nullptr);
+            ui_get_cell(view->sfc, PAD, &view->cur.sl_cc[k][c], wstr, &attrs, &cpx, nullptr);
             if (wstr[0] == L'\0')
                 tmp_str[c] = ' ';
             else
@@ -2371,7 +2371,7 @@ void log_split_lines(View *view) {
 /** @brief Parse ANSI SGR Escape Sequence
     @ingroup view_display
     @param ansi_str is the ANSI escape sequence string to parse
-    @param attr is a pointer to an attr_t variable where the parsed
+    @param attrs is a pointer to an attr_t variable where the parsed
    attributes will be stored
     @param cpx is a pointer to an int variable where the parsed color pair
    index will be stored
@@ -2420,7 +2420,7 @@ void log_split_lines(View *view) {
 
     @endverbatim
 */
-void parse_ansi_str(char *ansi_str, attr_t *attr, ushort *cpx) {
+void parse_ansi_str(char *ansi_str, attr_t *attrs, ushort *cpx) {
     char *tok;
     char t0, t1;
     char tstr[3];
@@ -2491,38 +2491,38 @@ void parse_ansi_str(char *ansi_str, attr_t *attr, ushort *cpx) {
         }
         if (len == 1) {
             if (*tok == '0') {
-                *attr = WA_NORMAL;
+                *attrs = WA_NORMAL;
                 fg_clr = CLR_NT_FG;
                 bg_clr = CLR_NT_BG;
             } else {
                 switch (a_toi(tok, &a_toi_error)) {
                 case 1:
-                    *attr |= WA_BOLD;
+                    *attrs |= WA_BOLD;
                     break;
                 case 2:
-                    *attr |= WA_DIM;
+                    *attrs |= WA_DIM;
                     break;
                 case 3:
-                    *attr |= WA_ITALIC;
+                    *attrs |= WA_ITALIC;
                     break;
                 case 4:
-                    *attr |= WA_UNDERLINE;
+                    *attrs |= WA_UNDERLINE;
                     break;
                 case 5:
-                    *attr |= WA_BLINK;
+                    *attrs |= WA_BLINK;
                     break;
                 case 7:
-                    *attr |= WA_REVERSE;
+                    *attrs |= WA_REVERSE;
                     break;
                 case 8:
-                    *attr |= WA_INVIS;
+                    *attrs |= WA_INVIS;
                     break;
                 default:
                     break;
                 }
             }
         } else if (len == 0) {
-            *attr = WA_NORMAL;
+            *attrs = WA_NORMAL;
             fg_clr = CLR_NT_FG;
             bg_clr = CLR_NT_BG;
         }

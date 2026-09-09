@@ -162,27 +162,14 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
         ui_perror("No pick objects available");
         return (1);
     }
-    /** Enter pick_engine */
-    pick->m_idx = 0;
-    pick->d_idx = 0;
-    while (pick->m_idx < pick->m_cnt)
-        pick->d_object[pick->d_idx++] = pick->m_object[pick->m_idx++];
-    pick->d_cnt = pick->d_idx;
-    pick->chyron = ui_new_chyron();
-    ui_set_chyron_key(pick->chyron, 1, "F1 Help", UIKEY_F01);
-    ui_set_chyron_key(pick->chyron, 2, "F9 Cancel", UIKEY_F09);
-    ui_set_chyron_key(pick->chyron, 3, "F10 Accept", UIKEY_F10);
-    ui_set_chyron_key(pick->chyron, 4, "F11 View", UIKEY_F11);
-    ui_set_chyron_key(pick->chyron, 5, "<q> Quit View", 'q');
-    ui_set_chyron_key(pick->chyron, 6, "<Sp> Process", ' ');
-    ui_set_chyron_key(pick->chyron, 7, "<Sp> Edit", ' ');
-    ui_set_chyron_key(pick->chyron, 9, "<Tab> Search", '\t');
-    ui_set_chyron_key(pick->chyron, 10, "<Tab> Select", '\t');
-    ui_set_chyron_key(pick->chyron, 11, "PgUp", UIKEY_PPAGE);
-    ui_set_chyron_key(pick->chyron, 12, "PgDn", UIKEY_NPAGE);
-    ui_set_chyron_key(pick->chyron, 13, "INS", UIKEY_IC);
-    pick_std_chyron(pick);
-    ui_compile_chyron(pick->chyron);
+
+    // Open Pick Window so we can build chyron
+    if (open_pick_win(init)) {
+        ui_perror("Failed to open pick window");
+        exit(EXIT_FAILURE);
+    }
+    init->view = nullptr;
+
     pick_engine(init);
     ui_cm_surface_destroy(pick->surface);
     if (pick->p_view_files) {
@@ -257,24 +244,12 @@ int read_pick_input(Init *init) {
     pick->m_cnt = pick->m_idx;
     return 0;
 }
-/** @brief Initializes pick interface, calculates window size and position, and
-   enters picker loop
- *  @ingroup pick_engine
-    @param init Pointer to Init structure containing pick information
-    @return Count of selected objects on success, -1 if user cancels
-    @details Initializes key command strings for chyron display and calculates
- pick window size and position based on terminal size and pick parameters. Opens
- pick window and displays first page of objects. Enters picker loop to handle
- user input and interactions. If user cancels selection, returns -1. If user
- accepts selection, returns count of selected objects. */
-int pick_engine(Init *init) {
-    int rc;
+int open_pick_win(Init *init) {
     uint maxy, maxx;
     uint whitespace_ratio = 15;
     uint usable_lines;
     uint pick_ratio = 50;
     uint tbl_max_cols, pg_max_objs;
-    bool f_processed = false;
 
     Pick *pick = init->pick;
     ui_get_screen_size(&maxy, &maxx);
@@ -303,6 +278,11 @@ int pick_engine(Init *init) {
 
     pick->tbl_col_width = max(pick->tbl_col_width, 4);
     pick->tbl_col_width = min(pick->tbl_col_width, (maxx - (2 + pick->begx)));
+    pick->m_idx = 0; // master index
+    pick->d_idx = 0; // display index
+    while (pick->m_idx < pick->m_cnt)
+        pick->d_object[pick->d_idx++] = pick->m_object[pick->m_idx++];
+    pick->d_cnt = pick->d_idx;
     if (pick->d_cnt <= pick->lines) {
         pick->tbl_lines = pick->d_cnt;
         pick->lines = pick->d_cnt;
@@ -325,22 +305,57 @@ int pick_engine(Init *init) {
     //     pick->begy = LINES - pick->lines - 2;
     pick->width = (pick->tbl_col_width + 1) * pick->tbl_cols;
 
-    // The following lines will accomodate the longest chyron line
-    pick->chyron->key[11]->active = true;
-    pick->chyron->key[12]->active = true;
-    ui_compile_chyron(pick->chyron);
-    pick->width = max(pick->width, pick->chyron->l);
-    pick_std_chyron(pick);
+    pick->width = max(pick->width, 60);
+    char tmp_str[MAXLEN];
 
-    rc = open_pick_win(init);
-    if (rc) {
-        ui_perror("Failed to open pick window");
-        exit(EXIT_FAILURE);
-        // return (rc);
+    int ui_split_win_lines = 2;
+    if (ui_tracked_sfc_split_box(pick->lines, pick->width, ui_split_win_lines, 0, pick->begy, pick->begx, pick->title)) {
+        ssnprintf(tmp_str, MAXLEN - 1, "ui_tracked_sfc_split_box(%d, %d, %d, %d, %d, %d, %s) failed",
+                  pick->lines, pick->width, ui_split_win_lines, 0, pick->begy, pick->begx, pick->title);
+        ui_perror(tmp_str);
+        return (1);
     }
-    /** Enter picker loop to handle user input and interactions */
-    pick->d_idx = 0;
+    pick->surface = ui_surface[sfc_ptr];
+    UiSurface *sfc = pick->surface;
+    ui_setscrreg(sfc, WIN, 0, pick->lines - 1);
+    ui_scrollok(sfc, WIN, true);
+    ui_keypad(sfc, WIN, true);
+    pick->separator_line = pick->lines + 1;
+
     pick->x = 1;
+
+    pick->chyron = ui_new_chyron(pick->surface, WIN2);
+    ui_set_chyron_key(pick->chyron, 1, "F1 Help", UIKEY_F01);
+    ui_set_chyron_key(pick->chyron, 2, "F9 Cancel",
+                      UIKEY_F09);
+    ui_set_chyron_key(pick->chyron, 3, "F10 Accept",
+                      UIKEY_F10);
+    ui_set_chyron_key(pick->chyron, 4, "F11 View",
+                      UIKEY_F11);
+    ui_set_chyron_key(pick->chyron, 5, "<q> Quit View",
+                      'q');
+    ui_set_chyron_key(pick->chyron, 6, "<Sp> Process", ' ');
+    ui_set_chyron_key(pick->chyron, 7, "<Sp> Edit", ' ');
+    ui_set_chyron_key(pick->chyron, 9, "<Tab> Search",
+                      '\t');
+    ui_set_chyron_key(pick->chyron, 10, "<Tab> Select",
+                      '\t');
+    ui_set_chyron_key(pick->chyron, 11, "PgUp",
+                      UIKEY_PPAGE);
+    ui_set_chyron_key(pick->chyron, 12, "PgDn",
+                      UIKEY_NPAGE);
+    ui_set_chyron_key(pick->chyron, 13, "INS", UIKEY_IC);
+    pick_std_chyron(pick);
+    ui_compile_chyron(pick->chyron);
+    return 0;
+}
+
+int pick_engine(Init *init) {
+    int rc = 0;
+    bool f_processed = false;
+    Pick *pick = init->pick;
+    /** Enter picker loop to handle user input and
+     * interactions */
     char field[MAXLEN]; /**< Buffer for user input in the field */
     field[0] = '\0';
     display_pick_page(pick);
@@ -814,37 +829,6 @@ int exec_objects(Init *init) {
     ui_restore_wins();
     return rc;
 }
-/** @brief Initializes the pick window based on the parameters specified in the
-Pick structure
-   @ingroup pick_engine
-   @param init Pointer to Init structure containing pick information
-   @return 0 on success, 1 on failure
-   @details Creates a new window for the pick interface using win_new function
-with the specified parameters from the Pick structure. If window creation fails,
-an error message is printed and the function returns 1. Otherwise, initializes
-the window and box pointers in the Pick structure, sets scrollok and keypad
-options for the window, and returns 0 on success. */
-int open_pick_win(Init *init) {
-    char tmp_str[MAXLEN];
-    Pick *pick = init->pick;
-    pick = init->pick;
-    int ui_split_win_lines = 2; // 1 text, 1 chyron
-    if (ui_tracked_sfc_split_box(pick->lines, pick->width, ui_split_win_lines, 0, pick->begy, pick->begx, pick->title)) {
-        ssnprintf(tmp_str, MAXLEN - 1, "ui_tracked_sfc_split_box(%d, %d, %d, %d, %d, %d, %s) failed",
-                  pick->lines, pick->width, ui_split_win_lines, 0, pick->begy, pick->begx, pick->title);
-        ui_perror(tmp_str);
-        return (1);
-    }
-    pick->surface = ui_surface[sfc_ptr];
-    UiSurface *sfc = pick->surface;
-    ui_setscrreg(sfc, WIN, 0, pick->lines - 1);
-    ui_scrollok(sfc, WIN, true);
-    ui_assign_chyron_win(pick->chyron, pick->surface, WIN2, "-");
-    pick->separator_line = pick->lines + 1;
-    ui_keypad(sfc, WIN, true);
-    init->view = nullptr;
-    return 0;
-}
 /** @brief Displays the help screen for the pick interface using view
    @ingroup pick_engine
     @param init Pointer to Init structure containing pick information
@@ -959,7 +943,8 @@ int picker(Init *init, char *field) {
                 ui_cursor_enable_yx(sfc, WIN, pick->y, pick->x, false);
                 if (event.mouse_action != UI_MOUSE_NONE) {
                     ui_getmaxyx(sfc, WIN2, &maxy, &maxx);
-                    if (event.in_win == pick->chyron->win && event.y == pick->chyron->y)
+                    if (event.in_win == pick->chyron->w &&
+                        event.y == pick->chyron->y)
                         in_key = ui_get_chyron_key(pick->chyron, event.x);
                 } else {
                     if (pick->f_selected[pick->d_idx])

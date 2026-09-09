@@ -3,22 +3,15 @@
 
 ## Introduction
 
-The following tests objectively compare the output of ls with find. The fact that there are only minor differences in the output of lf and find, on a directory structure with more than half a million files is a testament to the reliability of both lf and find. 
+The following tests objectively compare the output of ls with find. The fact that there are only minor differences in the output of lf and find, on a directory structure with more than half a million files is a testament to the reliability of both lf and find.
 
-The differences in the output arise from the fact that lf is more stringent in
-handling file metadata than find. lf rejects files with invalid inodes, while
-find does not. lf also does not report the top-level directory provided as the
-starting point for the find operation, while find does. If that capability is
-desired, we may need to add it.
+lf excepted 3 files with invalid inodes. They are not necessarily bad files, but they are not Linux files. Some applications, such as Google, Mozilla, and Microsoft use this type of file to store metadata about network files. We may want to come up with a white list or ignore list for such files, but until we do, it's better that lf rejects files it cannot verify.
 
-The files with invalid inodes are not necessarily bad files, but they are files that
-point seemingly to nowhere. Some applications, such as Google, Mozilla, and
-Microsoft use this type of file to store metadata about network files, but they are
-not valid linux files. We may want to come up with a white list for such files,
-but until we do, it's better that lf rejects files it cannot verify.
-
-The following information is not verbatim output from lf_tests.sh, but edited
-slightly for readability. The actual output is in lf_tests.txt.
+You may notice that find was almost 4 seconds faster than lf in the 500,000+
+file large directory test. We expected that outcome at this point. lf is a new
+program, and we will concentrate on reliability before speed. lf is a
+multi-threaded application, so we will be able to improve its performance in the
+future. 
 
 ---
 

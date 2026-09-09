@@ -130,7 +130,7 @@ int form_engine(Init *init) {
     }
     form_read_data(form);
     display_form(init);
-    form->chyron = ui_new_chyron();
+    form->chyron = ui_new_chyron(ui_surface[sfc_ptr], WIN);
     ui_set_chyron_key(form->chyron, 1, "F1 Help", UIKEY_F01);
     ui_set_chyron_key_cb(form->chyron, 2, "F2 Process", UIKEY_F02, cell_nt_hl_rev);
     ui_set_chyron_key_cb(form->chyron, 3, "F3 Calculate", UIKEY_F03, cell_nt_hl_rev);
@@ -619,15 +619,20 @@ void form_display_fields(Form *form) {
         y = form->field[form->fidx]->line;
         x = form->field[form->fidx]->col;
 
-        pos = 0;
-        ui_mbstr_to_cellstr(form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_fill_char, &pos, form->field[form->fidx]->len + 1);
-
         UiSurface *sfc = ui_surface[sfc_ptr];
+        pos = 0;
+        ui_mbstr_to_cellstr(sfc, WIN,
+                            form->field[form->fidx]->filler_cc,
+                            form->field[form->fidx]->filler_s,
+                            &cell_fill_char,
+                            &pos,
+                            form->field[form->fidx]->len + 1);
+
         ui_mvwadd_wchstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc);
         ui_render();
 
         pos = 0;
-        ui_mbstr_to_cellstr(form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, &cell_nt, &pos, form->field[form->fidx]->len + 1);
+        ui_mbstr_to_cellstr(sfc, WIN, form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, &cell_nt, &pos, form->field[form->fidx]->len + 1);
 
         ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
         ui_render();
