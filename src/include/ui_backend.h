@@ -83,7 +83,8 @@ typedef enum {
 typedef struct {
     union {
         uint32_t u32;
-        wchar_t u16[2];
+        wchar_t w32[2];
+        wchar_t ww32;
         uint8_t u8[4];
         char c[4];
     };
@@ -350,7 +351,7 @@ struct UiCell {
     union {
         uint32_t gcluster;
         uint32_t u32;
-        wchar_t u16[2];
+        // wchar_t u16[2];
         uint8_t u8[4];
         char c[4];
     };
@@ -376,6 +377,7 @@ struct UiCell {
         uint64_t channels;
     };
 };
+
 // ---------------------------------------------------------------------------
 // About typedefs
 // ---------------------------------------------------------------------------
@@ -384,7 +386,7 @@ struct UiCell {
 // pass-by-value mistakes. We use them to improve code readibility and
 // maintainability while aware of that caveat.
 typedef uint16_t attr_t;
-typedef struct nccell UiCell;
+typedef nccell UiCell;
 typedef struct ncplane NcPlane;
 typedef struct notcurses NotCurses;
 typedef struct notcurses_options NotCursesOptions;
@@ -924,6 +926,7 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3);
 void fast_exit(UiSurface *s);
 int ui_perror(char *emsg_str);
 FileType file_type(const char *filename);
+int utf8_decode(const unsigned char *s, uint32_t *codepoint);
 // ---------------------------------------------------------------
 // NOTCURSES Specific
 // ---------------------------------------------------------------
@@ -940,7 +943,6 @@ struct UiPair {
     uint fg;
     uint bg;
 };
-typedef struct nccell UiCell;
 extern UiCell bkgd_cell;
 extern uint LINES, COLS;
 void ui_cursor_yx(int *y, int *x);

@@ -1,19 +1,29 @@
-# .clang-tidy
-Checks: "-*,clang-analyzer-*"
-# ",cert-*,cppcoreguidelines-*,modernize-*"
-# "misc*,readability-*"
-HeaderFileExtensions:
-  - h
-ImplementationFileExtensions:
-  - c
-HeaderFilterRegex: ".*"
-ExcludeHeaderFilterRegex: ""
-FormatStyle: llvm
-User: bill
-CheckOptions:
-  readability-identifier-naming.AggressiveDependentMemberLookup: "false"
-  readability-identifier-naming.CheckAnonFieldInParent: "false"
-  readability-identifier-naming.GetConfigPerFile: "true"
-  readability-identifier-naming.IgnoreFailedSplit: "false"
-  readability-identifier-naming.IgnoreMainLikeFunctions: "false"
-SystemHeaders: false
+# Enable critical bugs, security practices, and readability checks while 
+# excluding C++ specific suites
+Checks: >
+  -*,
+  bugprone-*,
+  cert-*,
+  concurrency-*,
+  misc-*,
+  performance-*,
+  readability-*,
+  -bugprone-forwarding-reference-overload,
+  -misc-definitions-in-headers,
+  -readability-const-return-type,
+  -readability-convert-member-functions-to-static,
+  -readability-redundant-control-flow
+
+# Turn warnings into compilation-stopping errors if you want strict enforcement
+WarningsAsErrors: 'bugprone-*,cert-*'
+
+# Ensure internal headers are parsed correctly, ignoring external libraries
+HeaderFilterRegex: '^(src|include)/.*'
+AnalyzeTemporaryDtors: false
+
+# Crucial C23 compiler configuration flags passed to Clang's parser
+ExtraArgs:
+  - '-std=c23'
+  - '-Wall'
+  - '-Wextra'
+  - '-Wpedantic'

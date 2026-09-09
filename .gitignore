@@ -45,7 +45,9 @@ src/work
 src/FlameGraph
 src/ui_hello
 src/ui_visual
+src/.clang-tidy
 build/.cmake
+.gitignore
 x
 xx
 rv

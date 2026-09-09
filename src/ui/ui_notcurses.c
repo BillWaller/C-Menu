@@ -777,7 +777,8 @@ int ui_getcchar(const UiCell *uic, wchar_t *wc, UiStyle *style, UiPairIdx *pair,
         return -1;
     GCluster gcluster;
     gcluster.u32 = uic->gcluster;
-    wc = gcluster.u16;
+    // *wc = gcluster.ww32[0];
+    *wc = gcluster.ww32;
     *style = uic->stylemask;
     // Convert the channels to a color pair index
     UiChannels channels;
@@ -802,10 +803,11 @@ int ui_setcchar(UiCell *cell, const wchar_t *wstr, const uint16_t style, ushort 
     if (!cell)
         return -1;
     uint32_t fg, bg;
+    nccell_init(cell);
     GCluster *gc = (GCluster *)&cell->gcluster;
-    gc->u16[0] = wstr[0];
-    gc->u16[1] = wstr[1];
-    cell->width = wcwidth((wchar_t)*wstr);
+    unicode_to_utf8_gcluster(*wstr, gc);
+    // gc->ww32 = *wstr;
+    gc->backstop = 0;
     nccell_set_styles(cell, style);
     UiChannels *chan = (UiChannels *)&cell->channels;
     ui_get_pair(pair, &fg, &bg);
@@ -996,4 +998,38 @@ NcPlane *ui_notcurses_surface_get_plane(const UiSurface *s, ss_t w) {
     if (!s)
         return NULL;
     return s->mplane[w];
+}
+
+int utf8_decode(const unsigned char *s, uint32_t *codepoint) {
+    if (s[0] < 0x80) { // 1-byte ASCII
+        *codepoint = s[0];
+        return 1;
+    } else if ((s[0] & 0xE0) == 0xC0) { // 2-byte sequence
+        if ((s[1] & 0xC0) != 0x80)
+            return -1;
+        *codepoint = ((s[0] & 0x1F) << 6) | (s[1] & 0x3F);
+        if (*codepoint < 0x80)
+            return -1; // overlong encoding
+        return 2;
+    } else if ((s[0] & 0xF0) == 0xE0) { // 3-byte sequence
+        if ((s[1] & 0xC0) != 0x80 || (s[2] & 0xC0) != 0x80)
+            return -1;
+        *codepoint = ((s[0] & 0x0F) << 12) |
+                     ((s[1] & 0x3F) << 6) |
+                     (s[2] & 0x3F);
+        if (*codepoint < 0x800)
+            return -1; // overlong encoding
+        return 3;
+    } else if ((s[0] & 0xF8) == 0xF0) { // 4-byte sequence
+        if ((s[1] & 0xC0) != 0x80 || (s[2] & 0xC0) != 0x80 || (s[3] & 0xC0) != 0x80)
+            return -1;
+        *codepoint = ((s[0] & 0x07) << 18) |
+                     ((s[1] & 0x3F) << 12) |
+                     ((s[2] & 0x3F) << 6) |
+                     (s[3] & 0x3F);
+        if (*codepoint < 0x10000 || *codepoint > 0x10FFFF)
+            return -1; // invalid range
+        return 4;
+    }
+    return -1; // invalid first byte
 }

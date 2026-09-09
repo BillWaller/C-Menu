@@ -133,6 +133,11 @@ typedef struct {
     bool only_errors;
 } LfContext;
 
+typedef struct {
+    char data[64 * 1024];
+    size_t len;
+} OutputBuffer;
+
 #define DT_LNK_DIR 14
 unsigned char const lf_mask[15] = {
     0, 0b00000001, 0b00000010, 0, 0b00000100, 0, 0b00001000, 0, 0b00010000, 0,
@@ -164,7 +169,12 @@ void sort_lf_output(LfContext *lf, int, char **);
 void enqueue_dir(LfContext *lf, TaskNode *);
 TaskNode *dequeue_dir(LfContext *lf);
 void *finder(void *);
-int scan_file(char *, LfContext *lf, const unsigned char);
+int scan_file(const char *, LfContext *lf, const unsigned char,
+              const struct stat *, OutputBuffer *);
+bool build_full_path(char *, size_t, const char *, const char *, size_t *);
+void flush_output_buffer(LfContext *, OutputBuffer *);
+bool append_output_buffer(LfContext *, OutputBuffer *, const char *, size_t,
+                          bool);
 // ---------------------------------------------------------------
 
 static struct argp_option options[] = {
@@ -811,15 +821,10 @@ void debug_out(LfContext *lf, int argc, char **argv) {
     }
     return;
 }
-/** @brief Enqueue a directory dir_path for processing by finder threads.
-    @param new_task A pointer to a TaskNode containing the directory path
- and depth to be enqueued for processing by finder threads.
-    @details This function adds a new TaskNode to the global queue of
- directories to be processed by finder threads.
- // It uses a mutex to ensure thread-safe access to the queue and signals
- one waiting thread that a new task is available.
- // If shut_down has been initiated, the signal will wake up any waiting
- threads so they can check the shut_down condition and exit gracefully.
+/** @brief Enqueue a directory for processing by finder threads.
+    @param lf A pointer to the LfContext struct containing the queue and synchronization primitives.
+    @param new_task A pointer to the TaskNode struct representing the directory to be enqueued.
+    @details This function adds a new directory task to the end of the queue in a thread-safe manner. It locks the queue mutex to ensure exclusive access, updates the queue pointers, and signals one waiting thread that a new task is available. If the queue was previously empty, it sets both the head and tail pointers to the new task. After updating the queue, it unlocks the mutex.
    */
 void enqueue_dir(LfContext *lf, TaskNode *new_task) {
     pthread_mutex_lock(&lf->queue_mutex);
@@ -844,6 +849,72 @@ void enqueue_dir(LfContext *lf, TaskNode *new_task) {
     // gracefully.
     pthread_cond_signal(&lf->cond_var);
     pthread_mutex_unlock(&lf->queue_mutex);
+}
+bool build_full_path(char *dst, size_t dst_size, const char *dir_path,
+                     const char *name, size_t *out_len) {
+    if (dst == nullptr || dir_path == nullptr || name == nullptr || dst_size == 0)
+        return false;
+    size_t dir_len = strlen(dir_path);
+    size_t name_len = strlen(name);
+    bool need_sep = dir_len > 0 && dir_path[dir_len - 1] != '/';
+    size_t full_len = dir_len + (need_sep ? 1 : 0) + name_len;
+
+    if (full_len >= dst_size)
+        return false;
+    memcpy(dst, dir_path, dir_len);
+    size_t pos = dir_len;
+    if (need_sep)
+        dst[pos++] = '/';
+    memcpy(dst + pos, name, name_len);
+    dst[full_len] = '\0';
+    if (out_len)
+        *out_len = full_len;
+    return true;
+}
+/** @brief Flush the output buffer to stdout in a thread-safe manner.
+    @param lf A pointer to the LfContext struct containing the output mutex.
+    @param output A pointer to the OutputBuffer struct containing the data to be flushed.
+    @details This function writes the contents of the output buffer to stdout using fwrite_unlocked for efficiency. It uses a mutex to ensure that only one thread can write to stdout at a time, preventing interleaved output from multiple threads. After flushing, it resets the length of the output buffer to zero.
+   */
+void flush_output_buffer(LfContext *lf, OutputBuffer *output) {
+    if (lf == nullptr || output == nullptr || output->len == 0)
+        return;
+    pthread_mutex_lock(&lf->output_mutex);
+    fwrite_unlocked(output->data, 1, output->len, stdout);
+    pthread_mutex_unlock(&lf->output_mutex);
+    output->len = 0;
+}
+/** @brief Append a path to the output buffer, flushing if necessary.
+    @param lf A pointer to the LfContext struct containing the output mutex.
+    @param output A pointer to the OutputBuffer struct where the path will be appended.
+    @param path The path string to append to the output buffer.
+    @param path_len The length of the path string.
+    @param append_slash A boolean indicating whether to append a slash after the path.
+    @return true if the path was successfully appended or printed, false if an error occurred (e.g., null pointers).
+    @details This function appends a given path to an output buffer. If the buffer is full, it flushes the buffer to stdout. If the path is too long to fit in the buffer, it prints it directly to stdout. The function uses a mutex to ensure thread-safe access to stdout when printing directly.
+   */
+bool append_output_buffer(LfContext *lf, OutputBuffer *output, const char *path,
+                          size_t path_len, bool append_slash) {
+    if (lf == nullptr || output == nullptr || path == nullptr)
+        return false;
+    size_t line_len = path_len + (append_slash ? 1 : 0) + 1;
+    if (line_len > sizeof(output->data)) {
+        pthread_mutex_lock(&lf->output_mutex);
+        fwrite_unlocked(path, 1, path_len, stdout);
+        if (append_slash)
+            fputc_unlocked('/', stdout);
+        fputc_unlocked('\n', stdout);
+        pthread_mutex_unlock(&lf->output_mutex);
+        return true;
+    }
+    if (output->len + line_len > sizeof(output->data))
+        flush_output_buffer(lf, output);
+    memcpy(output->data + output->len, path, path_len);
+    output->len += path_len;
+    if (append_slash)
+        output->data[output->len++] = '/';
+    output->data[output->len++] = '\n';
+    return true;
 }
 /** @brief Dequeue a directory dir_path for processing by finder threads.
     @return A pointer to a TaskNode containing the directory dir_path and
@@ -924,6 +995,7 @@ TaskNode *dequeue_dir(LfContext *lf) {
 void *finder(void *arg) {
     LfContext *lf = (LfContext *)arg;
     char lnk_path[PATH_MAX] = {'\0'};
+    OutputBuffer output = {{'\0'}, 0};
 
     while (1) {
         TaskNode *current_task = dequeue_dir(lf);
@@ -996,9 +1068,6 @@ void *finder(void *arg) {
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
             struct stat st;
-            strnz__cpy(full_path, current_task->dir_path, PATH_MAX - 1);
-            strnz__cat(full_path, "/", PATH_MAX - 1);
-            strnz__cat(full_path, entry->d_name, PATH_MAX - 1);
             // Get link's metadata
             int rc;
             // We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata
@@ -1009,11 +1078,17 @@ void *finder(void *arg) {
             // error (if debugging is enabled) and continue to the next
             // entry without processing this one further.
             effective_type = entry->d_type;
-            rc = fstatat(AT_FDCWD, full_path, &st, AT_SYMLINK_NOFOLLOW);
+            rc = fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW);
             if (rc == -1) {
                 atomic_fetch_add(&lf->error_count, 1);
                 if (lf->debug && (lf->report_errors || lf->report_warnings ||
                                   lf->report_badlinks || lf->report_all)) {
+                    if (!build_full_path(full_path, sizeof(full_path),
+                                         current_task->dir_path,
+                                         entry->d_name, nullptr)) {
+                        ssnprintf(full_path, sizeof(full_path), "%s/%s",
+                                  current_task->dir_path, entry->d_name);
+                    }
                     pthread_mutex_lock(&lf->output_mutex);
                     fprintf(stderr, "LSTAT_FAIL,%s,%s\n", full_path,
                             strerror(errno));
@@ -1022,9 +1097,6 @@ void *finder(void *arg) {
                 continue;
             }
             effective_type = (st.st_mode & S_IFMT) >> 12;
-            if (entry->d_type != effective_type) {
-                fprintf(stderr, "entry->d_type %08b, effective_type %08b\n", entry->d_type, effective_type);
-            }
             // Determine the real type of the entry. If the entry is a
             // symbolic link, we set real_type to DT_LNK and then attempt to
             // get the metadata of the target it points to using fstatat
@@ -1039,11 +1111,17 @@ void *finder(void *arg) {
             // if (effective_type == DT_LNK) {
             // Get the target's metadata
             if (S_ISLNK(st.st_mode)) {
-                rc = fstatat(AT_FDCWD, full_path, &st, 0);
+                rc = fstatat(dir_fd, entry->d_name, &st, 0);
                 if (rc == -1) {
                     atomic_fetch_add(&lf->error_count, 1);
                     if (lf->debug && (lf->report_all || lf->report_warnings ||
                                       lf->report_errors || lf->report_badlinks)) {
+                        if (!build_full_path(full_path, sizeof(full_path),
+                                             current_task->dir_path,
+                                             entry->d_name, nullptr)) {
+                            ssnprintf(full_path, sizeof(full_path), "%s/%s",
+                                      current_task->dir_path, entry->d_name);
+                        }
                         pthread_mutex_lock(&lf->output_mutex);
                         fprintf(stderr, "STAT_FAIL,%s,%s\n", full_path,
                                 strerror(errno));
@@ -1063,6 +1141,19 @@ void *finder(void *arg) {
             } else {
                 if (is_dirsys(entry->d_name))
                     continue;
+                if (!build_full_path(full_path, sizeof(full_path),
+                                     current_task->dir_path,
+                                     entry->d_name, nullptr)) {
+                    atomic_fetch_add(&lf->error_count, 1);
+                    if (lf->debug && (lf->report_errors || lf->report_warnings ||
+                                      lf->report_badlinks || lf->report_all)) {
+                        pthread_mutex_lock(&lf->output_mutex);
+                        fprintf(stderr, "PATH_TOO_LONG,%s/%s\n",
+                                current_task->dir_path, entry->d_name);
+                        pthread_mutex_unlock(&lf->output_mutex);
+                    }
+                    continue;
+                }
                 // Determine the effective type of the entry. We use the st_mode
                 // field from the stat struct to determine the file type by
                 // applying the S_IFMT mask and shifting it to get a value that
@@ -1107,7 +1198,8 @@ void *finder(void *arg) {
                                       lf->report_trace || lf->report_badlinks ||
                                       lf->report_all)) {
                         ssize_t len =
-                            readlink(full_path, lnk_path, sizeof(lnk_path) - 1);
+                            readlinkat(dir_fd, entry->d_name, lnk_path,
+                                       sizeof(lnk_path) - 1);
                         pthread_mutex_lock(&lf->output_mutex);
                         if (len != -1) {
                             lnk_path[len] = '\0';
@@ -1148,10 +1240,25 @@ void *finder(void *arg) {
                 child_task->history[current_task->depth].dev = st.st_dev;
                 child_task->history[current_task->depth].ino = st.st_ino;
                 enqueue_dir(lf, child_task);
+                scan_file(full_path, lf, effective_type, &st, &output);
+                continue;
             }
             if (lf->hidden_only && !is_hidden(entry->d_name))
                 continue;
-            scan_file(full_path, lf, effective_type);
+            if (!build_full_path(full_path, sizeof(full_path),
+                                 current_task->dir_path,
+                                 entry->d_name, nullptr)) {
+                atomic_fetch_add(&lf->error_count, 1);
+                if (lf->debug && (lf->report_errors || lf->report_warnings ||
+                                  lf->report_badlinks || lf->report_all)) {
+                    pthread_mutex_lock(&lf->output_mutex);
+                    fprintf(stderr, "PATH_TOO_LONG,%s/%s\n",
+                            current_task->dir_path, entry->d_name);
+                    pthread_mutex_unlock(&lf->output_mutex);
+                }
+                continue;
+            }
+            scan_file(full_path, lf, effective_type, &st, &output);
         }
         closedir(dir);
         free(current_task->dir_path);
@@ -1159,9 +1266,18 @@ void *finder(void *arg) {
         free(current_task);
         atomic_fetch_sub(&lf->active_tasks, 1);
     }
+    flush_output_buffer(lf, &output);
     return NULL;
 }
-
+/** @brief Check if a file or directory is hidden based on its name.
+    @param name The name of the file or directory to check.
+    @return true if the name indicates a hidden file or directory, false otherwise.
+    @details A file or directory is considered hidden if its name starts with a
+   dot ('.') character, except for the special cases of '.' and '..' which
+   represent the current and parent directories, respectively. This function
+   is used to determine whether to include or exclude hidden files and
+   directories during the search process based on user-specified options.
+   */
 bool is_hidden(const char *name) {
     if (name[0] == '.') {
         if (name[1] == '\0')
@@ -1172,6 +1288,15 @@ bool is_hidden(const char *name) {
     }
     return false;
 }
+/** @brief Check if a file or directory is a system directory based on its name.
+    @param name The name of the file or directory to check.
+    @return true if the name indicates a system directory ('.' or '..'), false otherwise.
+    @details A system directory is defined as either the current directory ('.') or
+   the parent directory ('..'). This function is used to determine whether to
+   include or exclude these special directories during the search process,
+   as they are typically not relevant for most file searches and can lead to
+   infinite loops if followed.
+   */
 bool is_dirsys(const char *name) {
     if (name[0] == '.') {
         if (name[1] == '\0')
@@ -1181,15 +1306,22 @@ bool is_dirsys(const char *name) {
     }
     return false;
 }
-/** @brief scan a single file against search filters
- * @param file_spec specification of file being scanned
- * @param f SearchFilters struct
- * @param effective_type type of file being scanned
- * @return true if file selected, false otherwise
- */
-int scan_file(char *file_spec, LfContext *lf,
-              const unsigned char effective_type) {
-    bool stat_cached = false;
+/** @brief Scan a file or directory and apply filters based on the LfContext.
+    @param file_spec The full path of the file or directory to scan.
+    @param lf A pointer to the LfContext struct containing the search filters and options.
+    @param effective_type The effective type of the file or directory (e.g., DT_REG, DT_DIR).
+    @param cached_sb A pointer to a stat struct containing cached metadata for the file, or nullptr if not available.
+    @param output A pointer to the OutputBuffer struct where matching paths will be appended.
+    @return true if the file or directory passes all filters and is processed, false otherwise.
+    @details This function checks various conditions based on the search filters specified in the LfContext. It evaluates whether the file or directory should be included in the output based on type, regex matching, ownership, permissions, modification time, and size. If all conditions are met, it appends the path to the output buffer. The function also handles caching of stat information to avoid redundant system calls when possible.
+*/
+int scan_file(const char *file_spec, LfContext *lf,
+              const unsigned char effective_type, const struct stat *cached_sb,
+              OutputBuffer *output) {
+    bool stat_cached = cached_sb != nullptr;
+    struct stat sb = {0};
+    if (cached_sb)
+        sb = *cached_sb;
 
     while (1) {
         if (lf->debug && (lf->report_trace || lf->report_all)) {
@@ -1217,19 +1349,18 @@ int scan_file(char *file_spec, LfContext *lf,
                 break;
             }
         }
-        stat_cached = false;
-        struct stat sb;
         //  Exclude files not owned by specified user
-        if ((lf->flags & LF_USER) && stat(file_spec, &sb) == 0) {
-            stat_cached = true;
-            if (sb.st_uid != lf->user_id)
+        if (lf->flags & LF_USER) {
+            if (!stat_cached && stat(file_spec, &sb) == 0)
+                stat_cached = true;
+            if (!stat_cached || sb.st_uid != lf->user_id)
                 break;
         }
         if (lf->include_perms) {
-            if (!stat_cached) {
-                if (stat(file_spec, &sb) == 0)
-                    stat_cached = true;
-            }
+            if (!stat_cached && stat(file_spec, &sb) == 0)
+                stat_cached = true;
+            if (!stat_cached)
+                break;
             if ((lf->include_perms & LF_IRUSR) && !(sb.st_mode & S_IRUSR))
                 break;
             else if ((lf->include_perms & LF_IWUSR) && !(sb.st_mode & S_IWUSR))
@@ -1242,26 +1373,20 @@ int scan_file(char *file_spec, LfContext *lf,
                 break;
         }
         if (lf->before) {
-            if (!stat_cached) {
-                if (stat(file_spec, &sb) == 0)
-                    stat_cached = true;
-            }
+            if (!stat_cached && stat(file_spec, &sb) == 0)
+                stat_cached = true;
             if (stat_cached && sb.st_mtime > lf->before)
                 break;
         }
         if (lf->after) {
-            if (!stat_cached) {
-                if (stat(file_spec, &sb) == 0)
-                    stat_cached = true;
-            }
+            if (!stat_cached && stat(file_spec, &sb) == 0)
+                stat_cached = true;
             if (stat_cached && sb.st_mtime < lf->after)
                 break;
         }
         if (lf->file_size_min) {
-            if (!stat_cached) {
-                if (stat(file_spec, &sb) == 0)
-                    stat_cached = true;
-            }
+            if (!stat_cached && stat(file_spec, &sb) == 0)
+                stat_cached = true;
             if (stat_cached && sb.st_size < lf->file_size_min)
                 break;
         }
@@ -1269,20 +1394,14 @@ int scan_file(char *file_spec, LfContext *lf,
             break;
         atomic_fetch_add(&lf->file_count, 1);
         if (!lf->count_silently) {
-            size_t l = 0;
-            char outbuf[PATH_MAX + 2];
-            if (effective_type == DT_DIR)
-                l = ssnprintf(outbuf, sizeof(outbuf), "%s/", file_spec);
-            else
-                l = strnz__cpy(outbuf, file_spec, sizeof(outbuf));
-            outbuf[l] = '\n';
-            outbuf[l + 1] = '\0';
-            pthread_mutex_lock(&lf->output_mutex);
-            if (l > 2 && outbuf[0] == '.' && outbuf[1] == '/')
-                fputs_unlocked(&outbuf[2], stdout);
-            else
-                fputs_unlocked(outbuf, stdout);
-            pthread_mutex_unlock(&lf->output_mutex);
+            const char *display_path = file_spec;
+            size_t display_len = strlen(display_path);
+            if (display_len > 2 && display_path[0] == '.' && display_path[1] == '/') {
+                display_path += 2;
+                display_len -= 2;
+            }
+            append_output_buffer(lf, output, display_path, display_len,
+                                 effective_type == DT_DIR);
         }
         break;
     }
