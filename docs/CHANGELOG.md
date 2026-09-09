@@ -1,10 +1,20 @@
 # CHANGELOG
 
-## C-Menu-0.2.9
+## C-Menu-0.2.9Merge: 7626ec1 103b610 
+
+*2026-09-08T22:20:17-05:00* - Merge branch 'main' of github.com:BillWaller/C-Menu 
+
+*2026-09-08T22:09:06-05:00* - Update CHANGELOG.md 
 
 *2026-09-08T21:53:30-05:00* - Update CHANGELOG.md 
 
-*2026-09-08T21:41:06-05:00* - FIXES: Extensive testing and hardening of lf. Corrected problem when viewing "bat" highlighted files because Notcurses doesn't digest Unicode code points. Notcurses expects UTF-8 encoded strings, but "bat" prints Unicode code points for its line drawing characters. The abstraction layer has been modified to automatically convert Unicode code points to UTF-8 encoded strings before passing them to Notcurses. 
+*2026-09-08T21:41:06-05:00* - FIXES: Extensive testing and hardening of lf. Corrected problem when viewing "bat" highlighted files because Notcurses doesn't digest Unicode code points. Notcurses expects UTF-8 encoded strings, but "bat" prints Unicode code points for its line drawing characters. The abstraction layer has been modified to automatically convert Unicode code points to UTF-8 encoded strings before passing them to Notcurses. Merge: bc0e2c8 f49ce0f 
+
+*2026-09-07T21:05:33-05:00* - Merge pull request #8 from BillWaller/copilot/update-lf-testing-script Enhancing lf_tests.sh for better testing outcomes 
+
+*2026-09-08T01:31:22Z* - Finish lf hot path cleanup Co-authored-by: BillWaller <10166578+BillWaller@users.noreply.github.com> 
+
+*2026-09-08T01:29:23Z* - Refactor lf scan hot path Co-authored-by: BillWaller <10166578+BillWaller@users.noreply.github.com> 
 
 *2026-09-07T17:24:07-05:00* - Update CHANGELOG.md 
 
