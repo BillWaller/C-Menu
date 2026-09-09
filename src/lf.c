@@ -871,11 +871,14 @@ bool build_full_path(char *dst, size_t dst_size, const char *dir_path,
         *out_len = full_len;
     return true;
 }
+<<<<<<< HEAD
 /** @brief Flush the output buffer to stdout in a thread-safe manner.
     @param lf A pointer to the LfContext struct containing the output mutex.
     @param output A pointer to the OutputBuffer struct containing the data to be flushed.
     @details This function writes the contents of the output buffer to stdout using fwrite_unlocked for efficiency. It uses a mutex to ensure that only one thread can write to stdout at a time, preventing interleaved output from multiple threads. After flushing, it resets the length of the output buffer to zero.
    */
+=======
+>>>>>>> 103b610ffd4178baf6b2bef552d3226b0cf68cc1
 void flush_output_buffer(LfContext *lf, OutputBuffer *output) {
     if (lf == nullptr || output == nullptr || output->len == 0)
         return;
@@ -884,6 +887,7 @@ void flush_output_buffer(LfContext *lf, OutputBuffer *output) {
     pthread_mutex_unlock(&lf->output_mutex);
     output->len = 0;
 }
+<<<<<<< HEAD
 /** @brief Append a path to the output buffer, flushing if necessary.
     @param lf A pointer to the LfContext struct containing the output mutex.
     @param output A pointer to the OutputBuffer struct where the path will be appended.
@@ -893,6 +897,8 @@ void flush_output_buffer(LfContext *lf, OutputBuffer *output) {
     @return true if the path was successfully appended or printed, false if an error occurred (e.g., null pointers).
     @details This function appends a given path to an output buffer. If the buffer is full, it flushes the buffer to stdout. If the path is too long to fit in the buffer, it prints it directly to stdout. The function uses a mutex to ensure thread-safe access to stdout when printing directly.
    */
+=======
+>>>>>>> 103b610ffd4178baf6b2bef552d3226b0cf68cc1
 bool append_output_buffer(LfContext *lf, OutputBuffer *output, const char *path,
                           size_t path_len, bool append_slash) {
     if (lf == nullptr || output == nullptr || path == nullptr)
@@ -1306,6 +1312,7 @@ bool is_dirsys(const char *name) {
     }
     return false;
 }
+<<<<<<< HEAD
 /** @brief Scan a file or directory and apply filters based on the LfContext.
     @param file_spec The full path of the file or directory to scan.
     @param lf A pointer to the LfContext struct containing the search filters and options.
@@ -1315,6 +1322,14 @@ bool is_dirsys(const char *name) {
     @return true if the file or directory passes all filters and is processed, false otherwise.
     @details This function checks various conditions based on the search filters specified in the LfContext. It evaluates whether the file or directory should be included in the output based on type, regex matching, ownership, permissions, modification time, and size. If all conditions are met, it appends the path to the output buffer. The function also handles caching of stat information to avoid redundant system calls when possible.
 */
+=======
+/** @brief scan a single file against search filters
+ * @param file_spec specification of file being scanned
+ * @param f SearchFilters struct
+ * @param effective_type type of file being scanned
+ * @return true if file selected, false otherwise
+ */
+>>>>>>> 103b610ffd4178baf6b2bef552d3226b0cf68cc1
 int scan_file(const char *file_spec, LfContext *lf,
               const unsigned char effective_type, const struct stat *cached_sb,
               OutputBuffer *output) {
