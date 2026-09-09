@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## C-Menu-0.2.9Merge: 7626ec1 103b610 
+## C-Menu-0.2.9
+
+*2026-09-09T17:32:21-05:00* - HARDENING: Reorganized several things to make the code more robust and easier to maintain. I had been using 2 32 bit integers for wide characters because I wanted to make sure whatever was reading it would encounter a zero and stop reading. It is unnecessary because Notcurses had the foresight to add a guaranteed null terminator immediately after the wide character gcluster. I added a couple of macros and new functions that make it easier to satisfy the interface requirements for creating cchar_t cells (NCurses) and nccells (Notcurses). You can use same function call and the abstraction layer will take care of the rest. The idea is to completely eliminate the need for #ifdefs in your code, and we are very close to that goal. I have changed the names of the functions, getcchar and setcchar to ui_get_cell and ui_set_cell, and those functions work identically for both Notcurses and NCurses. The NCurses display output function calls, 19 of them, from waddch through mvwadd_wchnstr have been implemented for Notcurses. Only the legacy chtype functions have been omitted because they are problematic and obsolete. This commit addressed Notcurses issues and was built using Notcurses. That means the resulting NCurses incompatibilities have not yet been addressed. I will do that later today and commit the changes tonight. 
+
+*2026-09-08T22:20:30-05:00* - Update CHANGELOG.md Merge: 7626ec1 103b610 
 
 *2026-09-08T22:20:17-05:00* - Merge branch 'main' of github.com:BillWaller/C-Menu 
 
