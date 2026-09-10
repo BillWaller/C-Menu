@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-10T07:14:46-05:00* - SYNCHRONIZATION: Catch Notcurses up with NCurses updates 
+
+*2026-09-10T07:10:42-05:00* - Update CHANGELOG.md 
+
 *2026-09-10T06:45:34-05:00* - FEATURE ENHANCEMENT: When changes are made to one of the backends, the other backend must be updated so that the two backends function identically. Application code using the UAL_UI produces the same functionality and appearance regardless of the backend library used. One application codebase, with the same functions, the same data structures, and the same behavior, no exceptions, no excuses. The UAL_UI also includes many time-saving high-level abstractions for managing Unicode, UTF-8, cells, extended grapheme clusters, chyrons, ANSI SGR parsing, and more, while C-Menu handles Menus, Forms, Pickers, Viewers, and other UI elements. 
 
 *2026-09-09T17:57:27-05:00* - Update CHANGELOG.md 
