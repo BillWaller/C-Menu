@@ -142,7 +142,7 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
             ev->x = ni.x;
             ev->in_win = ui_get_plane_idx(s, clicked);
             if (chyron) {
-                if (ev->in_win == chyron->win && ev->y == chyron->y) {
+                if (ev->in_win == chyron->w && ev->y == chyron->y) {
                     ev->mouse_action = UIKEY_BUTTON1_CLICKED;
                     ev->key = ui_get_chyron_key(chyron, ev->x);
                     return ev->key;

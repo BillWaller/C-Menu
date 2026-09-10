@@ -374,13 +374,13 @@ int form_display_field(Form *form) {
     uint x = form->field[form->fidx]->col;
 
     uint pos = 0;
-    ui_mbstr_to_cellstr(sfc, sst WIN, form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_nt, &pos,
+    ui_mbstr_to_cellstr(sfc, WIN, form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_nt, &pos,
                         form->field[form->fidx]->len + 1);
     ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
     ui_render();
 
     pos = 0;
-    ui_mbstr_to_cellstr(sfc, sst WIN, form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, &cell_nt, &pos,
+    ui_mbstr_to_cellstr(sfc, WIN, form->field[form->fidx]->display_cc, form->field[form->fidx]->display_s, &cell_nt, &pos,
                         form->field[form->fidx]->len + 1);
     ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->display_cc, form->field[form->fidx]->len);
     ui_render();
@@ -391,13 +391,13 @@ int form_display_accept_field(Form *form) {
     uint y = form->field[form->fidx]->line;
     uint x = form->field[form->fidx]->col;
     uint pos = 0;
-    ui_mbstr_to_cellstr(sfc, sst WIN, form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_nt, &pos,
+    ui_mbstr_to_cellstr(sfc, WIN, form->field[form->fidx]->filler_cc, form->field[form->fidx]->filler_s, &cell_nt, &pos,
                         form->field[form->fidx]->len + 1);
     ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->filler_cc, form->field[form->fidx]->len);
     ui_render();
 
     pos = 0;
-    ui_mbstr_to_cellstr(sfc, sst WIN, form->field[form->fidx]->accept_cc, form->field[form->fidx]->accept_s, &cell_nt, &pos,
+    ui_mbstr_to_cellstr(sfc, WIN, form->field[form->fidx]->accept_cc, form->field[form->fidx]->accept_s, &cell_nt, &pos,
                         form->field[form->fidx]->len + 1);
     ui_mvwadd_wchnstr(sfc, WIN, y, x, form->field[form->fidx]->accept_cc, form->field[form->fidx]->len);
     ui_render();
