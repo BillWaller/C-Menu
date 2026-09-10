@@ -341,7 +341,8 @@ wchar_t *ui_mbstr_to_wcstr(const char *mb_str) {
    the maximum length specified by atmost.
 */
 #ifdef NCURSES_UI
-uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
+
+uint ui__mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
     attr_t attrs;
     short cp;
     uint p1 = 0;

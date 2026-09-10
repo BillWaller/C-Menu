@@ -942,7 +942,6 @@ extern uint LINES, COLS;
 void ui_cursor_yx(int *y, int *x);
 void ui_abs_yx(UiSurface *s, ss_t w, int *y, int *x);
 int mk_chimera(UiCell *cell, char c);
-int ui_getcchar(const UiCell *cell, wchar_t *wstr, UiStyle *style, UiPairIdx *pair, const void *opts);
 // How do you convert "NCurses" to "Notcurses"?
 // Insert "ot" after "N".
 int ui_init_color(uint16_t color, uint8_t r, uint8_t g, uint8_t b);
@@ -993,18 +992,26 @@ int ui_chg_pair(uint pair, uint fg, uint bg);
 int ui_color_content(uint color, uint *r, uint *g, uint *b);
 int ui_color_from_rgb(RGB *rgb);
 void destroy_curses();
+
+int ui_getcchar(const UiCell *cell, wchar_t *wstr, attr_t *attrs, ushort *pair, const void *opts);
+
+int ui_setcchar(UiCell *cell, const wchar_t *wstr, const attr_t attrs, ushort pair, const void *opts);
+
 int ui_get_pair(uint pair, uint *fg, uint *bg);
 int ui_init_color(uint color, uint r, uint g, uint b);
 int ui_init_pair(uint pair, uint fg, uint bg);
 SCREEN *ui_ncurses_get_screen();
 int ui_pair_content(uint pair, uint *fg, uint *bg);
-uint ui_mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
+uint ui__mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
+
+#define ui_mbstr_to_cellstr(sfc, w, cmplx_buf, str, cell_base, pos, atmost) \
+    ui__mbstr_to_cellstr(cmplx_buf, str, cell_base, pos, atmost);
 
 #define ui_get_cell(s, w, cell, wstr, attr, pair, opts) \
-    getcchar(cell, wstr, attr, pair, nullptr);
+    ui_getcchar(cell, wstr, attr, pair, nullptr);
 
 #define ui_set_cell(s, w, cell, wstr, attrs, pair, nullptr) \
-    setcchar(cell, wstr, attrs, pair, nullptr);
+    ui_setcchar(cell, wstr, attrs, pair, nullptr);
 #endif
 
 extern STDRGB std_color[];

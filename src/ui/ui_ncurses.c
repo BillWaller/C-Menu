@@ -659,17 +659,15 @@ int ui_bkgrndset(UiSurface *s, ss_t w, const UiCell *cell) {
    Cell Manipulation
    ------------------------------------------------------------------------- */
 
-int ui_getcchar(const UiCell *uc, wchar_t *wstr, attr_t *attrs, uint16_t *pair, void *opts) {
-    short p;
-    getcchar(uc, wstr, attrs, &p, opts);
-    pair = (uint16_t *)&p;
-    p = (short)(*pair); // Tell compiler to forget about it!
+int ui_getcchar(const UiCell *cell, wchar_t *wstr, attr_t *attrs, short *pair, const void *opts) {
+    (void)opts;
+    getcchar(cell, wstr, attrs, pair, nullptr);
     return 0;
 }
 
-int ui_setcchar(cchar_t *wch, const wchar_t *wc, const attr_t attrs, short pair, const void *opts) {
+int ui_setcchar(UiCell *cell, const wchar_t *wstr, const attr_t attrs, short pair, const void *opts) {
     (void)opts;
-    return setcchar(wch, wc, attrs, pair, NULL);
+    return setcchar(cell, wstr, attrs, pair, NULL);
 }
 /* -------------------------------------------------------------------------
    Rendering
