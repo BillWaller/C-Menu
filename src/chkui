@@ -27,24 +27,70 @@ else
         fi
     fi
 fi
+# CMake
+grep NOTCURSES UI.cmk >/dev/null 2>&1
+if [ "$?" = "0" ]; then
+    echo CMake - NOTCURSES
+    if [ "$1" = "-s" ]; then
+        CMK_SWITCH=1
+    fi
+else
+    grep UAL_UI UI.mk Makefile >/dev/null 2>&1
+    if [ "$?" = "0" ]; then
+        echo CMake - NCURSES
+        if [ "$1" = "-s" ]; then
+            CMK_SWITCH=2
+        fi
+    fi
+fi
+# Makefile
 grep NOTCURSES UI.mk >/dev/null 2>&1
 if [ "$?" = "0" ]; then
     echo Makefile - NOTCURSES
     if [ "$1" = "-s" ]; then
-        echo Makefile - switching to NCURSES
-        echo "UI?=\"-DUAL_UI\"" >UI.mk
-        echo compile_commands.json: switching to NCURSES
-        cp compile_commands_ncurses.json compile_commands.json
+        MK_SWITCH=1
     fi
 else
     grep UAL_UI UI.mk Makefile >/dev/null 2>&1
     if [ "$?" = "0" ]; then
         echo Makefile - NCURSES
+        MK_SWITCH=2
     fi
+fi
+grep NOTCURSES compile_commands.json >/dev/null 2>&1
+if [ "$?" = "0" ]; then
+    echo compile_commands.json - NOTCURSES
     if [ "$1" = "-s" ]; then
-        echo Makefile - switching to NOTCURSES
-        echo "UI?=\"-DNOTCURSES_UI\"" >UI.mk
-        echo compile_commands.json: switching to NOTCURSES
-        cp compile_commands_notcurses.json compile_commands.json
+        CCJ_SWITCH=1
+    fi
+else
+    grep UAL_UI compile_commands.json >/dev/null 2>&1
+    if [ "$?" = "0" ]; then
+        echo compile_commands.json - NCURSES
+        CCJ_SWITCH=2
+    fi
+fi
+if [ "$1" = "-s" ]; then
+    if [ "$CMK_SWITCH" -ne "$MK_SWITCH" -o $CMK_SWITCH -ne $CCJ_SWITCH ]; then
+        echo "Warning: CMake, Makefile, compile_commands.json UI build switch mismatch"
+        echo "Resolve manually by editing UI.mk, UI.cmk, compile_commands.json"
+        exit 1
+    fi
+    if [ "$CMK_SWITCH" = "1" ]; then
+        echo CMake switching to NCURSES
+        echo "cmake .. -D UI=UAL_UI" >UI.cmk
+        echo Makefile switching to NCURSES
+        echo "UI?=\"-DUAL_UI\"" >UI.mk
+        echo compile_commands.json switching to NCURSES
+        cp compile_commands_ncurses.json compile_commands.json
+    else
+        if [ "$CMK_SWITCH" = "2" ]; then
+            echo CMake switching to NOTCURSES
+            echo "cmake .. -D UI=NOTCURSES_UI" >UI.cmk
+            echo Makefile switching to NOTCURSES
+            echo "UI?=\"-DNOTCURSES_UI\"" >UI.mk
+            echo compile_commands.json switching to NOTCURSES
+            cp compile_commands_notcurses.json compile_commands.json
+        fi
     fi
 fi

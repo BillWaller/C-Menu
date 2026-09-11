@@ -1,0 +1,1 @@
+cmake .. -D UI=NOTCURSES_UI

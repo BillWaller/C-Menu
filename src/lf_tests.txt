@@ -1,38 +1,35 @@
 empty directory: PASS
 ========================== . ==========================
 Running lf
-lf complete, found 308 files
+lf complete, found 529 files
 ----------------------------------------------------------------
 Running find
-find complete, found 308 files
+find complete, found 529 files
 ----------------------------------------------------------------
 no differences: PASS
-================== /home/bill 501485 =================
+================== /home/bill 514333 =================
 Running lf
-Errors: 5
-Command exited with non-zero status 1
-16.78
-lf complete, found 501480 valid files
-    plus 5 pseudo_files with no valid location
-STAT_FAIL,/home/bill/.config/google-chrome/SingletonCookie,No such file or directory
+lf complete, found 514328 valid files
+    plus 5 pseudo-files with invalid inodes
+in 14.34 seconds
 STAT_FAIL,/home/bill/.thunderbird/z1w8j69z.default-esr/lock,No such file or directory
+STAT_FAIL,/home/bill/.config/google-chrome/SingletonCookie,No such file or directory
 STAT_FAIL,/home/bill/.config/google-chrome/SingletonLock,No such file or directory
 STAT_FAIL,/home/bill/.config/mozilla/firefox/CFmctgAX.Profile 2/lock,No such file or directory
 STAT_FAIL,/home/bill/.config/mozilla/firefox/yqxm5v5q.default-release-1/lock,No such file or directory
 ----------------------------------------------------------------
 Running find
-11.94
-find complete, found 501485 files
+find complete, found 514333 files
 ----------------------------------------------------------------
 differences found: FAIL
+find found 5 more files than lf
+in 13.21 seconds
 find2:  /home/bill/.config/google-chrome/SingletonCookie
 find2:  /home/bill/.config/google-chrome/SingletonLock
 find2:  /home/bill/.config/mozilla/firefox/CFmctgAX.Profile 2/lock
 find2:  /home/bill/.config/mozilla/firefox/yqxm5v5q.default-release-1/lock
 find2:  /home/bill/.thunderbird/z1w8j69z.default-esr/lock
-find found 5 more files than lf - listed above
-lf rejected 5 because the file location was invalid
 ----------------------------------------------------------------
 
-output files lf2.out and find2.out
+output files are lf2.out and find2.out
 termination_status: FAIL

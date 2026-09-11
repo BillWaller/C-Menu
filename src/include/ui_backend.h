@@ -959,6 +959,7 @@ uint ui_get_plane_idx(UiSurface *s, NcPlane *n);
 NcPlane *ui_ncplane_clicked(UiSurface *s, ss_t w, NcInput *ni);
 struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const char *image_file, int y, int x, int begy, int begx);
 uint ui_mbstr_to_cellstr(UiSurface *sfc, ss_t w, UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
+void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx);
 
 int ui_get_nccell(
     UiSurface *sfc,
@@ -966,7 +967,7 @@ int ui_get_nccell(
     const UiCell *cell,
     wchar_t *wstr,
     UiStyle *style,
-    ushort *pair);
+    short *pair);
 
 #define ui_get_cell(sfc, w, cell, wstr, style, cp, opts) \
     ui_get_nccell(sfc, w, cell, wstr, style, cp);
@@ -977,7 +978,7 @@ int ui_set_nccell(
     UiCell *cell,
     const wchar_t *wstr,
     const UiStyle style,
-    ushort pair);
+    short pair);
 
 #define ui_set_cell(sfc, w, cell, wstr, attr, cp, opts) \
     ui_set_nccell(sfc, w, cell, wstr, attr, cp);
@@ -993,9 +994,9 @@ int ui_color_content(uint color, uint *r, uint *g, uint *b);
 int ui_color_from_rgb(RGB *rgb);
 void destroy_curses();
 
-int ui_getcchar(const UiCell *cell, wchar_t *wstr, attr_t *attrs, ushort *pair, const void *opts);
+int ui_getcchar(const UiCell *cell, wchar_t *wstr, attr_t *attrs, short *pair, const void *opts);
 
-int ui_setcchar(UiCell *cell, const wchar_t *wstr, const attr_t attrs, ushort pair, const void *opts);
+int ui_setcchar(UiCell *cell, const wchar_t *wstr, const attr_t attrs, short pair, const void *opts);
 
 int ui_get_pair(uint pair, uint *fg, uint *bg);
 int ui_init_color(uint color, uint r, uint g, uint b);

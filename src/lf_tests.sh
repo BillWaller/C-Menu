@@ -20,7 +20,8 @@ directory="."
 echo "========================== $directory =========================="
 echo Running lf
 touch find1.out
-./lf -H -S "$directory" | sed 's/\/$//' >lf1.out 2>/dev/null
+# ./lf -H -S "$directory" | sed 's/\/$//' >lf1.out 2>/dev/null
+./lf -H "$directory" | sort | sed 's/\/$//' >lf1.out 2>/dev/null
 lf_found=$(wc -l lf1.out | sed 's/ .*//')
 eval $(./lf -H -T6 "$directory" >/dev/null | sed 's/: /=/')
 echo "lf complete, found $lf_found files"

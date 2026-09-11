@@ -613,22 +613,6 @@ int ui_keypad(UiSurface *s, ss_t w, bool enable) {
 /* -------------------------------------------------------------------------
    Screen management functions
    ------------------------------------------------------------------------- */
-int ui_mousemask(int mask) {
-    if (!ui)
-        return 0;
-    if (mask)
-        notcurses_mice_enable(ui->nc, mask);
-    else
-        notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
-    return 0;
-}
-int ui_mice_enable(int mask) {
-    if (mask)
-        notcurses_mice_enable(ui->nc, mask);
-    else
-        notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
-    return 0;
-}
 void ui_get_screen_size(uint *lines, uint *cols) {
     if (!ui)
         return;
@@ -777,7 +761,7 @@ int ui_get_nccell(
     const UiCell *cell,
     wchar_t *wstr,
     UiStyle *style,
-    UiPairIdx *pair) {
+    short *pair) {
     (void)sfc;
     (void)w;
     if (!cell || !wstr || !style || !pair)
@@ -810,7 +794,7 @@ int ui_set_nccell(
     UiCell *cell,
     const wchar_t *wstr,
     const UiStyle style,
-    ushort pair) {
+    short pair) {
     if (!cell)
         return -1;
     uint32_t fg, bg;
@@ -890,6 +874,12 @@ uint ui_add_pair(uint fg, uint bg) {
     }
     return ui_pair_cnt - 1;
 }
+/** @brief Get the foreground and background color indices for a given color pair index.
+ * @param pair The color pair index.
+ * @param fg Pointer to store the foreground color index.
+ * @param bg Pointer to store the background color index.
+ * @return 0 on success, -1 on error (if the pair index is out of bounds).
+ */
 int ui_get_pair(uint16_t pair, uint *fg, uint *bg) {
     *fg = ui_pair[pair].fg;
     *bg = ui_pair[pair].bg;

@@ -48,35 +48,40 @@
 #include <time.h>
 #include <unistd.h>
 
-typedef enum {
-    TS_SUCCESS = 0,
-    TS_ERROR = 1,
-    TS_MATCH = 2,
-    TS_MATCH_PLUS_ERROR = 3,
-} TerminationStatus;
+#define QUEUE_CAPACITY 4096
+#define QUEUE_MASK (QUEUE_CAPACITY - 1)
+#define MAX_PATH_LEN 1024
+#define MAX_DEPTH 64
 
 typedef struct {
     dev_t dev;
     ino_t ino;
 } DevIno;
 
-typedef struct TaskNode TaskNode;
+typedef struct {
+    DevIno dev_ino[MAX_DEPTH];
+    uint16_t depth;
+    char dir_path[1024];
+} TaskNode;
 
-struct TaskNode {
-    DevIno *dev_ino;     /**< Array of dev/ino pairs for cycle detection */
-    TaskNode *next_task; /**< Pointer to the next node in the queue */
-    int depth;           /**< Current depth in the directory tree */
-    char *dir_path;      /**< Directory path to process */
-}; /**< Queue TaskNode (for work-stealing) */
+typedef struct {
+    _Atomic size_t sequence; /**< Sequence number for the cell */
+    TaskNode task;
+} QueueCell;
 
-// ---------------------------------------------------------------
-//                              ╭───────────╮
-// ╭───────────╮     ╭──────────╯ dir_path  ╰───────────╮
-// │ TaskQueue ├─────┤ TaskNode   dev_ino     dev/inode │
-// ╰───────────╯     ╰──────────╮ depth     ╭───────────╯
-//                              │ next_task │
-//                              ╰───────────╯
-// ---------------------------------------------------------------
+typedef struct {
+    QueueCell cells[QUEUE_CAPACITY];
+    // Aligned to prevent false sharing between producers and consumers
+    alignas(64) _Atomic size_t enqueue_pos;
+    alignas(64) _Atomic size_t dequeue_pos;
+} MPMCQueue;
+
+typedef enum {
+    TS_SUCCESS = 0,
+    TS_ERROR = 1,
+    TS_MATCH = 2,
+    TS_MATCH_PLUS_ERROR = 3,
+} TerminationStatus;
 
 #define print_file_type(mask, lf_type, dt_type, name)           \
     {                                                           \
@@ -96,7 +101,20 @@ bool is_hidden(const char *);
 bool is_dirsys(const char *);
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
 
+// typedef struct {
+//     dev_t dev;
+//     ino_t ino;
+// } History;
+// typedef struct TaskNode TaskNode;
+// struct TaskNode {
+//     History *history;    /**< Array of dev/ino pairs for cycle detection */
+//     TaskNode *next_task; /**< Pointer to the next node in the queue */
+//     int depth;           /**< Current depth in the directory tree */
+//     char *dir_path;      /**< Directory path to process */
+// }; /**< Queue TaskNode (for work-stealing) */
+
 typedef struct {
+    MPMCQueue q;
     TaskNode *qhead;
     TaskNode *qtail;
     pthread_mutex_t queue_mutex;
@@ -154,6 +172,19 @@ unsigned char const lf_mask[15] = {
     0, 0b00000001, 0b00000010, 0, 0b00000100, 0, 0b00001000, 0, 0b00010000, 0,
     0b00100000, 0, 0b01000000, 0, 0b10000000};
 
+// typedef struct { /** not used yet */
+//     TaskNode *qhead;
+//     TaskNode *qtail;
+// } TaskQueue;
+// ---------------------------------------------------------------
+//                              ╭───────────╮
+// ╭───────────╮     ╭──────────╯ dir_path  ╰───────────╮
+// │ TaskQueue ├─────┤ TaskNode   history     dev/inode │
+// ╰───────────╯     ╰──────────╮ depth     ╭───────────╯
+//                              │ next_task │
+//                              ╰───────────╯
+// ---------------------------------------------------------------
+
 int lfargc;
 char *lfargs[3];
 char *exec;
@@ -164,8 +195,12 @@ void debug_out(LfContext *lf, int, char **);
 
 bool init_find(LfContext *lf, int, char **);
 void sort_lf_output(LfContext *lf, int, char **);
-void enqueue_dir(LfContext *lf, TaskNode *);
-TaskNode *dequeue_dir(LfContext *lf);
+// void enqueue_dir(LfContext *lf, TaskNode *);
+// TaskNode *dequeue_dir(LfContext *lf);
+void queue_init(MPMCQueue *q);
+bool enqueue_dir(MPMCQueue *q, const TaskNode *item);
+bool dequeue_dir(MPMCQueue *q, TaskNode *item);
+
 void *finder(void *);
 int scan_file(const char *, LfContext *lf, const unsigned char,
               const struct stat *, OutputBuffer *);
@@ -173,6 +208,7 @@ bool build_full_path(char *, size_t, const char *, const char *, size_t *);
 void flush_output_buffer(LfContext *, OutputBuffer *);
 bool append_output_buffer(LfContext *, OutputBuffer *, const char *, size_t,
                           bool);
+// ---------------------------------------------------------------
 
 static struct argp_option options[] = {
     {"after", 'a', "time", 0, "Modified after YYYY-MM-DDTHH:MM:SS", 0},
@@ -414,8 +450,8 @@ int main(int argc, char **argv) {
     int rc;
     LfContext *lf = (LfContext *)calloc(1, sizeof(LfContext));
 
-    lf->qhead = NULL;
-    lf->qtail = NULL;
+    // lf->qhead = NULL;
+    //  lf->qtail = NULL;
     rc = pthread_mutex_init(&lf->queue_mutex, NULL);
     if (rc != 0)
         perror("Mutex initialization failed");
@@ -444,7 +480,7 @@ int main(int argc, char **argv) {
     lf->count = false;
     lf->count_silently = false;
 
-    char tmp_str[PATH_MAX];
+    char tmp_str[MAX_PATH_LEN];
     argp_parse(&argp, argc, argv, 0, 0, lf);
     if (lfargc > 0) {
         strnz__cpy(tmp_str, lfargs[0], MAXLEN - 1);
@@ -617,14 +653,20 @@ bool init_find(LfContext *lf, int argc, char **argv) {
     struct stat st;
     if (stat(lf->base_path, &st) == 0) {
         if (S_ISDIR(st.st_mode)) {
-            TaskNode *child_task = malloc(sizeof(TaskNode));
-            child_task->dir_path = strdup(lf->base_path);
-            child_task->depth = 0;
-            child_task->next_task = NULL;
-            child_task->dev_ino = malloc(sizeof(DevIno));
-            child_task->dev_ino[0].dev = st.st_dev;
-            child_task->dev_ino[0].ino = st.st_ino;
-            enqueue_dir(lf, child_task);
+            //          TaskNode *child_task = malloc(sizeof(TaskNode));
+            //          child_task->dir_path = strdup(lf->base_path);
+            //          child_task->depth = 0;
+            //          child_task->next_task = NULL;
+            //          child_task->history = malloc(sizeof(History));
+            //          child_task->history[0].dev = st.st_dev;
+            //          child_task->history[0].ino = st.st_ino;
+            //          enqueue_dir(lf, child_task);
+            TaskNode child_task = {};
+            strnz__cpy(child_task.dir_path, lf->base_path, MAX_PATH_LEN - 1);
+            child_task.depth = 0;
+            child_task.dev_ino[0].dev = st.st_dev;
+            child_task.dev_ino[0].ino = st.st_ino;
+            enqueue_dir(&lf->q, &child_task);
             lf->threads = calloc(lf->nthreads, sizeof(*lf->threads));
             if (!lf->threads) {
                 fprintf(stderr, "Out of memory allocating threads\n");
@@ -818,35 +860,133 @@ void debug_out(LfContext *lf, int argc, char **argv) {
     }
     return;
 }
-/** @brief Enqueue a directory for processing by finder threads.
-    @param lf A pointer to the LfContext struct containing the queue and synchronization primitives.
-    @param new_task A pointer to the TaskNode struct representing the directory to be enqueued.
-    @details This function adds a new directory task to the end of the queue in a thread-safe manner. It locks the queue mutex to ensure exclusive access, updates the queue pointers, and signals one waiting thread that a new task is available. If the queue was previously empty, it sets both the head and tail pointers to the new task. After updating the queue, it unlocks the mutex.
+// ----------------------------------------------------------------------
+// QUEUE
+// ----------------------------------------------------------------------
+/** @brief Initialize the MPMCQueue.
+    @param q A pointer to the MPMCQueue struct representing the queue.
+    @details This function initializes the MPMCQueue by setting up the sequence numbers for each cell in the queue and initializing the enqueue and dequeue positions. It ensures that the queue is ready for concurrent access by multiple producer and consumer threads.
    */
-void enqueue_dir(LfContext *lf, TaskNode *new_task) {
-    pthread_mutex_lock(&lf->queue_mutex);
-    if (lf->qtail)
-        // Add the new task to the end of the queue. If qtail is not NULL,
-        // it means there are already tasks in the queue, so we set the
-        // next_task pointer of the current tail to point to the new task.
-        // This effectively adds the new task to the end of the queue.
-        lf->qtail->next_task = new_task;
-    else
-        // If qtail is NULL, it means the queue is currently empty, so we
-        // set qhead to point to the new task, making it the first and only
-        // task in the queue
-        lf->qhead = new_task;
-    // Finally, we update qtail to point to the new task, ensuring that it
-    // always points to the last task in the queue.
-    lf->qtail = new_task;
-    // Signal one waiting thread that a new task is available. If shut_down
-    // hasn't been initiated, this will wake up a finder thread to process
-    // the new task. If shut_down has been initiated, the signal will wake up
-    // any waiting threads so they can check the shut_down condition and exit
-    // gracefully.
-    pthread_cond_signal(&lf->cond_var);
-    pthread_mutex_unlock(&lf->queue_mutex);
+void queue_init(MPMCQueue *q) {
+    for (size_t i = 0; i < QUEUE_CAPACITY; i++) {
+        atomic_init(&q->cells[i].sequence, i);
+    }
+    atomic_init(&q->enqueue_pos, 0);
+    atomic_init(&q->dequeue_pos, 0);
 }
+/** @brief Enqueue a directory task into the MPMCQueue.
+    @param q A pointer to the MPMCQueue struct representing the queue.
+    @param item A pointer to the TaskNode struct representing the directory task to be enqueued.
+    @return true if the task was successfully enqueued, false if the queue is full.
+    @details This function attempts to enqueue a directory task into the MPMCQueue in a lock-free manner. It uses atomic operations to ensure thread safety and avoid race conditions. If the queue is full, it returns false; otherwise, it copies the task data into the reserved slot and updates the sequence number to indicate that the slot is now occupied.
+   */
+bool enqueue_dir(MPMCQueue *q, const TaskNode *item) {
+    QueueCell *cell;
+    size_t pos = atomic_load_explicit(&q->enqueue_pos, memory_order_relaxed);
+    while (true) {
+        cell = &q->cells[pos & QUEUE_MASK];
+        size_t seq = atomic_load_explicit(&cell->sequence, memory_order_acquire);
+        intptr_t diff = (intptr_t)seq - (intptr_t)pos;
+        if (diff == 0) {
+            // Slot is empty and ready for this specific generation sequence
+            // Attempt to claim the slot by incrementing the enqueue position
+            if (atomic_compare_exchange_weak_explicit(&q->enqueue_pos, &pos, pos + 1,
+                                                      memory_order_relaxed, memory_order_relaxed)) {
+                // Success - claimed the slot; exit the loop to write data
+                break;
+            }
+        } else if (diff < 0) {
+            // The queue is completely full
+            // seq < pos indicates that the cell is still occupied by a
+            // previous generation
+            return false;
+        } else {
+            // seq > pos indicates that the cell is already occupied by a future
+            // generation
+            // Another thread beat us; reload the position pointer
+            pos = atomic_load_explicit(&q->enqueue_pos, memory_order_relaxed);
+            continue;
+        }
+    }
+    // Safely write data into the reserved index slot
+    q->cells[pos & QUEUE_MASK].task = *item;
+    // Inform consumers that the data copy is strictly complete
+    atomic_store_explicit(&cell->sequence, pos + 1, memory_order_release);
+    return true;
+}
+
+// ----------------------------------------------------------------------
+// DEQUEUE
+// ----------------------------------------------------------------------
+/** @brief Dequeue a directory task from the MPMCQueue.
+    @param q A pointer to the MPMCQueue struct representing the queue.
+    @param item A pointer to a TaskNode struct where the dequeued task will be stored.
+    @return true if a task was successfully dequeued, false if the queue is empty.
+    @details This function attempts to dequeue a directory task from the MPMCQueue in a lock-free manner. It uses atomic operations to ensure thread safety and avoid race conditions. If the queue is empty, it returns false; otherwise, it copies the task data from the reserved slot into the provided TaskNode and updates the sequence number to indicate that the slot is now free for future enqueues.
+   */
+bool dequeue_dir(MPMCQueue *q, TaskNode *item) {
+    QueueCell *cell;
+    size_t pos = atomic_load_explicit(&q->dequeue_pos, memory_order_relaxed);
+    while (true) {
+        cell = &q->cells[pos & QUEUE_MASK];
+        size_t seq = atomic_load_explicit(&cell->sequence, memory_order_acquire);
+        intptr_t diff = (intptr_t)seq - (intptr_t)(pos + 1);
+        if (diff == 0) {
+            // Slot contains valid unconsumed data for this sequence generation
+            if (atomic_compare_exchange_weak_explicit(&q->dequeue_pos, &pos, pos + 1,
+                                                      memory_order_relaxed, memory_order_relaxed)) {
+                break;
+            }
+        } else if (diff < 0) {
+            // The queue is completely empty
+            return false;
+        } else {
+            // Another thread beat us to reading this slot; reload position
+            pos = atomic_load_explicit(&q->dequeue_pos, memory_order_relaxed);
+        }
+    }
+    // Safely pull the data out
+    *item = q->cells[pos & QUEUE_MASK].task;
+    // Inform producers that this slot is entirely clear to be overwritten again
+    atomic_store_explicit(&cell->sequence, pos + QUEUE_CAPACITY, memory_order_release);
+    return true;
+}
+// enqueue_dir(LfContext *lf, TaskNode *new_task) {
+// void enqueue_dir(LfContext *lf, TaskNode *new_task) {
+//     pthread_mutex_lock(&lf->queue_mutex);
+//     if (lf->qtail)
+//         lf->qtail->next_task = new_task;
+//     else
+//         lf->qhead = new_task;
+//     lf->qtail = new_task;
+//     pthread_cond_signal(&lf->cond_var);
+//     pthread_mutex_unlock(&lf->queue_mutex);
+// }
+// dequeue_dir(LfContext *lf) {
+// TaskNode *dequeue_dir(LfContext *lf) {
+//     pthread_mutex_lock(&lf->queue_mutex);
+//     while (lf->qhead == NULL && !lf->shut_down) {
+//         if (atomic_load(&lf->active_tasks) == 0) {
+//             lf->shut_down = 1;
+//             // and wake up any waiting threads so they can exit gracefully.
+//             pthread_cond_broadcast(&lf->cond_var);
+//             break;
+//         }
+//         pthread_cond_wait(&lf->cond_var, &lf->queue_mutex);
+//     }
+//     if (lf->shut_down && lf->qhead == NULL) {
+//         pthread_mutex_unlock(&lf->queue_mutex);
+//         return NULL;
+//     }
+//     TaskNode *temp = lf->qhead;
+//     lf->qhead = lf->qhead->next_task;
+//     if (!lf->qhead)
+//         lf->qtail = NULL;
+//     atomic_fetch_add(&lf->active_tasks, 1);
+//     pthread_mutex_unlock(&lf->queue_mutex);
+//     return temp;
+// }
+
 bool build_full_path(char *dst, size_t dst_size, const char *dir_path,
                      const char *name, size_t *out_len) {
     if (dst == nullptr || dir_path == nullptr || name == nullptr || dst_size == 0)
@@ -922,60 +1062,60 @@ bool append_output_buffer(LfContext *lf, OutputBuffer *output, const char *path,
    also checks for shut_down conditions to allow finder threads to exit
    gracefully when there is no more work to process.
    */
-TaskNode *dequeue_dir(LfContext *lf) {
-    pthread_mutex_lock(&lf->queue_mutex);
-
-    // Wait until there is a task in the queue or shut_down has been
-    // initiated. The loop condition checks if the queue is empty (qhead ==
-    // NULL) and if shut_down has not been initiated (!shut_down). If both
-    // conditions are true, it means there are no tasks to process and the
-    // thread should wait. The thread will be woken up when a new task is
-    // enqueued (via pthread_cond_signal in enqueue_dir) or when shut_down is
-    // initiated (via pthread_cond_broadcast in enqueue_dir or when
-    // active_tasks count reaches zero). This ensures that threads do not
-    // wait indefinitely when there are no tasks left to process and allows
-    // for a graceful shut_down of the program.
-    while (lf->qhead == NULL && !lf->shut_down) {
-        // If there are no active tasks and the queue is empty, we can
-        // safely initiate shut_down. This check is necessary to prevent a
-        // potential race condition where a thread could be waiting
-        // indefinitely on the condition variable if all tasks have been
-        // completed and no new tasks will be enqueued. By checking the
-        // active_tasks count, we can determine when it's safe to signal
-        // shut_down
-        if (atomic_load(&lf->active_tasks) == 0) {
-            lf->shut_down = 1;
-            // and wake up any waiting threads so they can exit gracefully.
-            pthread_cond_broadcast(&lf->cond_var);
-            break;
-        }
-        // Wait for a task to be enqueued or shut_down initiated. The thread
-        // will be woken up when a new task is added to the queue (via
-        // pthread_cond_signal in enqueue_dir) or when shut_down is initiated
-        // (via pthread_cond_broadcast in enqueue_dir or when active_tasks
-        // count reaches zero). This allows the thread to check the
-        // conditions again and either process a new task or exit if
-        // shut_down has been initiated.
-        pthread_cond_wait(&lf->cond_var, &lf->queue_mutex);
-    }
-    if (lf->shut_down && lf->qhead == NULL) {
-        pthread_mutex_unlock(&lf->queue_mutex);
-        return NULL;
-    }
-    TaskNode *temp = lf->qhead;
-    // Move the head pointer to the next task in the queue. If the queue
-    // becomes empty after this operation (qhead becomes NULL), we also set
-    // qtail to NULL to indicate that the queue is empty. This ensures that
-    // both qhead and qtail accurately reflect the state of the queue,
-    // preventing potential issues with enqueuing new tasks or checking for
-    // an empty queue in future operations.
-    lf->qhead = lf->qhead->next_task;
-    if (!lf->qhead)
-        lf->qtail = NULL;
-    atomic_fetch_add(&lf->active_tasks, 1);
-    pthread_mutex_unlock(&lf->queue_mutex);
-    return temp;
-}
+// TaskNode *dequeue_dir(LfContext *lf) {
+//     pthread_mutex_lock(&lf->queue_mutex);
+//
+//     // Wait until there is a task in the queue or shut_down has been
+//     // initiated. The loop condition checks if the queue is empty (qhead ==
+//     // NULL) and if shut_down has not been initiated (!shut_down). If both
+//     // conditions are true, it means there are no tasks to process and the
+//     // thread should wait. The thread will be woken up when a new task is
+//     // enqueued (via pthread_cond_signal in enqueue_dir) or when shut_down is
+//     // initiated (via pthread_cond_broadcast in enqueue_dir or when
+//     // active_tasks count reaches zero). This ensures that threads do not
+//     // wait indefinitely when there are no tasks left to process and allows
+//     // for a graceful shut_down of the program.
+//     while (lf->qhead == NULL && !lf->shut_down) {
+//         // If there are no active tasks and the queue is empty, we can
+//         // safely initiate shut_down. This check is necessary to prevent a
+//         // potential race condition where a thread could be waiting
+//         // indefinitely on the condition variable if all tasks have been
+//         // completed and no new tasks will be enqueued. By checking the
+//         // active_tasks count, we can determine when it's safe to signal
+//         // shut_down
+//         if (atomic_load(&lf->active_tasks) == 0) {
+//             lf->shut_down = 1;
+//             // and wake up any waiting threads so they can exit gracefully.
+//             pthread_cond_broadcast(&lf->cond_var);
+//             break;
+//         }
+//         // Wait for a task to be enqueued or shut_down initiated. The thread
+//         // will be woken up when a new task is added to the queue (via
+//         // pthread_cond_signal in enqueue_dir) or when shut_down is initiated
+//         // (via pthread_cond_broadcast in enqueue_dir or when active_tasks
+//         // count reaches zero). This allows the thread to check the
+//         // conditions again and either process a new task or exit if
+//         // shut_down has been initiated.
+//         pthread_cond_wait(&lf->cond_var, &lf->queue_mutex);
+//     }
+//     if (lf->shut_down && lf->qhead == NULL) {
+//         pthread_mutex_unlock(&lf->queue_mutex);
+//         return NULL;
+//     }
+//     TaskNode *temp = lf->qhead;
+//     // Move the head pointer to the next task in the queue. If the queue
+//     // becomes empty after this operation (qhead becomes NULL), we also set
+//     // qtail to NULL to indicate that the queue is empty. This ensures that
+//     // both qhead and qtail accurately reflect the state of the queue,
+//     // preventing potential issues with enqueuing new tasks or checking for
+//     // an empty queue in future operations.
+//     lf->qhead = lf->qhead->next_task;
+//     if (!lf->qhead)
+//         lf->qtail = NULL;
+//     atomic_fetch_add(&lf->active_tasks, 1);
+//     pthread_mutex_unlock(&lf->queue_mutex);
+//     return temp;
+// }
 /** @brief Worker thread function to process directories from the queue.
     @param arg Pointer to the SearchFilters struct containing the options
    and flags for filtering.
@@ -991,13 +1131,14 @@ TaskNode *dequeue_dir(LfContext *lf) {
    */
 void *finder(void *arg) {
     LfContext *lf = (LfContext *)arg;
-    char lnk_path[PATH_MAX] = {'\0'};
+    char lnk_path[MAX_PATH_LEN] = {'\0'};
     OutputBuffer output = {{'\0'}, 0};
-
+    TaskNode current_task = {};
     while (1) {
-        TaskNode *current_task = dequeue_dir(lf);
-        if (!current_task)
+        if (!dequeue_dir(&lf->q, &current_task)) {
+            lf->shut_down = 1;
             break;
+        }
         //-------------------------------------------------------------
         // Open the directory for reading. We use openat with AT_FDCWD to
         // open the directory specified by current_task->dir_path, and then
@@ -1013,18 +1154,15 @@ void *finder(void *arg) {
         // INITIALIZE DIRECTORY - PRIMING READ
         // --------------------------------------------------------------------
         int dir_fd =
-            openat(AT_FDCWD, current_task->dir_path, O_RDONLY | O_DIRECTORY);
+            openat(AT_FDCWD, current_task.dir_path, O_RDONLY | O_DIRECTORY);
         if (dir_fd == -1) {
             atomic_fetch_add(&lf->error_count, 1);
             if (lf->debug && (lf->report_warnings || lf->report_errors ||
                               lf->report_badlinks || lf->report_all)) {
                 pthread_mutex_lock(&lf->output_mutex);
-                fprintf(stderr, "OPEN_FAIL,%s,%s\n", current_task->dir_path, strerror(errno));
+                fprintf(stderr, "OPEN_FAIL,%s,%s\n", current_task.dir_path, strerror(errno));
                 pthread_mutex_unlock(&lf->output_mutex);
             }
-            free(current_task->dir_path);
-            free(current_task->dev_ino);
-            free(current_task);
             atomic_fetch_sub(&lf->active_tasks, 1);
             pthread_cond_broadcast(&lf->cond_var);
             continue;
@@ -1036,13 +1174,10 @@ void *finder(void *arg) {
                               lf->report_badlinks || lf->report_all)) {
                 pthread_mutex_lock(&lf->output_mutex);
                 fprintf(stderr, "\nFDOPENDIR_FAIL,%s,%s\n",
-                        current_task->dir_path, strerror(errno));
+                        current_task.dir_path, strerror(errno));
                 pthread_mutex_unlock(&lf->output_mutex);
             }
             close(dir_fd);
-            free(current_task->dir_path);
-            free(current_task->dev_ino);
-            free(current_task);
             atomic_fetch_sub(&lf->active_tasks, 1);
             pthread_cond_broadcast(&lf->cond_var);
             continue;
@@ -1060,7 +1195,7 @@ void *finder(void *arg) {
         // decide whether to process it further or enqueue it for searching.
         //--------------------------------------------------------------------
         unsigned char effective_type;
-        char full_path[PATH_MAX] = {'\0'};
+        char full_path[MAX_PATH_LEN] = {'\0'};
         struct dirent *entry;
         while ((entry = readdir(dir)) != NULL) {
             struct stat st;
@@ -1074,67 +1209,63 @@ void *finder(void *arg) {
             // error (if debugging is enabled) and continue to the next
             // entry without processing this one further.
             effective_type = entry->d_type;
-            if (effective_type == DT_DIR || effective_type == DT_LNK || effective_type == DT_UNKNOWN) {
-                // -----------------------------------------------------------
-                // AVOID FSTATAT IF POSSIBLE
-                // -----------------------------------------------------------
-                rc = fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW);
+            rc = fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW);
+            if (rc == -1) {
+                atomic_fetch_add(&lf->error_count, 1);
+                if (lf->debug && (lf->report_errors || lf->report_warnings ||
+                                  lf->report_badlinks || lf->report_all)) {
+                    if (!build_full_path(full_path, sizeof(full_path),
+                                         current_task.dir_path,
+                                         entry->d_name, nullptr)) {
+                        ssnprintf(full_path, sizeof(full_path), "%s/%s",
+                                  current_task.dir_path, entry->d_name);
+                    }
+                    pthread_mutex_lock(&lf->output_mutex);
+                    fprintf(stderr, "LSTAT_FAIL,%s,%s\n", full_path,
+                            strerror(errno));
+                    pthread_mutex_unlock(&lf->output_mutex);
+                }
+                continue;
+            }
+            if (strcmp(entry->d_name, "tv") == 0) {
+                char tmp_str[MAXLEN];
+                strcpy(tmp_str, entry->d_name);
+            }
+            effective_type = (st.st_mode & S_IFMT) >> 12;
+            // Determine the real type of the entry. If the entry is a
+            // symbolic link, we set real_type to DT_LNK and then attempt to
+            // get the metadata of the target it points to using fstatat
+            // without AT_SYMLINK_NOFOLLOW. This allows us to determine the
+            // effective type of the entry based on the target's metadata,
+            // which is important for deciding how to process it (e.g.,
+            // whether it's a directory that we should enqueue for further
+            // searching). If fstatat fails when trying to get the target's
+            // metadata, we log the error (if debugging is enabled) but
+            // continue processing the entry based on its symbolic link
+            // metadata.
+            // if (effective_type == DT_LNK) {
+            // Get the target's metadata
+            if (S_ISLNK(st.st_mode)) {
+                rc = fstatat(dir_fd, entry->d_name, &st, 0);
                 if (rc == -1) {
                     atomic_fetch_add(&lf->error_count, 1);
-                    if (lf->debug && (lf->report_errors || lf->report_warnings ||
-                                      lf->report_badlinks || lf->report_all)) {
+                    if (lf->debug && (lf->report_all || lf->report_warnings ||
+                                      lf->report_errors || lf->report_badlinks)) {
                         if (!build_full_path(full_path, sizeof(full_path),
-                                             current_task->dir_path,
+                                             current_task.dir_path,
                                              entry->d_name, nullptr)) {
                             ssnprintf(full_path, sizeof(full_path), "%s/%s",
-                                      current_task->dir_path, entry->d_name);
+                                      current_task.dir_path, entry->d_name);
                         }
                         pthread_mutex_lock(&lf->output_mutex);
-                        fprintf(stderr, "LSTAT_FAIL,%s,%s\n", full_path,
+                        fprintf(stderr, "STAT_FAIL,%s,%s\n", full_path,
                                 strerror(errno));
                         pthread_mutex_unlock(&lf->output_mutex);
                     }
                     continue;
                 }
-                effective_type = (st.st_mode & S_IFMT) >> 12;
-                // Determine the real type of the entry. If the entry is a
-                // symbolic link, we set real_type to DT_LNK and then attempt to
-                // get the metadata of the target it points to using fstatat
-                // without AT_SYMLINK_NOFOLLOW. This allows us to determine the
-                // effective type of the entry based on the target's metadata,
-                // which is important for deciding how to process it (e.g.,
-                // whether it's a directory that we should enqueue for further
-                // searching). If fstatat fails when trying to get the target's
-                // metadata, we log the error (if debugging is enabled) but
-                // continue processing the entry based on its symbolic link
-                // metadata.
-                // if (effective_type == DT_LNK) {
-                // Get the target's metadata
-                if (S_ISLNK(st.st_mode)) {
-                    rc = fstatat(dir_fd, entry->d_name, &st, 0);
-                    if (rc == -1) {
-                        atomic_fetch_add(&lf->error_count, 1);
-                        if (lf->debug && (lf->report_all || lf->report_warnings ||
-                                          lf->report_errors || lf->report_badlinks)) {
-                            if (!build_full_path(full_path, sizeof(full_path),
-                                                 current_task->dir_path,
-                                                 entry->d_name, nullptr)) {
-                                ssnprintf(full_path, sizeof(full_path), "%s/%s",
-                                          current_task->dir_path, entry->d_name);
-                            }
-                            pthread_mutex_lock(&lf->output_mutex);
-                            fprintf(stderr, "STAT_FAIL,%s,%s\n", full_path,
-                                    strerror(errno));
-                            pthread_mutex_unlock(&lf->output_mutex);
-                        }
-                        continue;
-                    }
-                    if (lf->follow_links)
-                        effective_type = (st.st_mode & S_IFMT) >> 12;
-                }
-                // -----------------------------------------------------------
-                // END AVOID FSTATAT IF POSSIBLE
-                // -----------------------------------------------------------
+                if (lf->follow_links)
+                    effective_type = (st.st_mode & S_IFMT) >> 12;
             }
             if (effective_type != DT_DIR) {
                 if (is_hidden(entry->d_name)) {
@@ -1146,14 +1277,14 @@ void *finder(void *arg) {
                 if (is_dirsys(entry->d_name))
                     continue;
                 if (!build_full_path(full_path, sizeof(full_path),
-                                     current_task->dir_path,
+                                     current_task.dir_path,
                                      entry->d_name, nullptr)) {
                     atomic_fetch_add(&lf->error_count, 1);
                     if (lf->debug && (lf->report_errors || lf->report_warnings ||
                                       lf->report_badlinks || lf->report_all)) {
                         pthread_mutex_lock(&lf->output_mutex);
                         fprintf(stderr, "PATH_TOO_LONG,%s/%s\n",
-                                current_task->dir_path, entry->d_name);
+                                current_task.dir_path, entry->d_name);
                         pthread_mutex_unlock(&lf->output_mutex);
                     }
                     continue;
@@ -1170,7 +1301,7 @@ void *finder(void *arg) {
                 // directories if desired.
                 //
                 // Check for cycles by comparing the current
-                // directory's dev/inode with the dev_ino of dev/inode pairs
+                // directory's dev/inode with the history of dev/inode pairs
                 // from parent directories. If a match is found, it
                 // indicates a cycle and we skip processing this directory.
                 bool cycle_found = false;
@@ -1179,19 +1310,19 @@ void *finder(void *arg) {
                     fprintf(stderr, "Checking for cycles in: %s\n", full_path);
                     pthread_mutex_unlock(&lf->output_mutex);
                 }
-                for (int i = 0; i < current_task->depth; i++) {
+                for (int i = 0; i <= current_task.depth; i++) {
                     if (lf->debug && (lf->report_trace || lf->report_all)) {
                         pthread_mutex_lock(&lf->output_mutex);
-                        if (current_task->dev_ino[i].ino == st.st_ino)
+                        if (current_task.dev_ino[i].ino == st.st_ino)
                             fprintf(stderr, "%3d %ju %ju<===========\n", i,
-                                    current_task->dev_ino[i].ino, st.st_ino);
+                                    current_task.dev_ino[i].ino, st.st_ino);
                         else
                             fprintf(stderr, "%3d %ju %ju\n", i,
-                                    current_task->dev_ino[i].ino, st.st_ino);
+                                    current_task.dev_ino[i].ino, st.st_ino);
                         pthread_mutex_unlock(&lf->output_mutex);
                     }
-                    if (current_task->dev_ino[i].dev == st.st_dev &&
-                        current_task->dev_ino[i].ino == st.st_ino) {
+                    if (current_task.dev_ino[i].dev == st.st_dev &&
+                        current_task.dev_ino[i].ino == st.st_ino) {
                         cycle_found = true;
                         break;
                     }
@@ -1218,43 +1349,41 @@ void *finder(void *arg) {
                 //-------------------------------------------------------
                 // Create a new TaskNode for the subdirectory and enqueue it
                 // for processing by finder threads. We duplicate the
-                // current dev_ino of dev/inode pairs and add the current
-                // directory's dev/inode to the new dev_ino for the child
+                // current history of dev/inode pairs and add the current
+                // directory's dev/inode to the new history for the child
                 // task. This allows us to maintain a record of the
                 // directories we've visited in the current path, which is
-                // essential for cycle detection. By checking this dev_ino
+                // essential for cycle detection. By checking this history
                 // for each new directory we encounter, we can effectively
                 // prevent infinite loops caused by symbolic links or hard
                 // links that create cycles in the directory structure.
-                if (lf->max_depth != 0 && current_task->depth + 1 == lf->max_depth)
+                if (lf->max_depth != 0 && current_task.depth + 1 == lf->max_depth)
                     continue;
-                TaskNode *child_task = malloc(sizeof(TaskNode));
-                child_task->dir_path = strdup(full_path);
-                child_task->depth = current_task->depth + 1;
-                child_task->next_task = NULL;
-                child_task->dev_ino =
-                    malloc((child_task->depth) * sizeof(DevIno));
-                if (current_task->depth > 0) {
-                    memcpy(child_task->dev_ino, current_task->dev_ino,
-                           sizeof(DevIno) * current_task->depth);
+                TaskNode child_task;
+                strnz__cpy(child_task.dir_path, full_path, MAX_PATH_LEN - 1);
+                child_task.depth = current_task.depth + 1;
+                int i;
+                for (i = 0; i <= current_task.depth; i++) {
+                    child_task.dev_ino[i].dev = current_task.dev_ino[i].dev;
+                    child_task.dev_ino[i].ino = current_task.dev_ino[i].ino;
                 }
-                child_task->dev_ino[current_task->depth].dev = st.st_dev;
-                child_task->dev_ino[current_task->depth].ino = st.st_ino;
-                enqueue_dir(lf, child_task);
+                child_task.dev_ino[current_task.depth].dev = st.st_dev;
+                child_task.dev_ino[current_task.depth].ino = st.st_ino;
+                enqueue_dir(&lf->q, &child_task);
                 scan_file(full_path, lf, effective_type, &st, &output);
                 continue;
             }
             if (lf->hidden_only && !is_hidden(entry->d_name))
                 continue;
             if (!build_full_path(full_path, sizeof(full_path),
-                                 current_task->dir_path,
+                                 current_task.dir_path,
                                  entry->d_name, nullptr)) {
                 atomic_fetch_add(&lf->error_count, 1);
                 if (lf->debug && (lf->report_errors || lf->report_warnings ||
                                   lf->report_badlinks || lf->report_all)) {
                     pthread_mutex_lock(&lf->output_mutex);
                     fprintf(stderr, "PATH_TOO_LONG,%s/%s\n",
-                            current_task->dir_path, entry->d_name);
+                            current_task.dir_path, entry->d_name);
                     pthread_mutex_unlock(&lf->output_mutex);
                 }
                 continue;
@@ -1262,9 +1391,6 @@ void *finder(void *arg) {
             scan_file(full_path, lf, effective_type, &st, &output);
         }
         closedir(dir);
-        free(current_task->dir_path);
-        free(current_task->dev_ino);
-        free(current_task);
         atomic_fetch_sub(&lf->active_tasks, 1);
     }
     flush_output_buffer(lf, &output);

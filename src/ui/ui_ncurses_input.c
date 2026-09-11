@@ -177,7 +177,8 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
     curs_set(0);
     return ch;
 }
-
+// int ui_getch()
+//
 int ui_get_event_no_mouse(UiSurface *s, ss_t w, UiEvent *ev) {
     int ch;
     mousemask(0, NULL);
@@ -198,6 +199,7 @@ int ui_get_event_no_mouse(UiSurface *s, ss_t w, UiEvent *ev) {
     curs_set(0);
     return ch;
 }
+// ui_ncplane_clicked(UiSurface *s, ss_t w, UiEvent *ev);
 /* -------------------------------------------------------------------------
    Mice
    ------------------------------------------------------------------------- */

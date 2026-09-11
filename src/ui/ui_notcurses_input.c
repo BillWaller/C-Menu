@@ -12,11 +12,14 @@
 #include <string.h>
 #include <termios.h>
 
-int ui_get_event_multix(UiSurface *s, ss_t w, UiEvent *ev, int timeout_ms);
 /* -------------------------------------------------------------------------
    Key translation
    ------------------------------------------------------------------------- */
-
+/** @brief Translate a NotCurses key code into a UiKey.
+   @param id  NotCurses key code.
+   @param ni  NotCurses input event (for context).
+   @return    Corresponding UiKey value.
+*/
 static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
     if (id == NCKEY_INVALID || id == (uint32_t)NCKEY_EOF)
         return UIKEY_NONE;
@@ -105,12 +108,9 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
     if (!ui || !ev)
         return -1;
     memset(ev, 0, sizeof(*ev));
-
     ncinput ni;
-    // tcflush(0, TCIFLUSH);
     if (timeout_ms < 0) {
         do {
-            // notcurses_get(ui->nc, NULL, &ni);
             notcurses_get_blocking(ui->nc, &ni);
         } while (ni.evtype == NCTYPE_RELEASE ||
                  ni.id == NCKEY_INVALID || ni.id == NCKEY_MOTION || ni.id == NCKEY_SIGNAL);
@@ -153,7 +153,9 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
     }
     return ni.id;
 }
-
+/** @brief Wait for a single input character from the NotCurses context.
+   @return The NotCurses key code, or -1 if @p ui is NULL.
+*/
 int ui_getch() {
     if (!ui)
         return -1;
@@ -166,7 +168,11 @@ int ui_getch() {
              ni.id == NCKEY_SIGNAL);
     return ni.id;
 }
-
+/** @brief Wait for an input event from the NotCurses context, ignoring mouse events.
+   @param target Unused for NotCurses (events are global to the context).
+   @param ev     Output UiEvent structure.
+   @return The NotCurses key code, or -1 if @p ui or @p ev is NULL.
+*/
 int ui_get_event_no_mouse(UiSurface *target, ss_t w, UiEvent *ev) {
     (void)target;
     (void)w;
@@ -186,7 +192,11 @@ int ui_get_event_no_mouse(UiSurface *target, ss_t w, UiEvent *ev) {
         ev->ch = ni.id;
     return ni.id;
 }
-
+/** @brief Get the index of a given ncplane in the UiSurface's plane array.
+   @param s     The UiSurface containing the planes.
+   @param plane The ncplane to find.
+   @return The index of the plane in the UiSurface's mplane array, or -1 if not found.
+*/
 uint ui_get_plane_idx(UiSurface *s, struct ncplane *plane) {
     for (ss_t w = BOX; w < SUB_SFC_MAX; ++w) {
         if (s->mplane[w] == plane)
@@ -194,7 +204,12 @@ uint ui_get_plane_idx(UiSurface *s, struct ncplane *plane) {
     }
     return -1;
 }
-
+/** @brief Determine which ncplane was clicked based on the mouse event coordinates.
+   @param s  The UiSurface containing the planes.
+   @param w  The index of the plane to check for clicks.
+   @param ni The NotCurses input event containing mouse coordinates.
+   @return The ncplane that was clicked, or NULL if no plane was clicked.
+*/
 NcPlane *ui_ncplane_clicked(UiSurface *s, ss_t w, ncinput *ni) {
     NcPlane *pile_member = s->mplane[w];
     struct ncplane *cur = ncpile_top(pile_member);
@@ -208,4 +223,32 @@ NcPlane *ui_ncplane_clicked(UiSurface *s, ss_t w, ncinput *ni) {
         cur = ncplane_below(cur);
     }
     return NULL;
+}
+
+// -------------------------------------------------------------------------
+// Mice
+// -------------------------------------------------------------------------
+/** @brief Set the mouse event mask for the NotCurses context.
+   @param mask The mouse event mask to set. If 0, all mouse events are enabled.
+   @return 0 on success, or -1 if @p ui is NULL.
+*/
+int ui_mousemask(int mask) {
+    if (!ui)
+        return 0;
+    if (mask)
+        notcurses_mice_enable(ui->nc, mask);
+    else
+        notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
+    return 0;
+}
+/** @brief Enable or disable mouse events for the NotCurses context.
+   @param mask The mouse event mask to enable. If 0, all mouse events are enabled.
+   @return 0 on success, or -1 if @p ui is NULL.
+*/
+int ui_mice_enable(int mask) {
+    if (mask)
+        notcurses_mice_enable(ui->nc, mask);
+    else
+        notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
+    return 0;
 }

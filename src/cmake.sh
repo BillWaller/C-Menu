@@ -7,12 +7,12 @@
 cd build
 
 # To build C-Menu with the NCurses library:
-
-cmake .. -D UI=UAL_UI
+# echo "cmake .. -D UI=UAL_UI">UI.cmk
 
 # To build C-Menu with the Notcurses library
+# echo "cmake .. -D UI=NOTCURSES_UI">UI.cmk
 
-# cmake .. -D UI=NOTCURSES_UI
+. ../UI.cmk
 cp compile_commands.json ..
 
 # Using GNU Makefile

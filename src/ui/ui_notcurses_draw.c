@@ -18,7 +18,11 @@
 /* -------------------------------------------------------------------------
    Housekeeping functions
    ------------------------------------------------------------------------- */
-
+/** @brief clear the window from the current cursor position to the end of the window
+ * @param s surface
+ * @param w window
+ * @return 0 on success, -1 on error
+ */
 int ui_wclrtoeol(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
@@ -30,7 +34,11 @@ int ui_wclrtoeol(UiSurface *s, ss_t w) {
     ncplane_erase_region(s->mplane[w], y, x, ylen, xlen);
     return 0;
 }
-
+/** @brief clear from current cursor position to bottom of window
+ * @param s surface
+ * @param w window
+ * @return 0 on success, -1 on error
+ */
 int ui_wclrtobot(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
@@ -49,6 +57,12 @@ int ui_wclrtobot(UiSurface *s, ss_t w) {
 /* -------------------------------------------------------------------------
    Text
    ------------------------------------------------------------------------- */
+/** @brief create a cell with specified character, using background cell style
+ * and channels
+ * @param cell pointer to UiCell
+ * @param c character
+ * @return 0 on success, -1 on error
+ */
 int mk_chimera(UiCell *cell, char c) {
     cell->gcluster = c;
     cell->gcluster_backstop = 0;
@@ -56,6 +70,12 @@ int mk_chimera(UiCell *cell, char c) {
     cell->channels = bkgd_cell.channels;
     return 0;
 }
+/** @brief on specified window, at current location, add character
+ * @param s surface
+ * @param w window
+ * @param c character
+ * @return 0 on success, -1 on error
+ */
 int ui_draw_ch(UiSurface *s, ss_t w, char c) {
     if (!s || !c)
         return -1;
@@ -63,6 +83,14 @@ int ui_draw_ch(UiSurface *s, ss_t w, char c) {
     ncplane_putc_yx(s->mplane[w], -1, -1, &cell);
     return 0;
 }
+/** @brief on specified window, move to y, x, add character
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param c character
+ * @return 0 on success, -1 on error
+ */
 int ui_draw_ch_yx(UiSurface *s, ss_t w, uint y, uint x, char c) {
     if (!s || !c)
         return -1;
@@ -70,18 +98,44 @@ int ui_draw_ch_yx(UiSurface *s, ss_t w, uint y, uint x, char c) {
     ncplane_putc_yx(s->mplane[w], y, x, &cell);
     return 0;
 }
+/** @brief on specified window, move to y, x, add string
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param text string
+ * @return 0 on success, -1 on error
+ */
 int ui_draw_text(UiSurface *s, ss_t w, uint y, uint x, const char *text) {
     if (!s || !text)
         return -1;
     ncplane_putstr_yx(s->mplane[w], y, x, text);
     return 0;
 }
+/** @brief on specified window, move to y, x, add string, at most m columns
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param text string
+ * @param m maximum number of columns to write
+ * @return 0 on success, -1 on error
+ */
 int ui_draw_text_n(UiSurface *s, ss_t w, uint y, uint x, const char *text, int m) {
     if (!s || !text)
         return -1;
     ncplane_putnstr_yx(s->mplane[w], y, x, m, text);
     return 0;
 }
+/** @brief on specified window, move to y, x, add string, at most m columns, fill with spaces if text is shorter than m
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param text string
+ * @param m maximum number of columns to write
+ * @return 0 on success, -1 on error
+ */
 int ui_draw_text_fill(UiSurface *s, ss_t w, uint y, uint x, const char *text, int m) {
     if (!s || !text)
         return -1;
@@ -97,6 +151,12 @@ int ui_draw_text_fill(UiSurface *s, ss_t w, uint y, uint x, const char *text, in
     return 0;
 }
 // -------------------------------------------------------------------------
+/** @brief on specified window, at current location, add character
+ * @param s surface
+ * @param w window
+ * @param c character
+ * @return 0 on success, -1 on error
+ */
 int ui_waddch(UiSurface *s, ss_t w, const char c) {
     if (!s || !c)
         return -1;
@@ -104,6 +164,14 @@ int ui_waddch(UiSurface *s, ss_t w, const char c) {
     ncplane_putc_yx(s->mplane[w], -1, -1, &cell);
     return 0;
 }
+/** @brief on specified window, move to y, x, add character
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param c character
+ * @return 0 on success, -1 on error
+ */
 int ui_mvwaddch(UiSurface *s, ss_t w, uint y, uint x, const char c) {
     if (!s || !c)
         return -1;
@@ -111,30 +179,69 @@ int ui_mvwaddch(UiSurface *s, ss_t w, uint y, uint x, const char c) {
     ncplane_putc_yx(s->mplane[w], y, x, &cell);
     return 0;
 }
+/** @brief on specified window, at current location, add string
+ * @param s surface
+ * @param w window
+ * @param text string
+ * @return 0 on success, -1 on error
+ */
 int ui_waddstr(UiSurface *s, ss_t w, const char *text) {
     if (!s || !text)
         return -1;
     ncplane_putstr(s->mplane[w], text);
     return 0;
 }
+/** @brief on specified window, at current location, add string, at most m columns
+ * @param s surface
+ * @param w window
+ * @param text string
+ * @param m maximum number of columns to write
+ * @return 0 on success, -1 on error
+ */
 int ui_waddnstr(UiSurface *s, ss_t w, const char *text, int m) {
     if (!s || !text)
         return -1;
     ncplane_putnstr(s->mplane[w], m, text);
     return 0;
 }
+/** @brief on specified window, move to y, x, add string
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param text string
+ * @return 0 on success, -1 on error
+ */
 int ui_mvwaddstr(UiSurface *s, ss_t w, uint y, uint x, const char *text) {
     if (!s || !text)
         return -1;
     ncplane_putstr_yx(s->mplane[w], y, x, text);
     return 0;
 }
+/** @brief on specified window, move to y, x, add string, at most m columns
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param text string
+ * @param m maximum number of columns to write
+ * @return 0 on success, -1 on error
+ */
 int ui_mvwaddnstr(UiSurface *s, ss_t w, uint y, uint x, const char *text, int m) {
     if (!s || !text)
         return -1;
     ncplane_putnstr_yx(s->mplane[w], y, x, m, text);
     return 0;
 }
+/** @brief on specified window, move to y, x, add string, at most m columns, fill with spaces if text is shorter than m
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param text string
+ * @param m maximum number of columns to write
+ * @return 0 on success, -1 on error
+ */
 int ui_mvwaddstr_fill(UiSurface *s, ss_t w, uint y, uint x, const char *text, int m) {
     if (!s || !text)
         return -1;
@@ -156,6 +263,12 @@ int ui_mvwaddstr_fill(UiSurface *s, ss_t w, uint y, uint x, const char *text, in
 // ---------------------------------------------------------------------------
 // Wide Characters
 // ---------------------------------------------------------------------------
+/** @brief on specified window, at current location, add wchar_t string
+ * @param s surface
+ * @param w window
+ * @param wchar_t string
+ * @return 0 on success, -1 on error
+ */
 int ui_waddwstr(UiSurface *s, ss_t w, const wchar_t *wstr) {
     if (!s || !wstr)
         return -1;
@@ -163,6 +276,12 @@ int ui_waddwstr(UiSurface *s, ss_t w, const wchar_t *wstr) {
         ncplane_putwc_yx(s->mplane[w], -1, -1, *wstr++);
     return 0;
 }
+/** @brief on specified window, move to y, x, add wchar_t string
+ * @param s surface
+ * @param w window
+ * @param wchar_t string
+ * @return 0 on success, -1 on error
+ */
 int ui_mvwaddwstr(UiSurface *s, ss_t w, uint y, uint x, const wchar_t *wstr) {
     if (!s || !wstr)
         return -1;
@@ -170,6 +289,14 @@ int ui_mvwaddwstr(UiSurface *s, ss_t w, uint y, uint x, const wchar_t *wstr) {
         ncplane_putwc_yx(s->mplane[w], y, x++, *wstr++);
     return 0;
 }
+/** @brief on specified window, at current location, add wchar_t string, at most
+ * m columns
+ * @param s surface
+ * @param w window
+ * @param wchar_t string
+ * @param m maximum number of columns to write
+ * @return 0 on success, -1 on error
+ */
 int ui_waddnwstr(UiSurface *s, ss_t w, const wchar_t *wstr, int m) {
     if (!s || !wstr)
         return -1;
@@ -185,6 +312,15 @@ int ui_waddnwstr(UiSurface *s, ss_t w, const wchar_t *wstr, int m) {
     }
     return 0;
 }
+/** @brief on specified window, move to y, x, add string, at most m columns
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param wchar_t string
+ * @param m maximum number of columns to write
+ * @return 0 on success, -1 on error
+ */
 int ui_mvwaddnwstr(UiSurface *s, ss_t w, uint y, uint x, const wchar_t *wstr, int m) {
     if (!s || !wstr)
         return -1;
@@ -201,22 +337,42 @@ int ui_mvwaddnwstr(UiSurface *s, ss_t w, uint y, uint x, const wchar_t *wstr, in
     }
     return 0;
 }
-
 // ---------------------------------------------------------------------------
 // UiCells
 // ---------------------------------------------------------------------------
+/** @brief on specified window, at current location, add cell
+ * @param s surface
+ * @param w window
+ * @param cell cell string
+ * @return 0 on success, -1 on error
+ */
 int ui_wadd_wch(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
     ncplane_putc(s->mplane[w], cell);
     return 0;
 }
+/** @brief on specified window, move to y, x, add cell
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param cell cell string
+ * @return 0 on success, -1 on error
+ */
 int ui_mvwadd_wch(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cell) {
     if (!s)
         return -1;
     ncplane_putc_yx(s->mplane[w], y, x, cell);
     return 0;
 }
+
+/** @brief on specified window, at current location, add cell string
+ * @param s surface
+ * @param w window
+ * @param cell cell string
+ * @return 0 on success, -1 on error
+ */
 int ui_wadd_wchstr(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
@@ -226,6 +382,14 @@ int ui_wadd_wchstr(UiSurface *s, ss_t w, const UiCell *cell) {
     }
     return 0;
 }
+/** @brief on specified window, move to y, x, add cell string
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param cell cell string
+ * @return 0 on success, -1 on error
+ */
 int ui_mvwadd_wchstr(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cell) {
     if (!s)
         return -1;
@@ -236,6 +400,13 @@ int ui_mvwadd_wchstr(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cell) {
     }
     return 0;
 }
+/** @brief on specified window, add cell string, at most m columns
+ * @param s surface
+ * @param w window
+ * @param cell cell string
+ * @param m maximum number of columns to write
+ * @return 0 on success, -1 on error
+ */
 int ui_wadd_wchnstr(UiSurface *s, ss_t w, const UiCell *cell, uint m) {
     if (!s)
         return -1;
@@ -247,7 +418,15 @@ int ui_wadd_wchnstr(UiSurface *s, ss_t w, const UiCell *cell, uint m) {
     }
     return 0;
 }
-
+/** @brief on specified window, move to y, x, add cell string, at most m columns
+ * @param s surface
+ * @param w window
+ * @param y row
+ * @param x column
+ * @param cell cell string
+ * @param m maximum number of columns to write
+ * @return 0 on success, -1 on error
+ */
 int ui_mvwadd_wchnstr(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cell, uint m) {
     if (!s)
         return -1;
@@ -263,7 +442,6 @@ int ui_mvwadd_wchnstr(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cell, 
 /* -------------------------------------------------------------------------
    Screen managemen t
    ------------------------------------------------------------------------- */
-
 void ui_restore_wins() {
     //  for (int s = 0; s <= sfc_ptr; s++) {
     //      for (int w = 0; w < 8; w++)
@@ -272,12 +450,20 @@ void ui_restore_wins() {
     //  }
     //  ui_render(ui);
 }
-
 /* -------------------------------------------------------------------------
    Image Display
    ------------------------------------------------------------------------- */
+/** @brief display an image on the terminal using NotCurses
+ * @param nc NotCurses context
+ * @param mm UiMultiMedia structure to hold the image and surface
+ * @param image_file path to the image file
+ * @param y height of the image display area (or -1 for full height)
+ * @param x width of the image display area (or -1 for full width)
+ * @param begy starting row for the image display area (or -1 for top)
+ * @param begx starting column for the image display area (or -1 for left)
+ * @return pointer to the ncvisual structure on success, nullptr on error
+ */
 struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const char *image_file, int y, int x, int begy, int begx) {
-    // 1. Get the current standard plane size
     struct ncplane *stdn = notcurses_stdplane(nc);
     unsigned term_rows, term_cols;
     ncplane_dim_yx(stdn, &term_rows, &term_cols);
@@ -286,44 +472,33 @@ struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const 
         fprintf(stderr, "Error: Could not load image file.\n");
         return nullptr;
     }
-    // 3. Query the image cell dimensions
     struct ncvgeom geom;
     if (ncvisual_geom(nc, mm->ncv, NULL, &geom) < 0) {
         ncvisual_destroy(mm->ncv);
         return nullptr;
     }
-    // 4. Calculate available bounding box below the UI
-    if (begy == -1) {
+    if (begy == -1)
         begy = 0;
-    }
-    if (begx == -1) {
+    if (begx == -1)
         begx = 0;
-    }
-    if (y == -1) {
+    if (y == -1)
         y = (int)term_rows - begy;
-    }
-    if (x == -1) {
+    if (x == -1)
         x = (int)term_cols - begx;
-    }
-    if (begy + y > (int)term_rows) {
+    if (begy + y > (int)term_rows)
         y = (int)term_rows - begy;
-    }
-    if (begx + x > (int)term_cols) {
+    if (begx + x > (int)term_cols)
         x = (int)term_cols - begx;
-    }
     int max_rows = y - 2;
     int max_cols = x - 2;
     if (max_rows <= 0) {
         ncvisual_destroy(mm->ncv);
         return nullptr;
     }
-    // 5. Scale image to fit the bounding box while preserving aspect ratio
     struct ncvisual_options vopts_calc = {
         .scaling = NCSCALE_SCALE_HIRES,
         .blitter = NCBLIT_PIXEL,
     };
-    // Create a dummy/temporary plane to define the maximum bounding box for the
-    // layout engine
     struct ncplane_options nopts = {
         .y = begy,
         .x = x,
@@ -336,32 +511,21 @@ struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const 
         return nullptr;
     }
     vopts_calc.n = tmp_bound_plane;
-
-    // Let Notcurses populate rcelly and rcellx based on the bounding box plane
     if (ncvisual_geom(nc, mm->ncv, &vopts_calc, &geom) < 0) {
         ncplane_destroy(tmp_bound_plane);
         ncvisual_destroy(mm->ncv);
         return nullptr;
     }
-
-    // Extract the exact rendered cell dimensions
     unsigned rows = geom.rcelly;
     unsigned cols = geom.rcellx;
-
-    // Destroy the temporary bounding plane now that we have the exact dimensions
+    // dimensions
     ncplane_destroy(tmp_bound_plane);
-
-    // 5b. Allocate the perfectly sized UI surfaces
-
     mm->sfc = ui_surface_box(stdsfc, BOX, rows + 2, cols + 2, begy, 0, image_file);
     ui_surface_addwin(mm->sfc, WIN, BOX, rows, cols, 1, 1);
-
-    // 6. Setup the blit options to create a subplane for you
     struct ncvisual_options vopts = {
         .n = mm->sfc->mplane[WIN],
         .scaling = NCSCALE_SCALE_HIRES,
         .blitter = NCBLIT_PIXEL,
-        //      .flags = NCVISUAL_OPTION_CHILDPLANE,
     };
     ncvisual_blit(nc, mm->ncv, &vopts);
     notcurses_render(nc);

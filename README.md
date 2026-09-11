@@ -73,9 +73,66 @@ Below is a screenshot of the UAL logging feature, which provides a detailed view
 
 ---
 
+[C-Menu Doxygen](https://decision-inc.com) | [C-Menu CHANGELOG](docs/CHANGELOG.md) | [C-Menu Installation](docs/INSTALL.md) | [Example Applications Menu Guided Tour](docs/menu.md)
+
 ---
 
-[C-Menu Doxygen](https://decision-inc.com) | [C-Menu CHANGELOG](docs/CHANGELOG.md) | [C-Menu Installation](docs/INSTALL.md) | [Example Applications Menu Guided Tour](docs/menu.md)
+## To Build C-Menu
+
+Change to the source directory, C-Menu/src, and type:
+
+```bash
+./chkui
+```
+
+The script should respond with a message similar to the following:
+
+```bash
+menu linked with ncurses
+CMake - NCURSES
+Makefile - NCURSES
+```
+
+If these are the options you want, proceed with the build:
+To switch from NCURSES to NOTCURSES or vice versa, run the chkui script again
+with the "-s" option.
+
+```bash
+./chkui -s
+```
+
+The script should respond with a message similar to the following:
+
+```bash
+menu linked with ncurses
+CMake - NCURSES
+Makefile - NCURSES
+CMake switching to NOTCURSES
+Makefile switching to NOTCURSES
+```
+---
+
+To build with CMake, remain in the source directory, C-Menu/src, and type:
+```bash
+./cmake.sh
+```
+This will create a build directory if it doesn't already exist. After the
+cmake.sh script finishes, change to the build directory and type:
+
+```bash
+make
+make install
+```
+
+---
+
+To build with GNU Makefile, remain in the source directory, C-Menu/src, and type:
+```bash
+make
+make install
+```
+
+---
 
 ## Why C-Menu?
 

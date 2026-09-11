@@ -1107,7 +1107,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
 #ifdef UAL_UI
     wchar_t wstr[2] = {L'\0', L'\0'};
     attr_t attrs;
-    ushort cpx;
+    short cpx;
 #endif
     UiCell cc = {};
     off_t prev_ln_no;
@@ -2229,7 +2229,7 @@ int fmt_line(View *view) {
                 while (safe_cols < sl_maxlen && safe_cells < sl_cells) {
                     wchar_t wstr_chk[CCHARW_MAX];
                     attr_t attr_chk;
-                    ushort cpx_chk;
+                    short cpx_chk;
                     ui_get_cell(view->sfc, PAD, &sl_cc[safe_cells], wstr_chk, &attr_chk, &cpx_chk, nullptr);
                     uint cw = wcwidth(wstr_chk[0]);
                     if (safe_cols + cw > sl_maxlen)
@@ -2320,7 +2320,7 @@ void log_cc_buf(View *view) {
         for (uint c = 0; c < view->cur.sl_cells[k]; c++) {
             wchar_t wstr[CCHARW_MAX];
             attr_t attrs;
-            ushort cpx;
+            short cpx;
             ui_get_cell(view->sfc, PAD, &view->cur.sl_cc[k][c], wstr, &attrs, &cpx, nullptr);
             if (wstr[0] == L'\0')
                 tmp_str[c] = ' ';

@@ -62,10 +62,9 @@ CX:=-std=c23
 CC:=gcc $(CX) $(INCLUDE_DIRS)
 
 BINEXES:=menu form pick view ckeys whence rsh rsh_static \
-	rsh_pam iloan amort enterchr enterstr lf stripansi detach \
-    ui_hello
+	rsh_pam iloan amort enterchr enterstr lf lf2 stripansi detach
 ifeq ($(UI), "-DNOTCURSES_UI")
-BINEXES+=ui_visual
+BINEXES+=ui_hello ui_visual
 endif
 
 MANPAGES:=cmenu.1.gz lf.1.gz rsh.1.gz
@@ -192,6 +191,9 @@ ui_visual:	ui_visual.c $(COMMON_OBJS) $(LIB_SHARED)
 lf: lf.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)
 
+lf2: lf2.c $(LIB_SHARED)
+	$(CC) $< -o $@ $(LDFLAGS)
+
 %:	%.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)
 
@@ -233,7 +235,7 @@ clean:
 	CMenu.conf manifest.txt manifest.ls perf.* x xx* *.[aeos] *.diff *.so \
 	*.cflow *.gc.. *.out *.1 *.1.gz CMakeFiles cmake_install.cmake \
    	CMakeCache.txt CMakefile CMAKE_BUILD_TYPE=Debug gdb.log ui/*.o \
-	conformance_ncurses conformance_notcurses
+	conformance_ncurses conformance_notcurses ui_hello ui_visual
 
 conformance_test: ui/ui_conformance_test.c
 ifeq ($(UI), "-DNOTCURSES_UI")
@@ -277,7 +279,7 @@ valgrind: menu
 install:
 	rm -f	$(INSTALL_LIB_DIR)/libcm*
 	install -CDp 	$(COMMON_HDRS)	-t $(PREFIX)/include
-	install -CDp	menu whence lf detach enterchr enterstr \
+	install -CDp	menu whence lf lf2 detach enterchr enterstr \
 		iloan amort stripansi -t $(INSTALL_BIN_DIR)
 	install -Dp -o root -g root -m 6711	rsh rsh_static rsh_pam -t $(INSTALL_BIN_DIR)
 	install -CDp $(LIB_STATIC) -t $(INSTALL_LIB_DIR)
@@ -320,4 +322,5 @@ uninstall:
 	$(INSTALL_BIN_DIR)/enterstr \
 	$(INSTALL_BIN_DIR)/stripansi \
 	$(INSTALL_BIN_DIR)/lf \
+	$(INSTALL_BIN_DIR)/lf2 \
 	$(INSTALL_LIB_DIR)/libcm.so

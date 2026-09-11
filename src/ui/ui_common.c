@@ -395,7 +395,7 @@ void destroy_curses() {
 // -----------------------------------------------------------------------------
 #else
 uint ui_mbstr_to_cellstr(UiSurface *sfc, ss_t w, UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
-    ushort cp;
+    short cp;
     uint p1 = 0;
     uint *pos = &p1;
     if (p)
@@ -473,7 +473,6 @@ int ui_tracked_sfc_box(uint wlines, uint wcols, uint wbegy, uint wbegx, const ch
     ui_surface[sfc_ptr] = ui_surface_box(nullptr, 0, wlines + 2, wcols + 2, wbegy, wbegx, wtitle);
     UiSurface *sfc = ui_surface[sfc_ptr];
     ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
-    ui_render();
     return 0;
 }
 // -----------------------------------------------------------------------------
@@ -523,10 +522,7 @@ int ui_tracked_sfc_split_box(uint wlines, uint wcols, uint split_y, uint split_x
     UiSurface *sfc = ui_surface[sfc_ptr];
 
     ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
-    ui_render();
-
     ui_border_ysplit(sfc, wlines + 1);
-    ui_render();
     ui_surface_addwin(sfc, WIN2, BOX, 2, wcols, wlines + 2, 1);
     ui_curs_set(0);
     return 0;
@@ -556,23 +552,17 @@ int ui_border_draw(UiSurface *sfc) {
     uint y = 0;
     uint x = 0;
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_tl, 1);
-    ui_render();
     for (x = 1; x < maxx - 1; x++)
         ui_mvwadd_wchnstr(sfc, BOX, y, x, &cell_ho, 1);
-    ui_render();
     ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_tr, 1);
-    ui_render();
     for (y = 1; y < maxy - 1; y++) {
         ui_mvwadd_wchnstr(sfc, BOX, y, 0, &cell_ve, 1);
-        ui_render();
         ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_ve, 1);
-        ui_render();
     }
     ui_mvwadd_wchnstr(sfc, BOX, y, 0, &cell_bl, 1);
     for (x = 1; x < maxx - 1; x++)
         ui_mvwadd_wchnstr(sfc, BOX, y, x, &cell_ho, 1);
     ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_br, 1);
-    ui_render();
     return 0;
 }
 /** ui_border-ysplit
@@ -653,28 +643,21 @@ int ui_border_title(UiSurface *sfc, const char *title) {
     uint l;
     uint maxx = ui_getmaxx(sfc, BOX);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_tl, 1);
-    ui_render();
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
-    ui_render();
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
-    ui_render();
     wchar_t *title_wc;
     title_wc = ui_mbstr_to_wcstr(title);
     l = wcswidth(title_wc, wcslen(title_wc));
     l = min(l, maxx - 7);
     ui_bkgdset(sfc, BOX, &cell_title);
     ui_mvwaddnwstr(sfc, BOX, y, x, title_wc, l);
-    ui_render();
     ui_bkgdset(sfc, BOX, &cell_box);
     x += l;
     free(title_wc);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
-    ui_render();
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_lt, 1);
-    ui_render();
     while (x < maxx - 1) {
         ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
-        ui_render();
     }
     return 0;
 }
@@ -1079,7 +1062,6 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     msg_l = max(msg_l, msg3_l);
     msg_l = max(msg_l, 50);
     msg_l = min(msg_l, maxx - 4);
-
     pos = ((maxx - msg_l) - 4) / 2;
     line = (maxy - 6) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);
@@ -1094,14 +1076,12 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     ui_set_chyron_key(chyron, 2, "N - No", 'n');
     ui_set_chyron_key(chyron, 3, "Y - Yes", 'y');
     ui_compile_chyron(chyron);
-
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, msg0);
     ui_draw_text(sfc, WIN, 1, 1, msg1);
     ui_draw_text(sfc, WIN, 2, 1, msg2);
     ui_draw_text(sfc, WIN, 3, 1, msg3);
     ui_display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
-
     do {
         ui_curs_set(1);
         event.y = event.x = -1;
@@ -1124,7 +1104,6 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
 int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     char title[MAXLEN];
     uint line, pos, msg_l, msg0_l, msg1_l, msg2_l, msg3_l;
-
     if (!f_ncurses_open && !f_notcurses_open) {
         fprintf(stderr, "\n\n%s\n", msg0);
         fprintf(stderr, "%s\n", msg1);
@@ -1132,7 +1111,6 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
         fprintf(stderr, "%s\n\n", msg3);
         return 1;
     }
-
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
     msg0_l = strnz(msg0, maxx - 4);
@@ -1164,7 +1142,6 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     ui_draw_text(sfc, WIN, 1, 1, msg1);
     ui_draw_text(sfc, WIN, 2, 1, msg2);
     ui_draw_text(sfc, WIN, 3, 1, msg3);
-
     ui_display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
     do {
         event.y = event.x = -1;
@@ -1287,17 +1264,14 @@ char *ui_iso8601_timestamp(char *buf, size_t n, bool local) {
 #define AS_STRING(NAME) #NAME,
 const char *subsfc_s[] = {
     SUB_SURFACE_LIST(AS_STRING)};
-
 const char *ui_sub_surface_str(ss_t w) {
     if (w < BOX || w >= SUB_SFC_MAX)
         return "unknown";
     return subsfc_s[w];
 }
-
 #define AS_STRING(NAME) #NAME,
 const char *const ui_log_level_s[] = {
     LOG_LEVEL_LIST(AS_STRING)};
-
 // ANSI Color Strings for UiLog
 const char *const ui_logcolor[] = {
     [FATAL] = "\033[1;31m",   // Bold Red
@@ -1338,6 +1312,122 @@ FILE *ui_open_log() {
     return ui_log_fp;
 }
 
-// -----------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------
+/* -------------------------------------------------------------------------
+   Formatting
+   ------------------------------------------------------------------------- */
+
+/** @brief Parse an ANSI SGR sequence and update attributes and color pair
+ * index. */
+void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
+    char *tok;
+    char t0, t1;
+    char tstr[3];
+    uint len, x_idx;
+    uint fg, bg;
+    uint _fg_clr, _bg_clr;
+    uint fg_clr, bg_clr;
+    char *ansi_p = ansi_str + 2;
+    ui_pair_content(*cpx, &_fg_clr, &_bg_clr);
+    fg = fg_clr = (uint)_fg_clr;
+    bg = bg_clr = (uint)_bg_clr;
+    RGB rgb;
+    tok = strtok((char *)ansi_p, ";m");
+    bool a_toi_error = false;
+    while (1) {
+        if (tok == nullptr || *tok == '\0')
+            break;
+        len = strlen(tok);
+        if (len == 2) {
+            t0 = tok[0];
+            t1 = tok[1];
+            if (t0 == '3' || t0 == '4') {
+                if (t1 == '8') {
+                    tok = strtok(nullptr, ";m");
+                    if (tok != nullptr) {
+                        if (*tok == '5') {
+                            tok = strtok(nullptr, ";m");
+                            if (tok != nullptr) {
+                                x_idx = a_toi(tok, &a_toi_error);
+                                rgb = ui_xterm256_idx_to_rgb(x_idx);
+                            }
+                        } else if (*tok == '2') {
+                            tok = strtok(nullptr, ";m");
+                            rgb.r = a_toi(tok, &a_toi_error);
+                            tok = strtok(nullptr, ";m");
+                            rgb.g = a_toi(tok, &a_toi_error);
+                            tok = strtok(nullptr, ";m");
+                            rgb.b = a_toi(tok, &a_toi_error);
+                        }
+                    }
+                    if (t0 == '3')
+                        fg_clr = ui_color_from_rgb(&rgb);
+                    else if (t0 == '4')
+                        bg_clr = ui_color_from_rgb(&rgb);
+                } else if (t1 == '9') {
+                    if (t0 == '3')
+                        fg_clr = CLR_NT_FG;
+                    else if (t0 == '4')
+                        bg_clr = CLR_NT_BG;
+                } else if (t1 >= '0' && t1 <= '7') {
+                    if (t0 == '3') {
+                        tstr[0] = t1;
+                        tstr[1] = '\0';
+                        x_idx = a_toi(tstr, &a_toi_error);
+                        rgb = ui_xterm256_idx_to_rgb(x_idx);
+                        fg_clr = ui_color_from_rgb(&rgb);
+                    } else if (t0 == '4') {
+                        tstr[0] = t1;
+                        tstr[1] = '\0';
+                        x_idx = a_toi(tstr, &a_toi_error);
+                        rgb = ui_xterm256_idx_to_rgb(x_idx);
+                        bg_clr = ui_color_from_rgb(&rgb);
+                    }
+                }
+            } else if (t0 == '0') {
+                *tok = t1;
+                len = 1;
+            }
+        }
+        if (len == 1) {
+            if (*tok == '0') {
+                *attr = WA_NORMAL;
+                fg_clr = CLR_NT_FG;
+                bg_clr = CLR_NT_BG;
+            } else {
+                switch (a_toi(tok, &a_toi_error)) {
+                case 1:
+                    *attr |= WA_BOLD;
+                    break;
+                case 2:
+                    *attr |= WA_DIM;
+                    break;
+                case 3:
+                    *attr |= WA_ITALIC;
+                    break;
+                case 4:
+                    *attr |= WA_UNDERLINE;
+                    break;
+                case 5:
+                    *attr |= WA_BLINK;
+                    break;
+                case 7:
+                    *attr |= WA_REVERSE;
+                    break;
+                case 8:
+                    *attr |= WA_INVIS;
+                    break;
+                default:
+                    break;
+                }
+            }
+        } else if (len == 0) {
+            *attr = WA_NORMAL;
+            fg_clr = CLR_NT_FG;
+            bg_clr = CLR_NT_BG;
+        }
+        tok = strtok(nullptr, ";m");
+    }
+    if (!a_toi_error && (fg_clr != fg || bg_clr != bg))
+        *cpx = ui_add_pair(fg_clr, bg_clr);
+    return;
+}

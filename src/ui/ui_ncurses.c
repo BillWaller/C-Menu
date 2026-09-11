@@ -178,91 +178,9 @@ struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
     ui_log(INFO, "ui_init: stdsfc->mwin[BOX]: %p, stdsfc->mpan[BOX]: %p", (void *)stdsfc->mwin[BOX], (void *)stdsfc->mpan[BOX]);
     return ui;
 }
-void ui_endwin() {
-    ui_shutdown();
-}
-void ui_shutdown() {
-    if (ui == NULL)
-        return;
-    ui_log(INFO, "ui_shutdown in progress...");
-    while (sfc_ptr >= 0) {
-        if (ui_surface[sfc_ptr] != NULL) {
-            ui_surface_destroy(ui_surface[sfc_ptr]);
-            ui_surface[sfc_ptr] = NULL;
-        }
-        ui_log(INFO, "surface destroy: %d", sfc_ptr);
-        sfc_ptr--;
-    }
-    if (stdsfc->mpan[0] != NULL) {
-        ui_log(INFO, "calling del_panel(stdsfc->mpan[BOX])");
-        hide_panel(stdsfc->mpan[0]);
-        del_panel(stdsfc->mpan[0]);
-        stdsfc->mpan[0] = NULL;
-    }
-    ui_log(INFO, "calling endwin()");
-    endwin();
-    f_ncurses_open = false;
-    if (ui->screen != NULL) {
-        ui_log(INFO, "calling delscreen(ui->screen)");
-        delscreen(ui->screen);
-        ui->screen = NULL;
-    }
-    if (ui->tty_fp != NULL) {
-        ui_log(INFO, "closing tty_fp");
-        fclose(ui->tty_fp);
-        ui->tty_fp = NULL;
-    }
-    if (stdsfc != NULL) {
-        ui_log(INFO, "freeing stdsfc");
-        free(stdsfc);
-        stdsfc = NULL;
-    }
-    if (ui != NULL) {
-        if (ui->sio) {
-            free(ui->sio);
-            ui->sio = nullptr;
-        }
-        ui_log(INFO, "freeing ui");
-        free(ui);
-        ui = NULL;
-    }
-}
-void ui_surface_destroy(UiSurface *s) {
-    if (!s)
-        return;
-    for (int i = SUB_SFC_MAX; i >= 0; i--) {
-        if (s->mpan[i] != NULL) {
-            hide_panel(s->mpan[i]);
-            del_panel(s->mpan[i]);
-            s->mpan[i] = NULL;
-        }
-    }
-    for (int i = SUB_SFC_MAX; i >= 0; i--) {
-        if (s->mwin[i] != NULL) {
-            delwin(s->mwin[i]);
-            s->mwin[i] = NULL;
-        }
-    }
-    if (s != NULL) {
-        free(s);
-        s = NULL;
-    }
-}
-int ui_suspend() {
-    def_prog_mode();
-    endwin();
-    return 0;
-}
-int ui_resume() {
-    reset_prog_mode();
-    update_panels();
-    doupdate();
-    return 0;
-}
-
-/* -------------------------------------------------------------------------
-   Surface Creation and Destruction
-   ------------------------------------------------------------------------- */
+// -------------------------------------------------------------------------
+// Surface Creation and Destruction
+// -------------------------------------------------------------------------
 
 UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
     if (!ui)
@@ -411,6 +329,89 @@ int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
 #endif
     return 0;
 }
+
+void ui_endwin() {
+    ui_shutdown();
+}
+void ui_shutdown() {
+    if (ui == NULL)
+        return;
+    ui_log(INFO, "ui_shutdown in progress...");
+    while (sfc_ptr >= 0) {
+        if (ui_surface[sfc_ptr] != NULL) {
+            ui_surface_destroy(ui_surface[sfc_ptr]);
+            ui_surface[sfc_ptr] = NULL;
+        }
+        ui_log(INFO, "surface destroy: %d", sfc_ptr);
+        sfc_ptr--;
+    }
+    if (stdsfc->mpan[0] != NULL) {
+        ui_log(INFO, "calling del_panel(stdsfc->mpan[BOX])");
+        hide_panel(stdsfc->mpan[0]);
+        del_panel(stdsfc->mpan[0]);
+        stdsfc->mpan[0] = NULL;
+    }
+    ui_log(INFO, "calling endwin()");
+    endwin();
+    f_ncurses_open = false;
+    if (ui->screen != NULL) {
+        ui_log(INFO, "calling delscreen(ui->screen)");
+        delscreen(ui->screen);
+        ui->screen = NULL;
+    }
+    if (ui->tty_fp != NULL) {
+        ui_log(INFO, "closing tty_fp");
+        fclose(ui->tty_fp);
+        ui->tty_fp = NULL;
+    }
+    if (stdsfc != NULL) {
+        ui_log(INFO, "freeing stdsfc");
+        free(stdsfc);
+        stdsfc = NULL;
+    }
+    if (ui != NULL) {
+        if (ui->sio) {
+            free(ui->sio);
+            ui->sio = nullptr;
+        }
+        ui_log(INFO, "freeing ui");
+        free(ui);
+        ui = NULL;
+    }
+}
+void ui_surface_destroy(UiSurface *s) {
+    if (!s)
+        return;
+    for (int i = SUB_SFC_MAX; i >= 0; i--) {
+        if (s->mpan[i] != NULL) {
+            hide_panel(s->mpan[i]);
+            del_panel(s->mpan[i]);
+            s->mpan[i] = NULL;
+        }
+    }
+    for (int i = SUB_SFC_MAX; i >= 0; i--) {
+        if (s->mwin[i] != NULL) {
+            delwin(s->mwin[i]);
+            s->mwin[i] = NULL;
+        }
+    }
+    if (s != NULL) {
+        free(s);
+        s = NULL;
+    }
+}
+int ui_suspend() {
+    def_prog_mode();
+    endwin();
+    return 0;
+}
+int ui_resume() {
+    reset_prog_mode();
+    update_panels();
+    doupdate();
+    return 0;
+}
+
 // -------------------------------------------------------------------------
 // Surface Management
 // -------------------------------------------------------------------------
@@ -497,21 +498,20 @@ int ui_surface_hide(UiSurface *s, ss_t w) {
 // -------------------------------------------------------------------------
 // Screen Navigation
 // -------------------------------------------------------------------------
-
-int ui_cursor_move(UiSurface *s, ss_t w, uint y, uint x) {
-    if (!s || !s->mwin[w])
-        return -1;
-    return wmove(s->mwin[w], y, x);
-}
 int ui_wmove(UiSurface *s, ss_t w, uint y, uint x) {
     if (!s || !s->mwin[w])
         return -1;
     return wmove(s->mwin[w], y, x);
 }
-int ui_curs_set(int visibility) {
-    curs_set(visibility);
-    return 0;
+int ui_cursor_move(UiSurface *s, ss_t w, uint y, uint x) {
+    if (!s || !s->mwin[w])
+        return -1;
+    return wmove(s->mwin[w], y, x);
 }
+// ui_cursor_yx(*int y, int *x);
+//
+// ui_abs_yx(UiSurface *s, ss_t w, int *y, int *x);
+//
 void ui_getyx(UiSurface *s, ss_t w, uint *lines, uint *cols) {
     if (!s->mwin[w])
         return;
@@ -531,11 +531,11 @@ int ui_getmaxy(UiSurface *s, ss_t w) {
     return (int)(getmaxy(s->mwin[w]));
 }
 int ui_getmaxx(UiSurface *s, ss_t w) {
-
     if (!s->mwin[w])
         return -1;
     return (int)(getmaxx(s->mwin[w]));
 }
+
 void ui_get_screen_size(uint *lines, uint *cols) {
     if (!ui)
         return;
@@ -550,7 +550,6 @@ int ui_wscrl(UiSurface *s, ss_t w, int n) {
     if (!s->mwin[w])
         return -1;
     wscrl(s->mwin[w], n);
-    ui_render();
     return 0;
 }
 
@@ -603,6 +602,10 @@ int ui_setscrreg(UiSurface *s, ss_t w, uint top, uint bottom) {
 // -------------------------------------------------------------------------
 // Cursor Control
 // -------------------------------------------------------------------------
+int ui_curs_set(int visibility) {
+    curs_set(visibility);
+    return 0;
+}
 // included for symetry with notcurses, which needs it to compensate
 // for cursor positioning bug
 int ui_cursor_enable_yx(UiSurface *s, ss_t w, uint y, uint x, bool visible) {
@@ -620,6 +623,27 @@ int ui_cursor_enable(UiSurface *s, ss_t w, bool visible) {
         return -1;
     ui->cursor_visible = visible;
     curs_set(visible ? 1 : 0);
+    return 0;
+}
+/* -------------------------------------------------------------------------
+   Rendering
+   ------------------------------------------------------------------------- */
+
+void ui_render() {
+    update_panels();
+    doupdate();
+}
+void ui_update_panels() {
+    update_panels();
+}
+int ui_doupdate() {
+    doupdate();
+    return 0;
+}
+int ui_wnoutrefresh(UiSurface *s, ss_t w) {
+    if (!s)
+        return -1;
+    wnoutrefresh(s->mwin[w]);
     return 0;
 }
 
@@ -668,27 +692,6 @@ int ui_getcchar(const UiCell *cell, wchar_t *wstr, attr_t *attrs, short *pair, c
 int ui_setcchar(UiCell *cell, const wchar_t *wstr, const attr_t attrs, short pair, const void *opts) {
     (void)opts;
     return setcchar(cell, wstr, attrs, pair, NULL);
-}
-/* -------------------------------------------------------------------------
-   Rendering
-   ------------------------------------------------------------------------- */
-
-void ui_render() {
-    update_panels();
-    doupdate();
-}
-void ui_update_panels() {
-    update_panels();
-}
-int ui_doupdate() {
-    doupdate();
-    return 0;
-}
-int ui_wnoutrefresh(UiSurface *s, ss_t w) {
-    if (!s)
-        return -1;
-    wnoutrefresh(s->mwin[w]);
-    return 0;
 }
 /* -------------------------------------------------------------------------
    Colors, Color Pairs
