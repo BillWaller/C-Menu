@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-11T16:32:07-05:00* - EXPERIMENTAL: work on lf2 
+
+*2026-09-11T11:19:01-05:00* - Update CHANGELOG.md 
+
 *2026-09-11T11:16:50-05:00* - FEATURE UPDATE: Abstraction Layer updates, lf2 experimental 
 
 *2026-09-10T07:15:54-05:00* - Update CHANGELOG.md 
