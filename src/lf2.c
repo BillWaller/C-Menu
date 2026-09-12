@@ -48,9 +48,9 @@
 #include <time.h>
 #include <unistd.h>
 
-#define QUEUE_CAPACITY 4096
+#define QUEUE_CAPACITY 32768
 #define QUEUE_MASK (QUEUE_CAPACITY - 1)
-#define MAX_PATH_LEN 1024
+#define MAX_PATH_LEN 512
 #define MAX_DEPTH 64
 
 typedef struct {
@@ -115,6 +115,7 @@ static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
 //     char *dir_path;      /**< Directory path to process */
 // }; /**< Queue TaskNode (for work-stealing) */
 
+TerminationStatus termination_status;
 typedef struct {
     MPMCQueue q;
     TaskNode *qhead;
@@ -124,7 +125,6 @@ typedef struct {
     pthread_t *threads;
     atomic_size_t file_count;
     atomic_size_t error_count;
-    TerminationStatus termination_status;
     unsigned int nthreads;
     pthread_mutex_t output_mutex;
     uintmax_t user_id;
@@ -449,9 +449,9 @@ static struct argp argp = {options, parse_opt, args_doc, doc,
 int main(int argc, char **argv) {
     LfContext *lf = (LfContext *)calloc(1, sizeof(LfContext));
 
-    lf->file_count = 0;
+    lf->count = 0;
+    termination_status = TS_ERROR;
     lf->error_count = 0;
-    lf->termination_status = TS_ERROR;
     lf->nthreads = 0;
     lf->ignore_case = false;
     lf->sort = false;
@@ -481,7 +481,7 @@ int main(int argc, char **argv) {
                 stderr,
                 "lf: arg1: '%s' is neither a directory nor a valid regex.\n",
                 lfargs[0]);
-            exit(lf->termination_status);
+            exit(termination_status);
         }
     }
     if (lfargc > 1) {
@@ -499,16 +499,17 @@ int main(int argc, char **argv) {
                     "lf: '%s' is neither a directory nor a valid regular "
                     "expression.\n",
                     lfargs[1]);
-            exit(lf->termination_status);
+            exit(termination_status);
         }
     }
     if (lf->base_path == nullptr || lf->base_path[0] == '\0')
         lf->base_path = strdup(".");
-    lf->termination_status = TS_SUCCESS;
+    termination_status = TS_SUCCESS;
     if (!lf->sort) {
         init_find(lf, argc, argv);
     } else
         sort_lf_output(lf, argc, argv);
+
     if (lf->count) {
         size_t count = atomic_load(&lf->file_count);
         fprintf(stderr, "Files: %zu\n", count);
@@ -516,9 +517,10 @@ int main(int argc, char **argv) {
     atomic_load(&lf->error_count);
     if (lf->error_count > 0) {
         fprintf(stderr, "Errors: %zu\n", lf->error_count);
-        lf->termination_status |= TS_ERROR;
+        termination_status |= TS_ERROR;
     }
-    exit(lf->termination_status);
+    free(lf);
+    exit(termination_status);
 }
 // Initialize and transfer control to the finder
 /** If sorting is requested, execute the finder and pipe its output
@@ -550,7 +552,7 @@ void sort_lf_output(LfContext *lf, int argc, char **argv) {
         close(fds[0]);              // Close the original read end of the pipe
         execvp(eargv[0], eargv);    // Execute the sort command
         fprintf(stderr, "Failed to execute sort: %s\n", strerror(errno));
-        exit(lf->termination_status);
+        exit(termination_status);
     }
     // fclose(stdout);
     dup2(fds[1], STDOUT_FILENO);         // Clone write pipe to STDOUT_FILENO
@@ -607,7 +609,7 @@ bool init_find(LfContext *lf, int argc, char **argv) {
     debug_out(lf, argc, argv);
     //--------------------------------------------------------------------
     // Create and enqueue the first TaskNode
-    lf->termination_status = TS_SUCCESS;
+    termination_status = TS_SUCCESS;
     int rc = 0;
     struct stat st;
     if (stat(lf->base_path, &st) == 0) {
@@ -637,7 +639,7 @@ bool init_find(LfContext *lf, int argc, char **argv) {
                 if (rc != 0) {
                     fprintf(stderr, "Error: Unable to create thread %d\n", rc);
                     lf->shut_down = 1;
-                    lf->termination_status = TS_ERROR;
+                    termination_status = TS_ERROR;
                     return false;
                 }
             }
@@ -656,7 +658,7 @@ bool init_find(LfContext *lf, int argc, char **argv) {
                     "Warning: Base path '%s' is not a directory. No "
                     "files will be found.\n",
                     lf->base_path);
-            lf->termination_status = TS_ERROR;
+            termination_status = TS_ERROR;
             return false;
         }
     }
@@ -678,7 +680,6 @@ bool init_find(LfContext *lf, int argc, char **argv) {
     free(lf->re);
     free(lf->ere);
     free(lf->threads);
-    free(lf);
     if (reti)
         return false;
     return true;
@@ -852,6 +853,7 @@ bool enqueue_dir(LfContext *lf, const TaskNode *item) {
             } else
                 pos = lf->q.enqueue_pos;
         } else if (diff < 0) {
+            pthread_mutex_unlock(&lf->q.queue_mutex);
             return false;
         } else {
             pos = lf->q.enqueue_pos;
@@ -889,18 +891,17 @@ bool dequeue_dir(LfContext *lf, TaskNode *item) {
             } else
                 pos = lf->q.dequeue_pos;
         } else if (diff < 0) {
-            if (!lf->shut_down) {
-                if (atomic_fetch_add(&lf->active_tasks, 1) == 0) {
-                    lf->shut_down = 1;
-                    pthread_cond_broadcast(&lf->q.cond_var);
-                    break;
-                }
-                pthread_cond_wait(&lf->q.cond_var, &lf->q.queue_mutex);
+            if (lf->shut_down) {
+                pthread_mutex_unlock(&lf->q.queue_mutex);
+                return false;
+            } else if (atomic_load(&lf->active_tasks) == 0) {
+                lf->shut_down = 1;
+                pthread_cond_broadcast(&lf->q.cond_var);
                 break;
             }
-        } else {
+            pthread_cond_wait(&lf->q.cond_var, &lf->q.queue_mutex);
+        } else
             pos = lf->q.dequeue_pos;
-        }
     }
     if (lf->shut_down) {
         pthread_mutex_unlock(&lf->q.queue_mutex);
@@ -1318,14 +1319,14 @@ int scan_file(const char *file_spec, LfContext *lf,
                 regexec(&lf->compiled_re, file_spec, 0, NULL, 0);
             if (reti == REG_NOMATCH)
                 break;
-            lf->termination_status |= TS_MATCH;
+            termination_status |= TS_MATCH;
         }
         // Exclude matching files
         if (lf->flags & LF_EXC_REGEX) {
             int reti =
                 regexec(&lf->compiled_ere, file_spec, 0, NULL, 0);
             if (reti == 0) {
-                lf->termination_status |= TS_MATCH;
+                termination_status |= TS_MATCH;
                 break;
             }
         }
