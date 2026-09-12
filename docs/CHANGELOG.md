@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-12T11:29:59-05:00* - EXPERIMENTAL: lf3.c lock-free implementation of lf2.c 
+
+*2026-09-11T22:30:56-05:00* - Update CHANGELOG.md 
+
 *2026-09-11T22:30:37-05:00* - EXPERIMENTAL: lf2.c ring buffer 
 
 *2026-09-11T19:13:09-05:00* - Update CHANGELOG.md 
