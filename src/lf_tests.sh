@@ -13,7 +13,7 @@ else
     echo "empty directory: FAIL"
     termination_status="FAIL"
 fi
-rm lf.out lf1.out lf2.out find1.out find2.out \
+rm lf.out lf1.out lf2.out lf3.out find1.out find2.out \
     diff1.out diff2.out tmp.out tmp1.out tmp2.out >/dev/null 2>&1
 # Compare Output to Find - small directory (<300 files)
 directory="."
@@ -61,12 +61,12 @@ grep -v "^Errors" tmp.out >tmpx.out
 pseudo_files="$(grep -v "^Errors" tmpx.out | wc -l)"
 echo "    plus $pseudo_files pseudo-files with invalid inodes"
 cat tmpx.out
-echo "================== lf2 ================="
-echo Running lf2
-/bin/time -f "%e" ./lf2 -H -S -T7 "$directory" | sed 's/\/$//' >lf2.out
-lf_found=$(wc -l lf2.out | sed 's/ .*//')
+echo "================== lf3 ================="
+echo Running lf3
+/bin/time -f "%e" ./lf3 -H -S -T7 "$directory" | sed 's/\/$//' >lf3.out
+lf_found=$(wc -l lf3.out | sed 's/ .*//')
 echo "lf complete, found $lf_found valid files"
-/bin/time ./lf2 -H -D458 -S $directory 2>tmp3.out
+/bin/time ./lf3 -H -D458 -S $directory 2>tmp3.out
 echo "lf -H -D458 complete, found $lf_found valid files"
 grep -v "^Errors" tmp3.out >tmp4.out
 pseudo_files="$(grep -v "^Errors" tmp4.out | wc -l)"
@@ -79,13 +79,13 @@ echo Running find
 find_found=$(wc -l find2.out | sed 's/ .*//')
 echo "find complete, found $find_found files"
 echo "----------------------------------------------------------------"
-diff lf2.out find2.out >tmp4.out 2>&1
+diff lf3.out find2.out >tmp4.out 2>&1
 rc="$?"
 if [ "$rc" = "0" ]; then
     echo "no differences: PASS"
 else
     echo "differences found: FAIL"
-    grep "^[<>]" tmp4.out | sed 's/^</lf2: /; s/^>/find2: /' >diff2.out 2>&1
+    grep "^[<>]" tmp4.out | sed 's/^</lf3: /; s/^>/find2: /' >diff2.out 2>&1
     diffs_found=$(wc -l diff2.out | sed 's/ .*//')
     Found=$(wc -l diff2.out | sed 's/ .*//')
     if [ "$lf_found" -gt "$find_found" ]; then
@@ -107,5 +107,5 @@ fi
 #       8 Only Report Errors
 echo "----------------------------------------------------------------"
 echo
-echo "output files are lf2.out and find2.out"
+echo "output files are lf3.out and find2.out"
 echo "termination_status: $termination_status"

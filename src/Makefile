@@ -10,8 +10,8 @@ ifneq ($(CMENU_HOME),)
 	PREFIX:=$(HOME)/menuapp
 endif
 DISPLAY_MANIFEST=0
-BUILD_TYPE=Debug
 BUILD_TYPE=Release
+BUILD_TYPE=Debug
 # UI backend selection:
 #   NCURSES_UI    — legacy ncurses direct-use (default)
 #   UAL_UI        — UALUI with ncurses backend (src/ui/)
@@ -62,7 +62,7 @@ CX:=-std=c23
 CC:=gcc $(CX) $(INCLUDE_DIRS)
 
 BINEXES:=menu form pick view ckeys whence rsh rsh_static \
-	rsh_pam iloan amort enterchr enterstr lf lf2 stripansi detach
+	rsh_pam iloan amort enterchr enterstr lf lf2 lf3 stripansi detach
 ifeq ($(UI), "-DNOTCURSES_UI")
 BINEXES+=ui_hello ui_visual
 endif
@@ -194,6 +194,9 @@ lf: lf.c $(LIB_SHARED)
 lf2: lf2.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)
 
+lf3: lf3.c $(LIB_SHARED)
+	$(CC) $< -o $@ $(LDFLAGS)
+
 %:	%.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)
 
@@ -279,7 +282,7 @@ valgrind: menu
 install:
 	rm -f	$(INSTALL_LIB_DIR)/libcm*
 	install -CDp 	$(COMMON_HDRS)	-t $(PREFIX)/include
-	install -CDp	menu whence lf lf2 detach enterchr enterstr \
+	install -CDp	menu whence lf lf2 lf3 detach enterchr enterstr \
 		iloan amort stripansi -t $(INSTALL_BIN_DIR)
 	install -Dp -o root -g root -m 6711	rsh rsh_static rsh_pam -t $(INSTALL_BIN_DIR)
 	install -CDp $(LIB_STATIC) -t $(INSTALL_LIB_DIR)
@@ -323,4 +326,5 @@ uninstall:
 	$(INSTALL_BIN_DIR)/stripansi \
 	$(INSTALL_BIN_DIR)/lf \
 	$(INSTALL_BIN_DIR)/lf2 \
+	$(INSTALL_BIN_DIR)/lf3 \
 	$(INSTALL_LIB_DIR)/libcm.so
