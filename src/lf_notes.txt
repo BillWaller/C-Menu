@@ -1,0 +1,9 @@
+515473 files
+515468 files verified
+     5 files failed verification (fictitious inodes)
+
+Processor 8 core, 16 threads
+----------------------------
+lf     14.12 seconds
+lf2    14.27 seconds
+find   13.28 seconds

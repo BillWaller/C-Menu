@@ -825,11 +825,9 @@ void queue_init(MPMCQueue *q) {
     }
     atomic_init(&q->enqueue_pos, 0);
     atomic_init(&q->dequeue_pos, 0);
-    rc = pthread_mutex_init(&q->queue_mutex, NULL);
-    if (rc != 0)
+    if (pthread_mutex_init(&q->queue_mutex, NULL) != 0)
         perror("Mutex initialization failed");
-    rc = pthread_cond_init(&q->cond_var, NULL);
-    if (rc != 0)
+    if (pthread_cond_init(&q->cond_var, NULL) != 0)
         perror("Mutex initialization failed");
 }
 /** @brief Enqueue a directory task into the MPMCQueue.
@@ -841,28 +839,37 @@ void queue_init(MPMCQueue *q) {
 bool enqueue_dir(LfContext *lf, const TaskNode *item) {
     QueueCell *cell;
     pthread_mutex_lock(&lf->q.queue_mutex);
+    // get pos from lf->q.enqueue_pos
     size_t pos = lf->q.enqueue_pos;
+    // size_t pos = atomic_load_explicit(&lf->q.enqueue_pos,
+    // memory_order_relaxed);
     while (true) {
         cell = &lf->q.cells[pos & QUEUE_MASK];
+        // get seq from cell->sequence
+        // size_t seq = atomic_load_explicit(&cell->sequence,
+        // memory_order_acquire);
         size_t seq = cell->sequence;
         intptr_t diff = (intptr_t)seq - (intptr_t)pos;
-        if (diff == 0) {
+        if (diff == 0) { // Empty slot, try to claim it
+            // if (atomic_compare_exchange_weak_explicit(&q->enqueue_pos, &pos,
+            // pos + 1, memory_order_relaxed, memory_order_relaxed))
             if (lf->q.enqueue_pos == pos) {
                 lf->q.enqueue_pos = pos + 1;
                 break;
             } else
                 pos = lf->q.enqueue_pos;
-        } else if (diff < 0) {
+        } else if (diff < 0) { // Full queue
             pthread_mutex_unlock(&lf->q.queue_mutex);
             return false;
-        } else {
+        } else // Another thread has claimed this slot, try the next one
             pos = lf->q.enqueue_pos;
-        }
+        // pos = atomic_load_explicit(&q->enqueue_pos, memory_order_relaxed);
     }
     lf->q.cells[pos & QUEUE_MASK].task = *item;
     cell->sequence = pos + 1;
     pthread_cond_signal(&lf->q.cond_var);
     pthread_mutex_unlock(&lf->q.queue_mutex);
+    // atomic_store_explicit(&cell->sequence, pos + 1, memory_order_release);
     return true;
 }
 
@@ -879,36 +886,47 @@ bool dequeue_dir(LfContext *lf, TaskNode *item) {
     QueueCell *cell;
     pthread_mutex_lock(&lf->q.queue_mutex);
     size_t pos = lf->q.dequeue_pos;
+    // get dequeue_pos
+    // size_t pos = atomic_load_explicit(&lf->q.dequeue_pos,
+    // memory_order_relaxed);
     while (true) {
         cell = &lf->q.cells[pos & QUEUE_MASK];
-        // size_t seq = atomic_load_explicit(&cell->sequence, memory_order_acquire);
         size_t seq = cell->sequence;
+        // size_t seq = atomic_load+explicit(&cell->sequence,
+        // memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)(pos + 1);
-        if (diff == 0) {
+        if (diff == 0) { // Full slot, try to claim it
+            // compare and swap the dequeue position to ensure that only one thread can dequeue at a time
+            // if (atomic_compare_exchange_weak_explicit(&lf->q.dequeue_pos,
+            // &pos, pos + 1, memory_order_relaxed, memory_order_relaxed))
             if (lf->q.dequeue_pos == pos) {
                 lf->q.dequeue_pos = pos + 1;
                 break;
             } else
                 pos = lf->q.dequeue_pos;
-        } else if (diff < 0) {
-            if (lf->shut_down) {
+        } else if (diff < 0) {   // Empty queue
+            if (lf->shut_down) { // If the queue is empty and the shutdown flag is set, return false
                 pthread_mutex_unlock(&lf->q.queue_mutex);
                 return false;
-            } else if (atomic_load(&lf->active_tasks) == 0) {
+            } else if (atomic_load(&lf->active_tasks) == 0) { // No active tasks and queue is empty, signal shutdown
                 lf->shut_down = 1;
                 pthread_cond_broadcast(&lf->q.cond_var);
                 break;
-            }
+            } // Is the queue empty? If so, wait for a signal that a new item has been enqueued
             pthread_cond_wait(&lf->q.cond_var, &lf->q.queue_mutex);
-        } else
+        } else // Another thread has claimed this slot, try the next one
             pos = lf->q.dequeue_pos;
+        // get dequeue_pos
+        // pos = atomic_load_explicit(&lf->q.dequeue_pos, memory_order_relaxed);
     }
-    if (lf->shut_down) {
+    if (lf->shut_down) { // If the queue is empty and the shutdown flag is set, return false
         pthread_mutex_unlock(&lf->q.queue_mutex);
         return false;
     }
     *item = lf->q.cells[pos & QUEUE_MASK].task;
     cell->sequence = pos + QUEUE_CAPACITY;
+    // atomic_store_explicit(&cell->sequence, pos + QUEUE_CAPACITY,
+    // memory_order_release);
     atomic_fetch_add(&lf->active_tasks, 1);
     pthread_mutex_unlock(&lf->q.queue_mutex);
     return true;

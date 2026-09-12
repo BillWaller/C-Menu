@@ -23,7 +23,7 @@ touch find1.out
 # ./lf -H -S "$directory" | sed 's/\/$//' >lf1.out 2>/dev/null
 ./lf -H "$directory" | sort | sed 's/\/$//' >lf1.out 2>/dev/null
 lf_found=$(wc -l lf1.out | sed 's/ .*//')
-eval $(./lf -H -T6 "$directory" >/dev/null | sed 's/: /=/')
+eval $(./lf2 -H -T6 "$directory" >/dev/null | sed 's/: /=/')
 echo "lf complete, found $lf_found files"
 echo "----------------------------------------------------------------"
 echo Running find
@@ -50,17 +50,29 @@ directory="/home/bill"
 ./lf -H -c -T6 "$directory" >/dev/null 2>tmp2.out
 eval "$(sed 's/: /=/' tmp2.out)"
 Total=$(($Files + $Errors))
-echo "================== $directory $Total ================="
+echo "================== lf ================="
 echo Running lf
-/bin/time -f "%e" ./lf -H -S -T7 "$directory" | sed 's/\/$//' >lf2.out
+/bin/time -f "%e" ./lf -H -S -T7 "$directory" | sed 's/\/$//' >lf.out
+lf_found=$(wc -l lf.out | sed 's/ .*//')
+echo "lf complete, found $lf_found valid files"
+/bin/time ./lf -H -D458 -S $directory 2>tmp.out
+echo "lf -H -D458 complete, found $lf_found valid files"
+grep -v "^Errors" tmp.out >tmpx.out
+pseudo_files="$(grep -v "^Errors" tmpx.out | wc -l)"
+echo "    plus $pseudo_files pseudo-files with invalid inodes"
+cat tmpx.out
+echo "================== lf2 ================="
+echo Running lf2
+/bin/time -f "%e" ./lf2 -H -S -T7 "$directory" | sed 's/\/$//' >lf2.out
 lf_found=$(wc -l lf2.out | sed 's/ .*//')
 echo "lf complete, found $lf_found valid files"
-./lf -H -D458 -S $directory 2>tmp3.out
+/bin/time ./lf2 -H -D458 -S $directory 2>tmp3.out
+echo "lf -H -D458 complete, found $lf_found valid files"
 grep -v "^Errors" tmp3.out >tmp4.out
 pseudo_files="$(grep -v "^Errors" tmp4.out | wc -l)"
 echo "    plus $pseudo_files pseudo-files with invalid inodes"
 cat tmp4.out
-echo "----------------------------------------------------------------"
+echo "================== find ================="
 echo Running find
 /bin/time -f "%e" find "$directory" | sed 's/^\.\///
     /^\.$/d' | sort | grep -v "^$directory$" >find2.out

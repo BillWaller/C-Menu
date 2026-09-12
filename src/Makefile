@@ -10,8 +10,8 @@ ifneq ($(CMENU_HOME),)
 	PREFIX:=$(HOME)/menuapp
 endif
 DISPLAY_MANIFEST=0
-BUILD_TYPE=Release
 BUILD_TYPE=Debug
+BUILD_TYPE=Release
 # UI backend selection:
 #   NCURSES_UI    — legacy ncurses direct-use (default)
 #   UAL_UI        — UALUI with ncurses backend (src/ui/)
