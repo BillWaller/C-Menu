@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-12T21:16:47-05:00* - EXPERIMENTAL: Add ring buffer and lock-free queue to lf4.c 
+
+*2026-09-12T11:30:48-05:00* - Update CHANGELOG.md 
+
 *2026-09-12T11:29:59-05:00* - EXPERIMENTAL: lf3.c lock-free implementation of lf2.c 
 
 *2026-09-11T22:30:56-05:00* - Update CHANGELOG.md 
