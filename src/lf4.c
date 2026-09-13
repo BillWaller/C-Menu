@@ -83,7 +83,7 @@ typedef enum {
     TS_MATCH_PLUS_ERROR = 3,
 } TerminationStatus;
 
-#define DIR_BUF_SIZE 65536
+#define DIR_BUF_SIZE 262144
 
 struct linux_dirent64 {
     unsigned long long d_ino; /* 64-bit inode number */
@@ -139,6 +139,7 @@ typedef struct {
     long flags;
     time_t after;
     time_t before;
+    bool stat_cached;
     int max_depth;
     int reg_flags;
     char *base_path;
@@ -308,7 +309,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
                     lf->report_warnings = true;
                     lf->report_errors = true;
                     lf->report_badlinks = true;
-                    lf->report_all = true;
                     break;
                 case '8':
                     lf->only_errors = true;
@@ -470,6 +470,7 @@ int main(int argc, char **argv) {
                               // -L to follow them.
     lf->count = false;
     lf->count_silently = false;
+    lf->report_badlinks = false;
 
     char tmp_str[MAX_PATH_LEN];
     argp_parse(&argp, argc, argv, 0, 0, lf);
@@ -692,7 +693,7 @@ void debug_out(LfContext *lf, int argc, char **argv) {
     int len = 0;
     int i;
     bool addspace_before = false;
-    if (lf->debug && (lf->report_config || lf->report_info || lf->report_all)) {
+    if (lf->debug && (lf->report_config || lf->report_info)) {
         fprintf(stderr, "%s,%s,%s,", get_local_timestamp(), get_user_str(user_str, 100), get_ip_addresses(ip_str, MAXLEN));
         for (i = 0; i < argc; i++) {
             len = len + strlen(argv[i]);
@@ -724,8 +725,6 @@ void debug_out(LfContext *lf, int argc, char **argv) {
                 lf->report_trace ? "true" : "|    false");
         fprintf(stderr, "  6-trace       %s\n",
                 lf->report_trace ? "true" : "|    false");
-        fprintf(stderr, "  7-all         %s\n",
-                lf->report_all ? "true" : "|    false");
         fprintf(stderr, "  8-only_errors %s\n",
                 lf->only_errors ? "true" : "|    false");
         fprintf(stderr, "\n");
@@ -808,8 +807,6 @@ void debug_out(LfContext *lf, int argc, char **argv) {
             fprintf(stderr, "Sort output in ascending order.\n\n");
         if (lf->sort_reverse)
             fprintf(stderr, "Sort output in reverse order.\n\n");
-        if (lf->report_config && !lf->report_all)
-            exit(TS_ERROR);
     }
     return;
 }
@@ -985,15 +982,15 @@ bool append_output_buffer(LfContext *lf, OutputBuffer *output, const char *path,
    */
 void *finder(void *arg) {
     LfContext *lf = (LfContext *)arg;
-    char lnk_path[MAX_PATH_LEN] = {'\0'};
     OutputBuffer output = {{'\0'}, 0};
     long nread;
     char dir_buf[DIR_BUF_SIZE];
+    char lnk_path[MAX_PATH_LEN] = {'\0'};
+    struct stat st = {};
     struct linux_dirent64 *entry;
     TaskNode current_task = {};
     unsigned char effective_type;
     char full_path[MAX_PATH_LEN] = {'\0'};
-    struct stat st;
     int rc;
     while (1) {
         if (dequeue_dir(lf, &current_task) == false)
@@ -1005,8 +1002,7 @@ void *finder(void *arg) {
         int dir_fd = open(current_task.dir_path, O_RDONLY | O_DIRECTORY);
         if (dir_fd == -1) {
             atomic_fetch_add(&lf->error_count, 1);
-            if (lf->debug && (lf->report_warnings || lf->report_errors ||
-                              lf->report_badlinks || lf->report_all)) {
+            if (lf->report_errors) {
                 pthread_mutex_lock(&lf->output_mutex);
                 fprintf(stderr, "OPEN_FAIL,%s,%s\n", current_task.dir_path, strerror(errno));
                 pthread_mutex_unlock(&lf->output_mutex);
@@ -1030,8 +1026,7 @@ void *finder(void *arg) {
             nread = syscall(SYS_getdents64, dir_fd, dir_buf, DIR_BUF_SIZE);
             if (nread == -1) {
                 atomic_fetch_add(&lf->error_count, 1);
-                if (lf->debug && (lf->report_warnings || lf->report_errors ||
-                                  lf->report_badlinks || lf->report_all)) {
+                if (lf->report_errors) {
                     pthread_mutex_lock(&lf->output_mutex);
                     fprintf(stderr, "READDIR_FAIL,%s,%s\n", current_task.dir_path, strerror(errno));
                     pthread_mutex_unlock(&lf->output_mutex);
@@ -1051,13 +1046,16 @@ void *finder(void *arg) {
                 // whether to follow links or not). If fstatat fails, we log the
                 // error (if debugging is enabled) and continue to the next
                 // entry without processing this one further.
+                full_path[0] = '\0';
                 effective_type = entry->d_type;
-                if (effective_type == DT_UNKNOWN || effective_type == DT_LNK || effective_type == DT_DIR) {
+                if (effective_type == DT_DIR && is_dirsys(entry->d_name))
+                    continue;
+                if (effective_type == DT_UNKNOWN ||
+                    (effective_type == DT_LNK && lf->follow_links)) {
                     rc = fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW);
                     if (rc == -1) {
                         atomic_fetch_add(&lf->error_count, 1);
-                        if (lf->debug && (lf->report_errors || lf->report_warnings ||
-                                          lf->report_badlinks || lf->report_all)) {
+                        if (lf->report_badlinks) {
                             if (!build_full_path(full_path, sizeof(full_path),
                                                  current_task.dir_path,
                                                  entry->d_name, nullptr)) {
@@ -1086,53 +1084,47 @@ void *finder(void *arg) {
                     // if (effective_type == DT_LNK) {
                     // Get the target's metadata
                     if (S_ISLNK(st.st_mode)) {
-                        rc = fstatat(dir_fd, entry->d_name, &st, 0);
-                        if (rc == -1) {
-                            atomic_fetch_add(&lf->error_count, 1);
-                            if (lf->debug && (lf->report_all || lf->report_warnings ||
-                                              lf->report_errors || lf->report_badlinks)) {
-                                if (!build_full_path(full_path, sizeof(full_path),
-                                                     current_task.dir_path,
-                                                     entry->d_name, nullptr)) {
-                                    ssnprintf(full_path, sizeof(full_path), "%s/%s",
-                                              current_task.dir_path, entry->d_name);
+                        if (lf->follow_links) {
+                            rc = fstatat(dir_fd, entry->d_name, &st, 0);
+
+                            if (rc == -1) {
+                                atomic_fetch_add(&lf->error_count, 1);
+                                if (lf->report_errors) {
+                                    if (!build_full_path(full_path, sizeof(full_path),
+                                                         current_task.dir_path,
+                                                         entry->d_name, nullptr)) {
+                                        ssnprintf(full_path, sizeof(full_path), "%s/%s",
+                                                  current_task.dir_path, entry->d_name);
+                                    }
+                                    pthread_mutex_lock(&lf->output_mutex);
+                                    fprintf(stderr, "STAT_FAIL,%s,%s\n", full_path,
+                                            strerror(errno));
+                                    pthread_mutex_unlock(&lf->output_mutex);
                                 }
-                                pthread_mutex_lock(&lf->output_mutex);
-                                fprintf(stderr, "STAT_FAIL,%s,%s\n", full_path,
-                                        strerror(errno));
-                                pthread_mutex_unlock(&lf->output_mutex);
+                                continue;
                             }
-                            continue;
-                        }
-                        if (lf->follow_links)
                             effective_type = (st.st_mode & S_IFMT) >> 12;
+                        } else {
+                            effective_type = DT_REG;
+                        }
                     }
                 }
                 if (effective_type != DT_DIR) {
-                    if (is_hidden(entry->d_name)) {
-                        if (!lf->include_hidden)
+                    if (is_hidden(entry->d_name))
+                        if (!lf->include_hidden && !lf->hidden_only)
                             continue;
-                    } else if (lf->hidden_only)
-                        continue;
                 } else {
-                    if (is_dirsys(entry->d_name))
-                        continue;
                     if (!build_full_path(full_path, sizeof(full_path),
                                          current_task.dir_path,
                                          entry->d_name, nullptr)) {
                         atomic_fetch_add(&lf->error_count, 1);
-                        if (lf->debug && (lf->report_errors || lf->report_warnings ||
-                                          lf->report_badlinks || lf->report_all)) {
+                        if (lf->report_errors) {
                             pthread_mutex_lock(&lf->output_mutex);
                             fprintf(stderr, "PATH_TOO_LONG,%s/%s\n",
                                     current_task.dir_path, entry->d_name);
                             pthread_mutex_unlock(&lf->output_mutex);
                         }
                         continue;
-                    }
-                    char tmp_str[MAXLEN];
-                    if (strcmp(full_path, "./FlameGraph/test/results") == 0) {
-                        ssnprintf(tmp_str, MAXLEN - 1, "%s", full_path);
                     }
                     // Determine the effective type of the entry. We use the st_mode
                     // field from the stat struct to determine the file type by
@@ -1149,34 +1141,27 @@ void *finder(void *arg) {
                     // directory's dev/inode with the history of dev/inode pairs
                     // from parent directories. If a match is found, it
                     // indicates a cycle and we skip processing this directory.
-                    bool cycle_found = false;
-                    if (lf->debug && (lf->report_trace || lf->report_all)) {
-                        pthread_mutex_lock(&lf->output_mutex);
-                        fprintf(stderr, "Checking for cycles in: %s\n", full_path);
-                        pthread_mutex_unlock(&lf->output_mutex);
-                    }
-                    for (int i = 0; i < current_task.depth; i++) {
-                        if (lf->debug && (lf->report_trace || lf->report_all)) {
-                            pthread_mutex_lock(&lf->output_mutex);
-                            if (current_task.dev_ino[i].ino == st.st_ino)
-                                fprintf(stderr, "%3d %ju %ju<===========\n", i,
-                                        current_task.dev_ino[i].ino, st.st_ino);
-                            else
-                                fprintf(stderr, "%3d %ju %ju\n", i,
-                                        current_task.dev_ino[i].ino, st.st_ino);
-                            pthread_mutex_unlock(&lf->output_mutex);
+                    if (lf->report_badlinks) {
+                        bool cycle_found = false;
+                        for (int i = 0; i < current_task.depth; i++) {
+                            if (lf->report_trace) {
+                                pthread_mutex_lock(&lf->output_mutex);
+                                if (current_task.dev_ino[i].ino == st.st_ino)
+                                    fprintf(stderr, "%3d %ju %ju<===========\n", i,
+                                            current_task.dev_ino[i].ino, st.st_ino);
+                                else
+                                    fprintf(stderr, "%3d %ju %ju\n", i,
+                                            current_task.dev_ino[i].ino, st.st_ino);
+                                pthread_mutex_unlock(&lf->output_mutex);
+                            }
+                            if (current_task.dev_ino[i].dev == st.st_dev &&
+                                current_task.dev_ino[i].ino == st.st_ino) {
+                                cycle_found = true;
+                                break;
+                            }
                         }
-                        if (current_task.dev_ino[i].dev == st.st_dev &&
-                            current_task.dev_ino[i].ino == st.st_ino) {
-                            cycle_found = true;
-                            break;
-                        }
-                    }
-                    if (cycle_found) {
-                        atomic_fetch_add(&lf->error_count, 1);
-                        if (lf->debug && (lf->report_warnings || lf->report_errors ||
-                                          lf->report_trace || lf->report_badlinks ||
-                                          lf->report_all)) {
+                        if (cycle_found) {
+                            atomic_fetch_add(&lf->error_count, 1);
                             ssize_t len =
                                 readlinkat(dir_fd, entry->d_name, lnk_path,
                                            sizeof(lnk_path) - 1);
@@ -1188,8 +1173,8 @@ void *finder(void *arg) {
                             } else
                                 fprintf(stderr, "CYCLIC_LINK,%s\n", full_path);
                             pthread_mutex_unlock(&lf->output_mutex);
+                            continue;
                         }
-                        continue;
                     }
                     //-------------------------------------------------------
                     // Create a new TaskNode for the subdirectory and enqueue it
@@ -1207,17 +1192,21 @@ void *finder(void *arg) {
                     TaskNode child_task;
                     strnz__cpy(child_task.dir_path, full_path, MAX_PATH_LEN - 1);
                     child_task.depth = current_task.depth + 1;
-                    int i;
-                    for (i = 0; i <= current_task.depth; i++) {
-                        child_task.dev_ino[i].dev = current_task.dev_ino[i].dev;
-                        child_task.dev_ino[i].ino = current_task.dev_ino[i].ino;
+                    if (lf->report_badlinks) {
+                        int i;
+                        for (i = 0; i <= current_task.depth; i++) {
+                            child_task.dev_ino[i].dev = current_task.dev_ino[i].dev;
+                            child_task.dev_ino[i].ino = current_task.dev_ino[i].ino;
+                        }
+                        child_task.dev_ino[i + 1].dev = st.st_dev;
+                        child_task.dev_ino[i + 1].ino = st.st_ino;
+                    } else {
+                        child_task.dev_ino[0].dev = 0;
+                        child_task.dev_ino[0].ino = 0;
                     }
-                    child_task.dev_ino[i + 1].dev = st.st_dev;
-                    child_task.dev_ino[i + 1].ino = st.st_ino;
                     if (!enqueue_dir(lf, &child_task)) {
                         atomic_fetch_add(&lf->error_count, 1);
-                        if (lf->debug && (lf->report_errors || lf->report_warnings ||
-                                          lf->report_badlinks || lf->report_all)) {
+                        if (lf->report_errors) {
                             pthread_mutex_lock(&lf->output_mutex);
                             fprintf(stderr, "QUEUE_FULL,%s\n", full_path);
                             pthread_mutex_unlock(&lf->output_mutex);
@@ -1226,20 +1215,19 @@ void *finder(void *arg) {
                     scan_file(full_path, lf, effective_type, &st, &output);
                     continue;
                 }
-                if (lf->hidden_only && !is_hidden(entry->d_name))
-                    continue;
-                if (!build_full_path(full_path, sizeof(full_path),
-                                     current_task.dir_path,
-                                     entry->d_name, nullptr)) {
-                    atomic_fetch_add(&lf->error_count, 1);
-                    if (lf->debug && (lf->report_errors || lf->report_warnings ||
-                                      lf->report_badlinks || lf->report_all)) {
-                        pthread_mutex_lock(&lf->output_mutex);
-                        fprintf(stderr, "PATH_TOO_LONG,%s/%s\n",
-                                current_task.dir_path, entry->d_name);
-                        pthread_mutex_unlock(&lf->output_mutex);
+                if (full_path[0] == '\0') {
+                    if (!build_full_path(full_path, sizeof(full_path),
+                                         current_task.dir_path,
+                                         entry->d_name, nullptr)) {
+                        atomic_fetch_add(&lf->error_count, 1);
+                        if (lf->report_errors) {
+                            pthread_mutex_lock(&lf->output_mutex);
+                            fprintf(stderr, "PATH_TOO_LONG,%s/%s\n",
+                                    current_task.dir_path, entry->d_name);
+                            pthread_mutex_unlock(&lf->output_mutex);
+                        }
+                        continue;
                     }
-                    continue;
                 }
                 scan_file(full_path, lf, effective_type, &st, &output);
             }
@@ -1259,33 +1247,22 @@ void *finder(void *arg) {
    is used to determine whether to include or exclude hidden files and
    directories during the search process based on user-specified options.
    */
-bool is_hidden(const char *name) {
-    if (name[0] == '.') {
-        if (name[1] == '\0')
-            return false;
-        if (name[1] == '.' && name[2] == '\0')
-            return false;
-        return true;
-    }
-    return false;
-}
-/** @brief Check if a file or directory is a system directory based on its name.
-    @param name The name of the file or directory to check.
-    @return true if the name indicates a system directory ('.' or '..'), false otherwise.
-    @details A system directory is defined as either the current directory ('.') or
-   the parent directory ('..'). This function is used to determine whether to
-   include or exclude these special directories during the search process,
-   as they are typically not relevant for most file searches and can lead to
-   infinite loops if followed.
-   */
+
+// Keep this focused strictly on dot-system directories
 bool is_dirsys(const char *name) {
     if (name[0] == '.') {
         if (name[1] == '\0')
-            return true;
+            return true; // "."
         if (name[1] == '.' && name[2] == '\0')
-            return true;
+            return true; // ".."
     }
     return false;
+}
+
+// Fast check: does it start with a dot?
+// (Since is_dirsys filters "." and "..", any remaining dot-file is truly hidden)
+bool is_hidden(const char *name) {
+    return name[0] == '.';
 }
 /** @brief Scan a file or directory and apply filters based on the LfContext.
     @param file_spec The full path of the file or directory to scan.
@@ -1300,7 +1277,7 @@ int scan_file(const char *file_spec, LfContext *lf,
               const unsigned char effective_type, const struct stat *cached_sb,
               OutputBuffer *output) {
     bool stat_cached = cached_sb != nullptr;
-    struct stat sb = {0};
+    struct stat sb = {};
     if (cached_sb)
         sb = *cached_sb;
 

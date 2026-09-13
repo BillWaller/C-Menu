@@ -1783,7 +1783,7 @@ void get_line(View *view, off_t line) {
     view->line_in_beg_p = view->line_in_s;
     view->line_in_end_p = view->line_in_s + PAD_COLS;
     while (1) {
-        if (c == '\n')
+        if (c == '\n' || c == '\0')
             break;
         if (line_in_p >= view->line_in_end_p)
             break;
@@ -1798,7 +1798,7 @@ void get_line(View *view, off_t line) {
     if (view->f_squeeze) {
         while (1) {
             get_next_char();
-            if (c != '\n')
+            if (c != '\n' && c != '\0')
                 break;
             if (view->f_eod)
                 break;
@@ -2192,11 +2192,15 @@ int fmt_line(View *view) {
                     len = 1;
                 }
                 char_width = wcwidth(wstr[0]);
+                if (x > PAD_COLS - 1)
+                    return -1;
                 view->stripped_line_out[x++] = in_str[i];
                 if (char_width > 1)
                     for (uint n = 1; n < char_width; n++)
                         view->stripped_line_out[x++] = ' ';
                 ui_set_cell(view->sfc, PAD, &cc, wstr, attrs, cpx, nullptr);
+                if (j > PAD_COLS - 1)
+                    return -1;
                 cmplx_buf[j++] = cc;
                 i += len;
                 if (view->wrap) {
