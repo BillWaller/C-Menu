@@ -4,13 +4,11 @@
  * is also an accompanying markdown file, lf_tests.md, that outlines the testing
  * methodology, cases, and expected results.
  *
- * One test run resulted in six files out of 600,000 listed by find that weren't
- * listed by lf. These were temporary files created by Google browser, Microsoft
- * Edge, and Thunderbird. lf rejected them because their inodes were fictitious.
- * find listed them without distinguising them from the other 599,993 normal
- * files. With find, you would never know about them. As a design choice, lf
- * segregates those files as errors. We aren't necessarily locked into our
- * design choices. Your feedback and suggestions are always welcome.
+ * As a design choice, lf segregates directory entries with fatal errors,
+ * meaning those that do not provide functionality conforming to known
+ * standards.
+ *
+ * Your feedback and suggestions are always welcome.
  *
  * Feel free to run the test script on your own system, and if you encounter any
  * issues, please report them to the author.

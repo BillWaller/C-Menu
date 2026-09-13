@@ -82,6 +82,15 @@ int ui_draw_text_fill(UiSurface *s, ss_t w, uint y, uint x, const char *text, in
     return 0;
 }
 // -------------------------------------------------------------------------
+// Text Characters
+// -------------------------------------------------------------------------
+int ui_mvwaddch(UiSurface *s, ss_t w, uint y, uint x, const char c) {
+    if (!s)
+        return -1;
+    mvwaddch(s->mwin[w], y, x, c);
+    return 0;
+}
+// -------------------------------------------------------------------------
 // Text Strings
 // -------------------------------------------------------------------------
 int ui_waddstr(UiSurface *s, ss_t w, const char *text) {

@@ -921,6 +921,7 @@ void fast_exit(UiSurface *s);
 int ui_perror(char *emsg_str);
 FileType file_type(const char *filename);
 int utf8_decode(const unsigned char *s, uint32_t *codepoint);
+void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx);
 // ---------------------------------------------------------------
 // NOTCURSES Specific
 // ---------------------------------------------------------------
@@ -959,7 +960,6 @@ uint ui_get_plane_idx(UiSurface *s, NcPlane *n);
 NcPlane *ui_ncplane_clicked(UiSurface *s, ss_t w, NcInput *ni);
 struct ncvisual *ui_display_image(struct notcurses *nc, UiMultiMedia *mm, const char *image_file, int y, int x, int begy, int begx);
 uint ui_mbstr_to_cellstr(UiSurface *sfc, ss_t w, UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *pos, const uint atmost);
-void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx);
 
 int ui_get_nccell(
     UiSurface *sfc,
