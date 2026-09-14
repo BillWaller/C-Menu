@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-13T20:49:23-05:00* - EXPERIMENTAL: lf_tests.sh Test script for testing and comparing lf4.c 
+
+*2026-09-13T19:42:00-05:00* - Update CHANGELOG.md 
+
 *2026-09-13T19:41:33-05:00* - EXPERIMENTAL: lf4.c more cleanup work before moving to lf5.c 
 
 *2026-09-13T17:51:33-05:00* - Update CHANGELOG.md 
