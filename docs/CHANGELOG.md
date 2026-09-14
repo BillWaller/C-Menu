@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-13T19:41:33-05:00* - EXPERIMENTAL: lf4.c more cleanup work before moving to lf5.c 
+
+*2026-09-13T17:51:33-05:00* - Update CHANGELOG.md 
+
 *2026-09-13T17:30:35-05:00* - EXPERIMENTAL: lf4.c is an improved version of lf.c. lf4 uses a newly implemented lock-free ring buffer queue to serve its thread pool, and the results are significant. The test script, lf_tests.sh, has been updated to compare the output and performance with two formidable competitors, find and fd. While find is a single-threaded program, it is the gold standard for file searching, and fd is a multi-threaded program written in Rust that is known for it's reliability and incredible speed. The test set is a directory containing 517,847 files and the results are as follows: find 0.86 seconds, fd 0.15 seconds, and lf4 0.08 seconds. We still have some optimizations to make, and we expect to see even better, possibly dramatically better performance tomorrow. That possibly makes lf4 the fastest file searching program. C is truly the Bee's knees when it comes to raw performance. Winner, winner, chicken dinner. 
 
 *2026-09-12T21:18:10-05:00* - Update CHANGELOG.md 
