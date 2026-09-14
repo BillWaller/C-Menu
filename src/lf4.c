@@ -1110,7 +1110,7 @@ void *finder(void *arg) {
                     }
                 }
                 if (is_hidden(entry->d_name)) {
-                    if (!lf->include_hidden && !lf->hidden_only)
+                    if (!lf->include_hidden && !lf->hidden_only && effective_type != DT_DIR)
                         continue;
                 } else {
                     if (lf->hidden_only)
