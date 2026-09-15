@@ -726,6 +726,7 @@ int view_cmd_processor(Init *init) {
    including editing keys, and updates the command argument buffer accordingly.
    If the user enters a numeric argument, it is validated based on the context
    of the command being executed.
+    __get_cmd_char
 */
 int get_cmd_char(View *view, off_t *n) {
     int c = 0, i = 0;
@@ -767,6 +768,10 @@ int get_cmd_char(View *view, off_t *n) {
             display_prompt(view, view->prompt_str);
             c = UIKEY_F09;
             return c;
+        case UIKEY_F12:
+            ssnprintf(view->prompt_str, MAXLEN - 1, "set break at line: %d and restart gdb", __LINE__);
+            get_cmd_arg(view, view->prompt_str);
+            break;
         case '\b':
         case UIKEY_BACKSPACE:
             if (i > 0) {
@@ -861,6 +866,7 @@ int get_cmd_char(View *view, off_t *n) {
    updates the command argument buffer accordingly. If the user enters a
    numeric argument, it is validated based on the context of the command
    being executed.
+    __get_cmd_arg
 */
 int get_cmd_arg(View *view, char *prompt) {
     int c;
@@ -1091,7 +1097,8 @@ void go_to_mark(View *view, uint c) {
    those not displayed on the screen, and tracks the first and last match
    columns for prompt display.
     ANSI sequences and Unicode characters are stripped before
-   matching, so matching corresponds to the visual display */
+   matching, so matching corresponds to the visual display
+   __search */
 bool search(View *view, int search_cmd, char *regex_pattern) {
     char tmp_str[MAXLEN];
     int REG_FLAGS = 0;
@@ -1269,6 +1276,7 @@ cleanup:
     @param view data structure
     @details Displays the previous page starting at (view->page_top_ln_no -
    view->scroll_lines).
+    __prev_page
  */
 void prev_page(View *view) {
     off_t ln_no;
@@ -1337,6 +1345,7 @@ void prev_page(View *view) {
    page, updates the file position to the current bottom position of the
    page, and sets the top position and line number of the page accordingly.
    Finally, it calls the function to display the new page content.
+    __next_page
 */
 void next_page(View *view) {
 
@@ -1351,6 +1360,7 @@ void next_page(View *view) {
 /** @brief Display Current Page
     @ingroup view_display
     @param view data structure
+    __display_page
  */
 void view_display_page(View *view) {
     view->cury = 0;
@@ -1365,8 +1375,10 @@ void view_display_page(View *view) {
     view->page_bot_ln_no = 0;
     while (view->cury < view->scroll_lines) {
         get_line(view, view->ln_no);
-        if (view->f_eod)
+        if (view->f_eod) {
+            view->ln_no_max = view->ln_no;
             break;
+        }
         fmt_line(view);
         if (view->wrap && view->cury == 0)
             view->cur.sl_idx = view->page_top_sl_idx;
@@ -1374,8 +1386,10 @@ void view_display_page(View *view) {
         ui_render();
         view->ln_no++;
     }
-    if (view->f_eod)
+    if (view->f_eod) {
+        view->ln_no_max = view->ln_no;
         display_line_eod(view);
+    }
     view->ln_no--;
     view->page_bot_end_pos = view->file_pos - 1;
     view->page_bot_pos = view->file_pos;
@@ -1394,6 +1408,7 @@ void view_display_page(View *view) {
    table, the line number displayed is one greater than the index to the
    line table. That means the line counter begins with 1, while the table
    origin is 0.
+    __display_line
   */
 void display_line(View *view) {
     char ln_s[16];
@@ -1506,20 +1521,24 @@ void display_line_eod(View *view) {
    many lines the view should move toward end-of-file, effectively advancing
    the view scope by n lines. The function will handle scrolling, updating the
    current line number, and refreshing the display accordingly.
- */
+   __scope_toward_eof */
 void scope_toward_eof(View *view, uint n) {
     uint scroll, scroll_this_line, avail;
     off_t ln_no;
     UiSurface *sfc = view->sfc;
     view->f_bod = false;
+    view->ln_no = view->page_bot_ln_no;
     if (view->wrap) {
         // Set Top Line State
         scroll = n;
         ln_no = view->page_top_ln_no;
         while (scroll > 0) {
             get_line(view, ln_no);
-            if (view->f_eod)
+            if (view->f_eod) {
+                view->ln_no = ln_no;
+                view->ln_no_max = ln_no;
                 break;
+            }
             fmt_line(view);
             view->page_top_sl = (view->cur.sl_cnt > 1);
             if (view->page_top_sl == false) {
@@ -1548,8 +1567,10 @@ void scope_toward_eof(View *view, uint n) {
         ln_no = view->page_bot_ln_no;
         while (scroll > 0) {
             get_line(view, ln_no);
-            if (view->f_eod)
+            if (view->f_eod) {
+                view->ln_no_max = view->ln_no;
                 break;
+            }
             fmt_line(view);
             view->page_bot_sl = (view->cur.sl_cnt > 1);
             if (view->page_bot_sl == false) {
@@ -1585,11 +1606,13 @@ void scope_toward_eof(View *view, uint n) {
                 ln_no++;
         }
     } else {
+        view->ln_no = view->page_bot_ln_no;
         if (view->ln_no_max > 0 && view->ln_no >= view->ln_no_max)
             return;
-        view->ln_no = view->page_bot_ln_no;
-        if (view->f_eod)
+        if (view->f_eod) {
+            view->ln_no_max = view->ln_no;
             return;
+        }
         if (n > view->scroll_lines) {
             if (view->f_ln) {
                 ui_cursor_move(sfc, LNNO, 0, 0);
@@ -1598,11 +1621,13 @@ void scope_toward_eof(View *view, uint n) {
             ui_cursor_move(sfc, PAD, 0, 0);
             ui_wclrtobot(sfc, PAD);
         } else {
-            if (view->f_ln)
-                ui_wscrl(sfc, LNNO, n);
-            ui_wscrl(sfc, PAD, n);
-            if (n < view->scroll_lines)
-                view->cury = view->scroll_lines - n;
+            if (view->ln_no_max == 0 || view->ln_no < view->ln_no_max) {
+                if (view->f_ln)
+                    ui_wscrl(sfc, LNNO, n);
+                ui_wscrl(sfc, PAD, n);
+                if (n < view->scroll_lines)
+                    view->cury = view->scroll_lines - n;
+            }
         }
         view->page_top_ln_no += n;
         scroll = n;
@@ -1611,8 +1636,11 @@ void scope_toward_eof(View *view, uint n) {
                 break;
             view->ln_no++;
             get_line(view, view->ln_no);
-            if (view->f_eod)
+            if (view->f_eod) {
+                view->ln_no--;
+                view->ln_no_max = view->ln_no;
                 break;
+            }
             fmt_line(view);
             ui_cursor_move(sfc, PAD, view->cury, 0);
             display_line(view);
@@ -1633,6 +1661,7 @@ void scope_toward_eof(View *view, uint n) {
    display up by n lines. The function will handle scrolling, updating the
    current line number, and refreshing the display accordingly.
     @note It is easy to get confused with the direction of scrolling. The function scope_toward_eof moves the content of the page down, which means that the view is moving up in the file. We will arbitrarily define the direction of scrolling as follows: if the content of the page moves down, we are moving up in the file; if the content of the page moves up, we are moving down in the file. This is consistent with the behavior of most text viewers and editors, where scrolling down reveals content that is further down in the file, and scrolling up reveals content that is earlier in the file. Accordingly, scope_toward_bof moves the content of the page down, while scope_toward_eof moves the content of the page up.
+   __scope_toward_bof
  */
 void scope_toward_bof(View *view, uint n) {
     uint scroll, avail, scroll_this_line;
@@ -1657,6 +1686,7 @@ void scope_toward_bof(View *view, uint n) {
         if (view->f_ln)
             ui_wscrl(sfc, LNNO, -n);
         ui_wscrl(sfc, PAD, -n);
+        view->page_bot_ln_no -= n;
     }
     ui_cursor_move(sfc, PAD, 0, 0);
     if (view->wrap) {
@@ -1703,8 +1733,10 @@ void scope_toward_bof(View *view, uint n) {
         while (scroll > 0) {
             if (view->ln_no != view->page_top_ln_no) {
                 get_line(view, view->ln_no);
-                if (view->f_eod)
+                if (view->f_eod) {
+                    view->ln_no_max = view->ln_no;
                     break;
+                }
                 fmt_line(view);
             }
             display_line(view);
@@ -1759,8 +1791,10 @@ void scope_toward_bof(View *view, uint n) {
             if (view->ln_no < 0)
                 view->ln_no = 0;
             get_line(view, view->ln_no);
-            if (view->f_eod)
+            if (view->f_eod) {
+                view->ln_no_max = view->ln_no;
                 break;
+            }
             fmt_line(view);
             display_line(view);
             scroll--;
@@ -1770,6 +1804,8 @@ void scope_toward_bof(View *view, uint n) {
     }
     return;
 }
+/** __get_line
+ */
 void get_line(View *view, off_t line) {
     char c;
     char *line_in_p;
@@ -1780,6 +1816,7 @@ void get_line(View *view, off_t line) {
     get_next_char();
     if (view->f_eod) {
         view->ln_no = line;
+        view->ln_no_max = view->ln_no;
         return;
     }
     line_in_p = view->line_in_s;
@@ -1794,6 +1831,7 @@ void get_line(View *view, off_t line) {
         get_next_char();
         if (view->f_eod) {
             view->ln_no = line;
+            view->ln_no_max = view->ln_no;
             return;
         }
     }
@@ -1803,21 +1841,25 @@ void get_line(View *view, off_t line) {
             get_next_char();
             if (c != '\n' && c != '\0')
                 break;
-            if (view->f_eod)
+            if (view->f_eod) {
+                view->ln_no = line;
+                view->ln_no_max = view->ln_no;
                 break;
+            }
         }
-        get_prev_char();
-        if (view->f_eod) {
-            view->ln_no = line;
+        if (!view->f_eod) {
+            get_prev_char();
             return;
         }
     }
+
     view->ln_no = line;
     return;
 }
 /** @brief Go to End of File
     @ingroup view_navigation
     @param view data structure
+    __go_to_eof
  */
 void go_to_eof(View *view) {
     view->file_pos = view->file_size;
@@ -2000,6 +2042,7 @@ void increment_ln(View *view) {
     If the line or positione requested is behind the current line
    table index, the line index will be decremented it matches the file
    position.
+    __sync_ln
  */
 void sync_ln(View *view) {
     int c = 0;
@@ -2013,8 +2056,10 @@ void sync_ln(View *view) {
         view->ln_no = view->ln_tbl_cnt;
         while (view->ln_max_pos < target_pos) {
             get_next_char();
-            if (view->f_eod)
+            if (view->f_eod) {
+                view->ln_no_max = view->ln_no;
                 return;
+            }
         }
     } else if (view->ln_tbl[view->ln_no] > target_pos) {
         idx = view->ln_no - 1;
@@ -2038,6 +2083,7 @@ void sync_ln(View *view) {
     @ingroup view_display
     @param view data structure
     @returns OK on success, ERR on failure
+    __pad_refresh
 */
 int pad_refresh(View *view) {
 #ifdef UAL_UI
@@ -2077,6 +2123,7 @@ int pad_refresh(View *view) {
    view->cmplx_buf and view->stripped_line_out. The function returns the
    length of the formatted line in characters, which may be used for
    tracking the maximum column width of the displayed content.
+    __fmt_line
  */
 int fmt_line(View *view) {
     char ansi_tok[MAXLEN];
@@ -2106,8 +2153,10 @@ int fmt_line(View *view) {
     memset(&mbstate, 0, sizeof(mbstate));
     uint word_cols = 0;
     uint sl_maxlen = PAD_COLS - 1;
-    if (view->f_eod)
+    if (view->f_eod) {
+        view->ln_no_max = view->ln_no;
         return 0;
+    }
     if (view->wrap)
         sl_maxlen = view->cols;
     if (view->f_ln)
@@ -2426,6 +2475,7 @@ void log_split_lines(View *view) {
    ui_add_pair()
 
     @endverbatim
+    __parse_ansi_str
 */
 void parse_ansi_str(char *ansi_str, attr_t *attrs, ushort *cpx) {
     char *tok;
