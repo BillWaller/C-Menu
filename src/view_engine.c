@@ -1495,6 +1495,7 @@ void display_line_eod(View *view) {
     ui_cursor_move(sfc, PAD, view->cury, 0);
     ui_wclrtobot(sfc, PAD);
     view->page_bot_ln_no = view->ln_no;
+    view->ln_no_max = view->ln_no;
 }
 /** @brief Scroll Down by n Lines
     @ingroup view_navigation
@@ -1584,9 +1585,11 @@ void scope_toward_eof(View *view, uint n) {
                 ln_no++;
         }
     } else {
+        if (view->ln_no_max > 0 && view->ln_no >= view->ln_no_max)
+            return;
         view->ln_no = view->page_bot_ln_no;
-        // if (view->ln_no >= view->ln_no_max)
-        //    return;
+        if (view->f_eod)
+            return;
         if (n > view->scroll_lines) {
             if (view->f_ln) {
                 ui_cursor_move(sfc, LNNO, 0, 0);
@@ -1604,8 +1607,8 @@ void scope_toward_eof(View *view, uint n) {
         view->page_top_ln_no += n;
         scroll = n;
         while (scroll > 0) {
-            // if (view->ln_no >= view->ln_no_max)
-            //     break;
+            if (view->ln_no_max > 0 && view->ln_no >= view->ln_no_max)
+                break;
             view->ln_no++;
             get_line(view, view->ln_no);
             if (view->f_eod)

@@ -604,9 +604,9 @@ bool init_find(LfContext *lf, int argc, char **argv) {
     if (nprocs == 0)
         nprocs = 1;
 
-    if (lf->nthreads == 0) {
+    if (lf->nthreads == 0)
         lf->nthreads = (nprocs > 1) ? (nprocs - 1) : 1;
-    } else {
+    else {
         if (lf->nthreads < 1)
             lf->nthreads = 1;
         if (lf->nthreads > nprocs)
@@ -993,12 +993,11 @@ void *finder(void *arg) {
     char full_path[MAX_PATH_LEN] = {'\0'};
     int rc;
     while (1) {
+        // --------------------------------------------------------------------
+        // DEQUEUE DIRECTORY
+        // --------------------------------------------------------------------
         if (dequeue_dir(lf, &current_task) == false)
             break;
-        // --------------------------------------------------------------------
-        // INITIALIZE DIRECTORY - PRIMING READ
-        // --------------------------------------------------------------------
-        //
         int dir_fd = open(current_task.dir_path, O_RDONLY | O_DIRECTORY);
         if (dir_fd == -1) {
             atomic_fetch_add(&lf->error_count, 1);
@@ -1010,9 +1009,6 @@ void *finder(void *arg) {
             atomic_fetch_sub(&lf->q.active_tasks, 1);
             return NULL;
         }
-        //--------------------------------------------------------------------
-        // MAIN LOOP - READ DIRECTORY ENTRIES
-        //--------------------------------------------------------------------
         // Read the directory entries and process each one. We use readdir to
         // iterate over the entries in the directory. For each entry, we
         // construct the full path and use fstatat to get the metadata of
@@ -1021,8 +1017,10 @@ void *finder(void *arg) {
         // points to. We then determine the effective type of the entry and
         // apply the specified filters (e.g., hidden files, max depth) to
         // decide whether to process it further or enqueue it for searching.
-        //--------------------------------------------------------------------
         while (1) {
+            //--------------------------------------------------------------------
+            // READ DIRECTORY
+            //--------------------------------------------------------------------
             nread = syscall(SYS_getdents64, dir_fd, dir_buf, DIR_BUF_SIZE);
             if (nread == -1) {
                 atomic_fetch_add(&lf->error_count, 1);
@@ -1034,10 +1032,13 @@ void *finder(void *arg) {
                 break;
             }
             if (nread == 0)
-                break; // End of directory
+                break;
             for (size_t bpos = 0; bpos < (size_t)nread;) {
                 entry = (struct linux_dirent64 *)(dir_buf + bpos);
                 bpos += entry->d_reclen;
+                //--------------------------------------------------------------------
+                // PROCESS DIRECTORY ENTRIES
+                //--------------------------------------------------------------------
                 // Get link's metadata
                 // We use fstatat with AT_SYMLINK_NOFOLLOW t  get the metadata
                 // of the symbolic link itself, rather than the target it points
@@ -1048,10 +1049,15 @@ void *finder(void *arg) {
                 // entry without processing this one further.
                 full_path[0] = '\0';
                 effective_type = entry->d_type;
-                if (effective_type == DT_DIR && is_dirsys(entry->d_name))
-                    continue;
+                if (effective_type == DT_DIR) {
+                    if (is_dirsys(entry->d_name))
+                        continue;
+                }
                 if (effective_type == DT_UNKNOWN ||
                     (effective_type == DT_LNK && lf->follow_links)) {
+                    //--------------------------------------------------------------------
+                    // GET ADVANCED METADATA
+                    //--------------------------------------------------------------------
                     rc = fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW);
                     if (rc == -1) {
                         atomic_fetch_add(&lf->error_count, 1);
@@ -1059,8 +1065,6 @@ void *finder(void *arg) {
                             if (!build_full_path(full_path, sizeof(full_path),
                                                  current_task.dir_path,
                                                  entry->d_name, nullptr)) {
-                                ssnprintf(full_path, sizeof(full_path), "%s/%s",
-                                          current_task.dir_path, entry->d_name);
                             }
                             pthread_mutex_lock(&lf->output_mutex);
                             fprintf(stderr, "LSTAT_FAIL,%s,%s\n", full_path,
@@ -1081,10 +1085,11 @@ void *finder(void *arg) {
                     // metadata, we log the error (if debugging is enabled) but
                     // continue processing the entry based on its symbolic link
                     // metadata.
-                    // if (effective_type == DT_LNK) {
-                    // Get the target's metadata
                     if (S_ISLNK(st.st_mode)) {
                         if (lf->follow_links) {
+                            //--------------------------------------------------------------------
+                            // GET LINK METADATA
+                            //--------------------------------------------------------------------
                             rc = fstatat(dir_fd, entry->d_name, &st, 0);
 
                             if (rc == -1) {
@@ -1093,31 +1098,26 @@ void *finder(void *arg) {
                                     if (!build_full_path(full_path, sizeof(full_path),
                                                          current_task.dir_path,
                                                          entry->d_name, nullptr)) {
-                                        ssnprintf(full_path, sizeof(full_path), "%s/%s",
-                                                  current_task.dir_path, entry->d_name);
+                                        pthread_mutex_lock(&lf->output_mutex);
+                                        fprintf(stderr, "STAT_FAIL,%s,%s\n", full_path,
+                                                strerror(errno));
+                                        pthread_mutex_unlock(&lf->output_mutex);
                                     }
-                                    pthread_mutex_lock(&lf->output_mutex);
-                                    fprintf(stderr, "STAT_FAIL,%s,%s\n", full_path,
-                                            strerror(errno));
-                                    pthread_mutex_unlock(&lf->output_mutex);
+                                    continue;
                                 }
-                                continue;
+                                effective_type = (st.st_mode & S_IFMT) >> 12;
+                            } else {
+                                effective_type = DT_REG;
                             }
-                            effective_type = (st.st_mode & S_IFMT) >> 12;
-                        } else {
-                            effective_type = DT_REG;
                         }
                     }
                 }
-                if (is_hidden(entry->d_name)) {
-                    if (!lf->include_hidden && !lf->hidden_only && effective_type != DT_DIR)
-                        continue;
-                } else {
-                    if (lf->hidden_only)
-                        continue;
-                }
                 if (effective_type == DT_DIR) {
-                    if (!build_full_path(full_path, sizeof(full_path),
+                    //--------------------------------------------------------------------
+                    // PROCESS DIRECTORY ENTRY
+                    //--------------------------------------------------------------------
+                    TaskNode child_task = {};
+                    if (!build_full_path(child_task.dir_path, sizeof(full_path),
                                          current_task.dir_path,
                                          entry->d_name, nullptr)) {
                         atomic_fetch_add(&lf->error_count, 1);
@@ -1171,29 +1171,29 @@ void *finder(void *arg) {
                             pthread_mutex_lock(&lf->output_mutex);
                             if (len != -1) {
                                 lnk_path[len] = '\0';
-                                fprintf(stderr, "CYCLIC_LINK,%s,%s\n", full_path,
+                                fprintf(stderr, "CYCLIC_LINK,%s,%s\n", child_task.dir_path,
                                         lnk_path);
                             } else
-                                fprintf(stderr, "CYCLIC_LINK,%s\n", full_path);
+                                fprintf(stderr, "CYCLIC_LINK,%s\n", child_task.dir_path);
                             pthread_mutex_unlock(&lf->output_mutex);
                             continue;
                         }
                     }
                     //-------------------------------------------------------
-                    // Create a new TaskNode for the subdirectory and enqueue it
-                    // for processing by finder threads. We duplicate the
-                    // current history of dev/inode pairs and add the current
-                    // directory's dev/inode to the new history for the child
-                    // task. This allows us to maintain a record of the
-                    // directories we've visited in the current path, which is
-                    // essential for cycle detection. By checking this history
-                    // for each new directory we encounter, we can effectively
-                    // prevent infinite loops caused by symbolic links or hard
-                    // links that create cycles in the directory structure.
+                    // We duplicate the current history of dev/inode pairs and
+                    // add the current directory's dev/inode to the new history
+                    // for the child task. This allows us to maintain a record
+                    // of the directories we've visited in the current path,
+                    // which is essential for cycle detection. By checking this
+                    // history for each new directory we encounter, we can
+                    // effectively prevent infinite loops caused by symbolic
+                    // links or hard links that create cycles in the directory
+                    // structure.
+                    // --------------------------------------------------------
+                    // BUILD AND ENQUEUE CHILD TASK
+                    // --------------------------------------------------------
                     if (lf->max_depth != 0 && current_task.depth + 1 == lf->max_depth)
                         continue;
-                    TaskNode child_task;
-                    strnz__cpy(child_task.dir_path, full_path, MAX_PATH_LEN - 1);
                     child_task.depth = current_task.depth + 1;
                     if (lf->report_badlinks) {
                         int i;
@@ -1211,28 +1211,48 @@ void *finder(void *arg) {
                         atomic_fetch_add(&lf->error_count, 1);
                         if (lf->report_errors) {
                             pthread_mutex_lock(&lf->output_mutex);
-                            fprintf(stderr, "QUEUE_FULL,%s\n", full_path);
+                            fprintf(stderr, "QUEUE_FULL,%s\n", child_task.dir_path);
                             pthread_mutex_unlock(&lf->output_mutex);
+                        }
+                    }
+                    // --------------------------------------------------------
+                    // CONDITIONALLY PRINT THE DIRECTORY
+                    // --------------------------------------------------------
+                    if (is_hidden(entry->d_name)) {
+                        if (!lf->include_hidden && !lf->hidden_only)
+                            continue;
+                    } else {
+                        if (lf->hidden_only)
+                            continue;
+                    }
+                    scan_file(child_task.dir_path, lf, effective_type, &st, &output);
+                } else {
+                    // --------------------------------------------------------
+                    // NOT DIRECTORY - CONDITIONALLY PRINT THE ENTRY
+                    // --------------------------------------------------------
+                    if (is_hidden(entry->d_name)) {
+                        if (!lf->include_hidden && !lf->hidden_only)
+                            continue;
+                    } else {
+                        if (lf->hidden_only)
+                            continue;
+                    }
+                    if (full_path[0] == '\0') {
+                        if (!build_full_path(full_path, sizeof(full_path),
+                                             current_task.dir_path,
+                                             entry->d_name, nullptr)) {
+                            atomic_fetch_add(&lf->error_count, 1);
+                            if (lf->report_errors) {
+                                pthread_mutex_lock(&lf->output_mutex);
+                                fprintf(stderr, "PATH_TOO_LONG,%s/%s\n",
+                                        current_task.dir_path, entry->d_name);
+                                pthread_mutex_unlock(&lf->output_mutex);
+                            }
+                            continue;
                         }
                     }
                     scan_file(full_path, lf, effective_type, &st, &output);
-                    continue;
                 }
-                if (full_path[0] == '\0') {
-                    if (!build_full_path(full_path, sizeof(full_path),
-                                         current_task.dir_path,
-                                         entry->d_name, nullptr)) {
-                        atomic_fetch_add(&lf->error_count, 1);
-                        if (lf->report_errors) {
-                            pthread_mutex_lock(&lf->output_mutex);
-                            fprintf(stderr, "PATH_TOO_LONG,%s/%s\n",
-                                    current_task.dir_path, entry->d_name);
-                            pthread_mutex_unlock(&lf->output_mutex);
-                        }
-                        continue;
-                    }
-                }
-                scan_file(full_path, lf, effective_type, &st, &output);
             }
         }
         close(dir_fd);

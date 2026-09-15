@@ -13,17 +13,19 @@
 #
 
 directory="/home/bill"
-echo "## Large Directory - 500,000+ files"
+echo
+echo "# lf4 test - using find and fd for baseline comparison"
+echo
+echo "## directory: $directory"
 echo
 # ------------------------------------------------------------
 echo "### find"
-echo find
+echo find "$directory"
 /bin/time -o time.out find "$directory" >find.out 2>/dev/null
 grep -v "^Command" time.out
-echo sort
-/bin/time -o time.out sh -c 'LC_ALL=C sort --parallel=7 -S 4G find.out' | sed 's/^\///
-/^\.$/d' >findb.out
-grep -v "^Command" time.out
+LC_ALL=C sort --parallel=7 -S 4G find.out | sed '1,1d
+    s/^\///
+    /^\.$/d' >findb.out
 found=$(wc -l findb.out | sed 's/ .*//')
 echo "find found $found files"
 echo
@@ -32,13 +34,11 @@ echo
 # ------------------------------------------------------------
 echo "### fd"
 echo
-echo fd
+echo fd . -H -I "$directory"
 /bin/time -o time.out fd . -H -I "$directory" >fd.out 2>/dev/null
 grep -v "^Command" time.out
-echo sort
-/bin/time -o time.out sh -c 'LC_ALL=C sort --parallel=7 -S 4G fd.out' | sed 's/^\///
+LC_ALL=C sort --parallel=7 -S 4G fd.out | sed 's/^\///
     s/\/$//' >fdb.out
-grep -v "^Command" time.out
 found=$(wc -l fdb.out | sed 's/ .*//')
 echo "fd found $found files"
 echo
@@ -47,14 +47,11 @@ echo
 # ------------------------------------------------------------
 echo "### lf4"
 echo
-echo lf4
+echo lf4 -H -T7 "$directory"
 /bin/time -o time.out ./lf4 -H -T7 "$directory" >lf4.out 2>/dev/null
 grep -v "^Command" time.out
-echo sort
-/bin/time -o time.out sh -c 'LC_ALL=C sort --parallel=7 -S 4G lf4.out' |
-    sed 's/^\///
+LC_ALL=C sort --parallel=7 -S 4G lf4.out | sed 's/^\///
         s/\/$//' >lf4b.out
-grep -v "^Command" time.out
 found=$(wc -l lf4b.out | sed 's/ .*//')
 echo "lf4 found $found files"
 echo
