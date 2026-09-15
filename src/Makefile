@@ -62,7 +62,7 @@ CX:=-std=c23
 CC:=gcc $(CX) $(INCLUDE_DIRS)
 
 BINEXES:=menu form pick view ckeys whence rsh rsh_static \
-	rsh_pam iloan amort enterchr enterstr lf lf2 lf3 lf4 stripansi detach
+	rsh_pam iloan amort enterchr enterstr lf stripansi detach
 ifeq ($(UI), "-DNOTCURSES_UI")
 BINEXES+=ui_hello ui_visual
 endif
@@ -191,15 +191,6 @@ ui_visual:	ui_visual.c $(COMMON_OBJS) $(LIB_SHARED)
 lf: lf.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)
 
-lf2: lf2.c $(LIB_SHARED)
-	$(CC) $< -o $@ $(LDFLAGS)
-
-lf3: lf3.c $(LIB_SHARED)
-	$(CC) $< -o $@ $(LDFLAGS)
-
-lf4: lf4.c $(LIB_SHARED)
-	$(CC) $< -o $@ $(LDFLAGS)
-
 %:	%.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)
 
@@ -264,7 +255,7 @@ endif
 
 helgrind: lf
 	valgrind --tool=helgrind --log-file=helgrind.out -s \
-		./lf2 -H -L -T6 $(HOME) 1>/dev/null 2>/dev/null
+		./lf -H -L -T6 $(HOME) 1>/dev/null 2>/dev/null
 
 valgrind: menu
 	valgrind -v \
@@ -279,13 +270,13 @@ valgrind: menu
 		--keep-debuginfo=yes \
 		--suppressions=valgrind.supp \
 		--gen-suppressions=all \
-		./lf2 -H
+		./lf -H
 # 		./view -L60 -C90 -w lsp.log
 
 install:
 	rm -f	$(INSTALL_LIB_DIR)/libcm*
 	install -CDp 	$(COMMON_HDRS)	-t $(PREFIX)/include
-	install -CDp	menu whence lf lf2 lf3 lf4 detach enterchr enterstr \
+	install -CDp	menu whence lf detach enterchr enterstr \
 		iloan amort stripansi -t $(INSTALL_BIN_DIR)
 	install -Dp -o root -g root -m 6711	rsh rsh_static rsh_pam -t $(INSTALL_BIN_DIR)
 	install -CDp $(LIB_STATIC) -t $(INSTALL_LIB_DIR)
@@ -328,7 +319,4 @@ uninstall:
 	$(INSTALL_BIN_DIR)/enterstr \
 	$(INSTALL_BIN_DIR)/stripansi \
 	$(INSTALL_BIN_DIR)/lf \
-	$(INSTALL_BIN_DIR)/lf2 \
-	$(INSTALL_BIN_DIR)/lf3 \
-	$(INSTALL_BIN_DIR)/lf4 \
 	$(INSTALL_LIB_DIR)/libcm.so
