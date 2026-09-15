@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-15T06:30:35-05:00* - DOCUMENTATION UPDATE: PERFORMANCE.md 
+
+*2026-09-14T20:32:03-05:00* - Update CHANGELOG.md 
+
 *2026-09-14T20:31:08-05:00* - FIXES: view.c was allowing KEY_DOWN scroll to go beyond the last line of the file. This was causing the view to display a blank line at the bottom of the screen when scrolling down past the last line of the file. The fix was to add a check in view.c to prevent scrolling down past the last line of the file. 
 
 *2026-09-14T10:24:41-05:00* - Update CHANGELOG.md 
