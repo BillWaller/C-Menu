@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-15T08:21:10-05:00* - FIXES: view was scrolling past "end of data" (eod). The specification allows view to scroll one line past the last line of data on the first pass only. After that, view should be eod aware and not scroll past it. 
+
+*2026-09-15T06:30:56-05:00* - Update CHANGELOG.md 
+
 *2026-09-15T06:30:35-05:00* - DOCUMENTATION UPDATE: PERFORMANCE.md 
 
 *2026-09-14T20:32:03-05:00* - Update CHANGELOG.md 
