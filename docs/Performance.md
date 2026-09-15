@@ -22,6 +22,54 @@ C-Menu's design objective is to provide the best of both worlds by combining the
 
 With the C-Menu applications you create, intelligent users will discover a new sense of freedom, unbridled by slugish response times that wreck continuity of thought.
 
+# lf4 test - using find and fd for baseline comparison
+
+## Performance Comparison - File Finders
+
+A file finder is one of the most often used utilities, so it's speed and
+efficiency can make a significant difference in the overall performance of an application, especially if it is called repetitively. 
+
+The following is a performance comparison of three file finders: `find`, `fd`, and `lf`. The test was conducted on a directory containing 517,821 files. The elapsed time for each file finder to complete the search is recorded below.
+
+### find - 0.86 seconds
+find /home/bill
+0.37user 0.48system 0:00.86elapsed 99%CPU (0avgtext+0avgdata 35076maxresident)k
+0inputs+105400outputs (0major+12106minor)pagefaults 0swaps
+find found 517821 files
+
+---
+
+### fd - 0.15 seconds
+
+fd . -H -I /home/bill
+0.69user 0.61system 0:00.15elapsed 874%CPU (0avgtext+0avgdata 159452maxresident)k
+0inputs+105464outputs (0major+4233minor)pagefaults 0swaps
+fd found 517821 files
+
+---
+
+### lf - 0.08 seconds
+
+lf -H -T7 /home/bill
+0.15user 0.34system 0:00.08elapsed 607%CPU (0avgtext+0avgdata 38288maxresident)k
+0inputs+105464outputs (0major+1482minor)pagefaults 0swaps
+lf4 found 517821 files
+
+---
+
+### Summary
+
+All 3 file finders found the same number of files, a testament to the accuracy
+of each. However, only one is the fastest, and that is C-Menu's lf.
+
+
+| File Finder | Elapsed Time | Files Found |
+| ----------- | ------------ | ----------- |
+| find        | 0.87 seconds | 517,821     |
+| fd          | 0.16 seconds | 517,821     |
+| lf          | 0.08 seconds | 517,821    |
+
+
 ## C-Menu Launcher
 
 When you use C-Menu's Example Application Menu, you will notice that most menu selections respond instantaneously with no perceptible delay. It just snaps. That level of optimization is achieved in part by avoiding the overhead and unpredictability of using a shell to execute command lines. C-Menu provides direct execution, which results in start-up times an order of magnitude faster than traditional shell-based menu systems. But, C-Menu has something even faster. You can take C-Menu performance to the next level by letting C-Menu call it's internal functions directly, bypassing the start-up overhead of external executables. Menu, Form, Pick, View, and CKeys are internal functions. In the Example Applications Menu, all except the first command line are internal function calls, which execute in nanoseconds compared to the milliseconds it takes to launch an external executable.
