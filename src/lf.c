@@ -68,13 +68,6 @@ typedef struct {
     Task task;
 } QueueNode;
 
-// typedef struct {
-//     alignas(64) _Atomic size_t sequence;
-//     alignas(64) DevIno dev_ino[MAX_DEPTH];
-//     char path[1024];
-//     uint16_t depth;
-// } QueueNode;
-
 typedef struct {
     QueueNode nodes[QUEUE_CAPACITY];
     alignas(64) _Atomic size_t enqueue_pos;
@@ -83,27 +76,6 @@ typedef struct {
     alignas(64) _Atomic atomic_int shut_down;
 } MPMCQueue;
 
-// lf->q->dir_node->dev_ino
-//
-//  QUEUE_CAPACITY          16384
-//  threads[nthreads]       pthread_t
-//  lf                      LfContext
-//      q                   MPMCQueue
-//          enqueue_pos     size_t
-//          dequeue_pos     size_t
-//          active_tasks    int
-//          shut_down       int
-//          child_node      DirNode
-//          current_node    DirNode
-//          dir_node        DirNode
-//              sequence    size_t
-//              dev         dev_t
-//              ino         ino_t
-//              depth       uint16_t
-//              dir_path    char[MAX_PATH_LEN]
-//  QueueNode child_node
-//
-//
 typedef enum {
     TS_SUCCESS = 0,
     TS_ERROR = 1,
@@ -193,12 +165,6 @@ unsigned char const lf_mask[15] = {
     0, 0b00000001, 0b00000010, 0, 0b00000100, 0, 0b00001000, 0, 0b00010000, 0,
     0b00100000, 0, 0b01000000, 0, 0b10000000};
 
-//                              ╭───────────╮
-// ╭───────────╮     ╭──────────╯ dir_path  ╰───────────╮
-// │ TaskQueue ├─────┤ DirNode    history     dev/inode │
-// ╰───────────╯     ╰──────────╮ depth     ╭───────────╯
-//                              ╰───────────╯
-
 int lfargc;
 char *lfargs[3];
 char *exec;
@@ -206,13 +172,11 @@ char *file_types_p;
 char *perms_p;
 char *debug_p;
 void debug_out(LfContext *lf, int, char **);
-
 bool init_find(LfContext *lf, int, char **);
 void sort_lf_output(LfContext *lf, int, char **);
 MPMCQueue *queue_init();
 bool enqueue_dir(LfContext *, const QueueNode *item);
 bool dequeue_dir(LfContext *, QueueNode *item);
-
 void *worker(void *arg);
 void *finder(LfContext *lf, QueueNode *current_node);
 int scan_file(const char *, LfContext *lf, const unsigned char,
@@ -224,8 +188,8 @@ bool append_output_buffer(LfContext *, OutputBuffer *, const char *, size_t,
 // ---------------------------------------------------------------
 
 static struct argp_option options[] = {
-    {"after", 'a', "time", 0, "Modified after YYYY-MM-DDTHH:MM:SS", 0},
-    {"before", 'b', "time", 0, "Modified before YYYY-MM-DDTHH:MM:SS", 0},
+    {"after", 'a', "time", 0, "Last Modified after YYYY-MM-DDTHH:MM:SS", 0},
+    {"before", 'b', "time", 0, "Last Modified before YYYY-MM-DDTHH:MM:SS", 0},
     {"max_depth", 'd', "number", 0, "Depth into directory tree", 0},
     {"ere", 'e', "regex", 0, "Exclude regular expression", 0},
     {"ignore_case", 'i', 0, 0, "Search ignore case", 0},
@@ -1357,13 +1321,13 @@ int scan_file(const char *file_spec, LfContext *lf,
             else if ((lf->include_perms & LF_ISGID) && !(sb.st_mode & S_ISGID))
                 break;
         }
-        if (lf->before) {
+        if (lf->before) { // Last file modification
             if (!stat_cached && stat(file_spec, &sb) == 0)
                 stat_cached = true;
             if (stat_cached && sb.st_mtime > lf->before)
                 break;
         }
-        if (lf->after) {
+        if (lf->after) { // Last file modification
             if (!stat_cached && stat(file_spec, &sb) == 0)
                 stat_cached = true;
             if (stat_cached && sb.st_mtime < lf->after)

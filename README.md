@@ -12,9 +12,7 @@ More sophisticated applications can be be built using the C-Menu API that is ful
 
 lf is a regular-expression-based file finder that can be used to generate file lists for pick, shell pipelines, or custom scripts. lf is comparable to the popular find command, but it is designed to be more user-friendly and easier to use.
 
-To say that lf is fast is absurdly understated. It is easily ten times faster
-than the find command, and twice as fast as the revered fd. To be fair, lf is
-written in C, while fd is written in Rust, and Rust is a great language, but despite the optimism of the Rust community, only perfectly written Assembly language code can be faster than well-constructed and optimized C, as is lf. lf is likely the fastest file finder in existence. lf handles huge directories with ease. It can be used to find files based on name, type, date, size, and other attributes, making it a powerful tool for file discovery and filtering. It also has an option that only reports cyclic or broken links.
+To say that lf is fast is understated. It is easily ten times faster than the find command, and, in some benchmarks, faster than the revered fd. lf handles huge directories with ease. It can be used to find files based on name, type, date, size, and other attributes, making it a powerful tool for file discovery and filtering. It also has an option that only reports cyclic or broken links.
 
 ```
 Usage: lf [OPTION...] [DIRECTORY] [REGULAR_EXPRESSION]
