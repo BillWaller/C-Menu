@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-16T17:15:22-05:00* - DOCUMENTATION: Minor changes 
+
+*2026-09-16T16:37:10-05:00* - Update CHANGELOG.md 
+
 *2026-09-16T16:28:54-05:00* - FIXES: In testing different directory trees, we found that lf4.c dropped large numbers of files on a large directory tree with many more directories than files. The solution was to extend the duty of the worker threads recursively instead of dropping files. There was an elapsed time penalty, bumping execution time from 0.08 to 0.14 seconds. fd completed in 0.15 seconds, and find in 0.86 seconds. So, lf is much faster than it was, the file count matches with fd and find. 
 
 *2026-09-15T09:07:09-05:00* - Update CHANGELOG.md 
