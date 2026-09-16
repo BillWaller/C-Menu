@@ -31,24 +31,17 @@ efficiency can make a significant difference in the overall performance of an ap
 
 The following is a performance comparison of three file finders: `find`, `fd`, and `lf`. The test was conducted on a directory containing 517,821 files. The elapsed time for each file finder to complete the search is recorded below.
 
-### find - 0.86 seconds
 find /home/bill
 0.37user 0.48system 0:00.86elapsed 99%CPU (0avgtext+0avgdata 35076maxresident)k
 0inputs+105400outputs (0major+12106minor)pagefaults 0swaps
 find found 517821 files
 
----
-
-### fd - 0.15 seconds
 
 fd . -H -I /home/bill
 0.69user 0.61system 0:00.15elapsed 874%CPU (0avgtext+0avgdata 159452maxresident)k
 0inputs+105464outputs (0major+4233minor)pagefaults 0swaps
 fd found 517821 files
 
----
-
-### lf - 0.08 seconds
 
 lf -H -T7 /home/bill
 0.15user 0.34system 0:00.08elapsed 607%CPU (0avgtext+0avgdata 38288maxresident)k
@@ -60,15 +53,34 @@ lf4 found 517821 files
 ### Summary
 
 All 3 file finders found the same number of files, a testament to the accuracy
-of each. However, only one is the fastest, and that is C-Menu's lf.
+of each. However, only one was the fastest, and that was C-Menu's lf. The
+operative word is "was".
 
 
 | File Finder | Elapsed Time | Files Found |
 | ----------- | ------------ | ----------- |
 | find        | 0.87 seconds | 517,821     |
 | fd          | 0.16 seconds | 517,821     |
-| lf          | 0.08 seconds | 517,821    |
+| lf4         | 0.08 seconds | 517,821    |
 
+
+The best laid plans of mice and men often go awry, and so it was with lf4 (RIP).
+In testing, it was discovered that lf was dropping files due to a QUEUE_FULL
+condition when run on directory trees with many more directories than files. In
+the interest of reliability, we decided to make the it fully asynchronous so that it would be impossible to lose files due to queue overruns. As you can see lf5 is very fast, maybe not as fast as lf4, but it has proven to be reliable on the most difficult cases. So, we're ditching lf4 in favor of lf5.
+
+Revised benchmarks for lf5::
+
+
+| File Finder | Elapsed Time | Files Found |
+| ----------- | ------------ | ----------- |
+| find        | 0.86 seconds | 515,570     |
+| fd          | 0.15 seconds | 515,570     |
+| lf5         | 0.14 seconds | 515,570     |
+
+
+The benchmarks between fd and lf5 are way too close to call a winner. That's okay
+because fd and lf5 are both insanely fast.
 
 ## C-Menu Launcher
 

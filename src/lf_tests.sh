@@ -14,7 +14,7 @@
 
 directory="/home/bill"
 echo
-echo "# lf4 test - using find and fd for baseline comparison"
+echo "# lf test - using find and fd for baseline comparison"
 echo
 echo "## directory: $directory"
 echo
@@ -45,15 +45,15 @@ echo
 echo "---"
 echo
 # ------------------------------------------------------------
-echo "### lf4"
+echo "### lf"
 echo
-echo lf4 -H -T7 "$directory"
-/bin/time -o time.out ./lf4 -H -T7 "$directory" >lf4.out 2>/dev/null
+echo lf -H -T8 "$directory"
+/bin/time -o time.out ./lf -H -T8 "$directory" >lf.out 2>/dev/null
 grep -v "^Command" time.out
-LC_ALL=C sort --parallel=7 -S 4G lf4.out | sed 's/^\///
-        s/\/$//' >lf4b.out
-found=$(wc -l lf4b.out | sed 's/ .*//')
-echo "lf4 found $found files"
+LC_ALL=C sort --parallel=7 -S 4G lf.out | sed 's/^\///
+        s/\/$//' >lfb.out
+found=$(wc -l lfb.out | sed 's/ .*//')
+echo "lf found $found files"
 echo
 echo "---"
 echo

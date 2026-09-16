@@ -10,8 +10,8 @@ ifneq ($(CMENU_HOME),)
 	PREFIX:=$(HOME)/menuapp
 endif
 DISPLAY_MANIFEST=0
-BUILD_TYPE=Release
 BUILD_TYPE=Debug
+BUILD_TYPE=Release
 # UI backend selection:
 #   NCURSES_UI    — legacy ncurses direct-use (default)
 #   UAL_UI        — UALUI with ncurses backend (src/ui/)
@@ -22,8 +22,8 @@ include UI.mk
 # UI?="-DNOTCURSES_UI"
 ifeq ($(BUILD_TYPE), Release)
 	CFLAGS=-O3 -s -fPIC -pthread $(UI)
-	EXTRA_CFLAGS=-flto
 	LINKOPT= -pthread -s
+#	EXTRA_CFLAGS=-flto
 else
 	DEBUG_FLAGS= -DDEBUG_COLOR
 #	-DDEBUG_RESIZE -DDEBUG_LOG -DDEBUG_LAYOUT
