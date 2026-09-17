@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-17T13:07:23-05:00* - DOCUMENTATION UPDATE: Screenshots and README.md 
+
+*2026-09-16T22:20:25-05:00* - Update CHANGELOG.md 
+
 *2026-09-16T22:18:10-05:00* - DOCUMENTATION: Test scripts, src/lf_tests.sh and src/lf_T.sh updated. docs/Performance.md updated. 
 
 *2026-09-16T21:13:36-05:00* - Update CHANGELOG.md 
