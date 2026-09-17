@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-17T17:25:50-05:00* - FIXES: Added strerror__r(), a safer version of strerror() that uses a static buffer to store the error message. This function is used in C-Menu to provide error messages in a thread-safe manner. And other error handling improvements. 
+
+*2026-09-17T13:07:59-05:00* - Update CHANGELOG.md 
+
 *2026-09-17T13:07:23-05:00* - DOCUMENTATION UPDATE: Screenshots and README.md 
 
 *2026-09-16T22:20:25-05:00* - Update CHANGELOG.md 
