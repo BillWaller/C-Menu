@@ -473,6 +473,7 @@ int ui_tracked_sfc_box(uint wlines, uint wcols, uint wbegy, uint wbegx, const ch
     ui_surface[sfc_ptr] = ui_surface_box(nullptr, 0, wlines + 2, wcols + 2, wbegy, wbegx, wtitle);
     UiSurface *sfc = ui_surface[sfc_ptr];
     ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
+    ui_render();
     return 0;
 }
 // -----------------------------------------------------------------------------
@@ -1179,7 +1180,6 @@ int ui_perror(char *emsg_str) {
     ui_get_screen_size(&maxy, &maxx);
     cols = strnz(emsg, maxx - 4);
     cols = max(cols, 50);
-    ui_get_screen_size(&maxy, &maxx);
     pos = (maxx - cols - 4) / 2;
     line = (maxy - 4) / 2;
     strnz__cpy(title, "Notification", MAXLEN - 1);

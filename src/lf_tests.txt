@@ -1,0 +1,23 @@
+
+# lf test - using find and fd for baseline comparison
+## directory: /home/bill
+
+### find
+find /home/bill
+0.38user 0.44system 0:00.82elapsed 100%CPU (0avgtext+0avgdata 35188maxresident)k
+0inputs+0outputs (0major+11786minor)pagefaults 0swaps
+find found 518509 files
+
+### fd
+
+fd . -H -I /home/bill
+0.76user 0.64system 0:00.13elapsed 1029%CPU (0avgtext+0avgdata 166004maxresident)k
+0inputs+0outputs (0major+4343minor)pagefaults 0swaps
+fd found 518508 files
+
+### lf
+
+./lf -H -T9 /home/bill
+0.33user 0.46system 0:00.10elapsed 798%CPU (0avgtext+0avgdata 9232maxresident)k
+0inputs+0outputs (0major+1876minor)pagefaults 0swaps
+lf found 518508 files

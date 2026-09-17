@@ -883,8 +883,8 @@ int get_cmd_arg(View *view, char *prompt) {
     }
     view->curx = prompt_l;
     ui_wclrtoeol(sfc, CMDLN);
+    ui_cursor_enable_yx(sfc, CMDLN, view->cmd_line, view->curx, true);
     pad_refresh(view);
-    ui_curs_set(1);
     ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_ran, 1);
     ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx + 1);
     ui_render();

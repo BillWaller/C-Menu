@@ -106,6 +106,13 @@ Below is a screenshot of the UAL view feature, which allows you to view not only
 text files, but multi-media files as well. We will be adding viewers for video
 and audio. 
 
+As you move the selector bar, you get a preview of the file. On the left, is the
+source code for lf, the C-Menu file finder. From the selector window, you can
+press F11 to move your focus to the text window. Then you can navigate with
+view, search the file, and even edit it with your favorite editor. On the right,
+view has detected an image file, and displays a preview. You can edit the image
+by pressing the spacebar.
+
 ![UAL New View Feature - Photos](screenshots/View_Photos.png)
 
 ---

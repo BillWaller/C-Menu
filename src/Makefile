@@ -6,20 +6,21 @@
 # billxwaller@gmail.com
 # @date 2026-06-10
 #
+BUILD_TYPE=Release
+BUILD_TYPE=Debug
+# UI?="-DUAL_UI"
+# UI?=-DNCURSES_UI
+# UI?="-DNOTCURSES_UI"
+include UI.mk
+
 ifneq ($(CMENU_HOME),)
 	PREFIX:=$(HOME)/menuapp
 endif
 DISPLAY_MANIFEST=0
-BUILD_TYPE=Release
-BUILD_TYPE=Debug
 # UI backend selection:
 #   NCURSES_UI    — legacy ncurses direct-use (default)
 #   UAL_UI        — UALUI with ncurses backend (src/ui/)
 #   NOTCURSES_UI  — UALUI with notcurses backend (src/ui/)
-include UI.mk
-# UI?="-DUAL_UI"
-# UI?=-DNCURSES_UI
-# UI?="-DNOTCURSES_UI"
 ifeq ($(BUILD_TYPE), Release)
 	CFLAGS=-O3 -s -fPIC -pthread $(UI)
 	LINKOPT= -pthread -s

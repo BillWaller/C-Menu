@@ -1532,7 +1532,14 @@ void new_view_file(Init *init, char *file) {
     switch (ft) {
     case FT_IMAGE:
 #ifdef NOTCURSES_UI
-        ui_display_image(ui->nc, &ui_mm, file, -1, -1, 30, 0);
+        if (init->view != nullptr) {
+            destroy_pick_view(init);
+            init->view = nullptr;
+            destroy_line_table(view);
+            munmap(view->buf, view->file_size);
+            view->buf = nullptr;
+        }
+        ui_display_image(ui->nc, &ui_mm, file, -1, -1, 35, 0);
         if (ui_mm.sfc == nullptr) {
             ui_log(ERROR, "ui_display_image() failed in new_view_file");
             return;
@@ -1545,7 +1552,14 @@ void new_view_file(Init *init, char *file) {
         break;
     case FT_VIDEO:
 #ifdef NOTCURSES_UI
-        ui_display_image(ui->nc, &ui_mm, file, -1, -1, 30, 0);
+        if (init->view != nullptr) {
+            destroy_pick_view(init);
+            init->view = nullptr;
+            destroy_line_table(view);
+            munmap(view->buf, view->file_size);
+            view->buf = nullptr;
+        }
+        ui_display_image(ui->nc, &ui_mm, file, -1, -1, 35, 0);
         if (ui_mm.sfc == nullptr) {
             ui_log(ERROR, "ui_display_image() failed in new_view_file");
             return;
