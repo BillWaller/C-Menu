@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-17T17:32:19-05:00* - FIX: Accidentally put external references to error messages in notcurses section of include/ui_backend.h. Moved it to the common area. 
+
+*2026-09-17T17:27:56-05:00* - Update CHANGELOG.md 
+
 *2026-09-17T17:25:50-05:00* - FIXES: Added strerror__r(), a safer version of strerror() that uses a static buffer to store the error message. This function is used in C-Menu to provide error messages in a thread-safe manner. And other error handling improvements. 
 
 *2026-09-17T13:07:59-05:00* - Update CHANGELOG.md 
