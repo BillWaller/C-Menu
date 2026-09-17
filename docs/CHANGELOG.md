@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-16T22:18:10-05:00* - DOCUMENTATION: Test scripts, src/lf_tests.sh and src/lf_T.sh updated. docs/Performance.md updated. 
+
+*2026-09-16T21:13:36-05:00* - Update CHANGELOG.md 
+
 *2026-09-16T21:05:39-05:00* - FIXES: When moving the selector bar, Pick was opening a new view window without closing the previous one. Subsequently selecting F9 to exit would close the new view window, but leave the previous one open, which was not the intended behavior. It has been modified to leave the window open, but not to open a new one when moving the selector bar. We still need to make sure the view window closes when transitioning from the text viewer to the image viewer and vice versa. That's the next step. 
 
 *2026-09-16T17:15:37-05:00* - Update CHANGELOG.md 
