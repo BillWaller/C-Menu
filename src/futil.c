@@ -726,6 +726,29 @@ bool stripz_quotes(char *s) {
     }
     return false;
 }
+/** @brief A thread-safe alternative to strerror() that writes the error message
+   corresponding to errnum into the provided buffer.
+    @ingroup utility_functions
+    @param errnum - error number (typically from errno)
+    @param buf - buffer to receive the error message
+    @param buflen - size of the buffer
+    @returns pointer to buf containing the error message, or nullptr if buf is
+   null or buflen is zero
+    @details This function uses strerror_r to retrieve the error message in a
+   thread-safe manner. If the error number is unknown, it formats a default
+   message indicating that the error is unknown. The caller must ensure that buf
+   has enough space to hold the resulting string. */
+char *strerror__r(int errnum, char *buf, size_t buflen) {
+    char tmp_str[MAXLEN];
+    if (buf == nullptr || buflen == 0)
+        return nullptr;
+    strnz__cpy(tmp_str, strerror_r(errnum, buf, buflen), MAXLEN - 1);
+    if (buf == nullptr)
+        snprintf(buf, buflen, "error %d: unknown error", errnum);
+    else
+        snprintf(buf, buflen, "error %d: %s", errnum, tmp_str);
+    return buf;
+}
 /** @brief Replaces all occurrences of old_chr in s with new_chr in place.
     @ingroup utility_functions
     @param s - string to modify
@@ -1306,7 +1329,7 @@ bool mk_dir(char *dir) {
             strnz__cpy(em1, "mkdir ", MAXLEN - 1);
             strnz__cat(em1, dir, MAXLEN - 1);
             strnz__cat(em1, " failed", MAXLEN - 1);
-            strerror_r(errno, em2, MAXLEN - 1);
+            strerror__r(errno, em2, MAXLEN - 1);
             ui_display_error(em0, em1, em2, nullptr);
             return false;
         }

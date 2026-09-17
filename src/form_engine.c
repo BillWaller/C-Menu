@@ -409,7 +409,7 @@ int form_process(Init *init) {
                     strnz__cat(em1, ", ", MAXLEN - 1);
                     strnz__cat(em1, earg_str, MAXLEN - 1);
                     strnz__cat(em1, ")", MAXLEN - 1);
-                    strerror_r(errno, em2, MAXLEN);
+                    strerror__r(errno, em2, MAXLEN);
                     ui_display_error(em0, em1, em2, nullptr);
                     exit(EXIT_FAILURE);
                 } // Back to parent
@@ -667,7 +667,7 @@ int form_parse_desc(Form *form) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
         strnz__cpy(em1, "fopen ", MAXLEN - 1);
         strnz__cat(em1, form->mapp_spec, MAXLEN - 1);
-        strerror_r(errno, em2, MAXLEN);
+        strerror__r(errno, em2, MAXLEN);
         ui_display_error(em0, em1, em2, nullptr);
         return (1);
     }
@@ -1109,7 +1109,7 @@ int form_write(Form *form) {
             ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
             strnz__cpy(em1, "open ", MAXLEN - 1);
             strnz__cat(em1, form->out_spec, MAXLEN - 1);
-            strerror_r(errno, em2, MAXLEN);
+            strerror__r(errno, em2, MAXLEN);
             ui_display_error(em0, em1, em2, nullptr);
             return (1);
         }
@@ -1120,7 +1120,7 @@ int form_write(Form *form) {
     } else {
         if ((form->out_fp = fopen(form->out_spec, "w")) == nullptr) {
             ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-            strerror_r(errno, em2, MAXLEN);
+            strerror__r(errno, em2, MAXLEN);
             ui_display_error(em0, em1, em2, nullptr);
             return (1);
         }
@@ -1129,7 +1129,7 @@ int form_write(Form *form) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
         strnz__cpy(em1, "fopen ", MAXLEN - 1);
         strnz__cat(em1, form->out_spec, MAXLEN - 1);
-        strerror_r(errno, em2, MAXLEN);
+        strerror__r(errno, em2, MAXLEN);
         ui_display_error(em0, em1, em2, nullptr);
         return (1);
     }

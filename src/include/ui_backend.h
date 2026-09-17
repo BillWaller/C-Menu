@@ -391,6 +391,10 @@ typedef struct UiPair UiPair;
 typedef struct UiColor UiColor;
 extern NcPlane *stdplane;
 extern uint LINES, COLS;
+extern char em0[MAXLEN]; /**< error message string for error messages */
+extern char em1[MAXLEN]; /**< error message string for error messages */
+extern char em2[MAXLEN]; /**< error message string for error messages */
+extern char em3[MAXLEN]; /**< error message string for error messages */
 #define ERR -1
 #define CELL_CHAR_INITIALIZER(c) { \
     .gcluster = (c),               \

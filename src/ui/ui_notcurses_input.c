@@ -109,6 +109,7 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
         return -1;
     memset(ev, 0, sizeof(*ev));
     ncinput ni;
+    ui_render();
     if (timeout_ms < 0) {
         do {
             notcurses_get_blocking(ui->nc, &ni);

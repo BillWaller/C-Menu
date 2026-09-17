@@ -64,7 +64,7 @@ void ui_get_caps(UiCaps *caps) {
    Lifecycle
    ------------------------------------------------------------------------- */
 UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
-    setlocale(LC_ALL, "");
+    setlocale(LC_ALL, "en_US.UTF-8");
     ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;

@@ -368,16 +368,12 @@ extern int stdout_fd;  /**< the file descriptor for the terminal, for error mess
 extern int stderr_fd;  /**< the file descriptor for the terminal, for error messages
                         and other output */
 extern uint
-    dbgfd;               /**< the file descriptor for debug output, for debugging purposes */
-extern uint src_line;    /**< the line number of the source file being processed,
-                           for error messages */
-extern char *src_name;   /**< the name of the source file being processed, for
-                            error messages */
-extern char fn[MAXLEN];  /**< function name for error messages */
-extern char em0[MAXLEN]; /**< error message string for error messages */
-extern char em1[MAXLEN]; /**< error message string for error messages */
-extern char em2[MAXLEN]; /**< error message string for error messages */
-extern char em3[MAXLEN]; /**< error message string for error messages */
+    dbgfd;              /**< the file descriptor for debug output, for debugging purposes */
+extern uint src_line;   /**< the line number of the source file being processed,
+                          for error messages */
+extern char *src_name;  /**< the name of the source file being processed, for
+                           error messages */
+extern char fn[MAXLEN]; /**< function name for error messages */
 
 extern int exit_code; /**< the exit code for the program, for error messages and
                          other output */
@@ -489,6 +485,7 @@ extern void numeric(char *d, char *s);
 extern int cf_accept(UiSurface *, uint w, char *, uint, uint, uint);
 extern char *fill_field(char *, char *, char, uint);
 extern bool is_image_file(const char *filename);
+char *strerror__r(int errnum, char *buf, size_t buflen);
 
 #ifdef __cplusplus
 }

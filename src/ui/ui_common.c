@@ -1057,7 +1057,7 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     msg0_l = strnz(msg0, maxx - 4);
     msg1_l = strnz(msg1, maxx - 4);
     msg2_l = strnz(msg2, maxx - 4);
-    msg3_l = strnz(msg1, maxx - 4);
+    msg3_l = strnz(msg3, maxx - 4);
     msg_l = max(msg0_l, msg1_l);
     msg_l = max(msg_l, msg2_l);
     msg_l = max(msg_l, msg3_l);
@@ -1117,7 +1117,7 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     msg0_l = strnz(msg0, maxx - 4);
     msg1_l = strnz(msg1, maxx - 4);
     msg2_l = strnz(msg2, maxx - 4);
-    msg3_l = strnz(msg1, maxx - 4);
+    msg3_l = strnz(msg3, maxx - 4);
     msg_l = max(msg0_l, msg1_l);
     msg_l = max(msg_l, msg2_l);
     msg_l = max(msg_l, msg3_l);

@@ -358,15 +358,16 @@ int view_init_input(Init *init, char *file_name) {
                 ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
                           __LINE__ - 3);
                 ssnprintf(em1, MAXLEN - 1, "open %s", file_name);
-                strerror_r(errno, em2, MAXLEN);
-                ui_display_error(em0, em1, em2, nullptr);
+                strerror__r(errno, em2, MAXLEN);
+                ui_display_error(em0, em1, em2,
+                                 nullptr);
                 return -1;
             }
             if (fstat(view->in_fd, &sb) == -1) {
                 ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
                           __LINE__ - 1);
                 ssnprintf(em1, MAXLEN - 1, "fstat %s", file_name);
-                strerror_r(errno, em2, MAXLEN);
+                strerror__r(errno, em2, MAXLEN);
                 ui_display_error(em0, em1, em2, nullptr);
                 close(view->in_fd);
                 return -1;
@@ -377,7 +378,7 @@ int view_init_input(Init *init, char *file_name) {
                 ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
                           __LINE__ - 1);
                 ssnprintf(em1, MAXLEN - 1, "file %s is empty", file_name);
-                strerror_r(errno, em2, MAXLEN);
+                strerror__r(errno, em2, MAXLEN);
                 ui_display_error(em0, em1, em2, nullptr);
                 return -1;
             }
@@ -429,7 +430,7 @@ int view_init_input(Init *init, char *file_name) {
     if (view->buf == MAP_FAILED) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
         ssnprintf(em1, MAXLEN - 1, "mmap %s", file_name);
-        strerror_r(errno, em2, MAXLEN);
+        strerror__r(errno, em2, MAXLEN);
         ui_display_error(em0, em1, em2, nullptr);
         close(view->in_fd);
         return -1;

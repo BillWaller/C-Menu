@@ -665,7 +665,7 @@ int view_cmd_processor(Init *init) {
                 ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
                           __LINE__ - 2);
                 strnz__cpy(em1, "0 bytes written", MAXLEN - 1);
-                strerror_r(errno, em1, MAXLEN - 1);
+                strerror__r(errno, em1, MAXLEN - 1);
                 ui_display_error(em0, em1, nullptr, nullptr);
                 break;
             }
@@ -692,7 +692,7 @@ int view_cmd_processor(Init *init) {
                 ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
                           __LINE__ - 2);
                 strnz__cpy(em1, "0 bytes written", MAXLEN - 1);
-                strerror_r(errno, em1, MAXLEN - 1);
+                strerror__r(errno, em1, MAXLEN - 1);
                 ui_display_error(em0, em1, nullptr, nullptr);
                 break;
             }
@@ -1006,7 +1006,7 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
         ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
         strnz__cpy(em1, "fwrite ", MAXLEN - 1);
         strnz__cat(em1, view->out_spec, MAXLEN - 1);
-        strerror_r(errno, em2, MAXLEN - 1);
+        strerror__r(errno, em2, MAXLEN - 1);
         ui_display_error(em0, em1, em2, nullptr);
         return false;
     }
@@ -2687,7 +2687,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
         strnz__cpy(em1, "Unable to ", MAXLEN - 1);
         strnz__cat(em1, "mkdir", MAXLEN - 1);
         strnz__cat(em1, tmp_dir, MAXLEN - 1);
-        strerror_r(errno, em2, MAXLEN - 1);
+        strerror__r(errno, em2, MAXLEN - 1);
         ui_display_error(em0, em1, em2, nullptr);
         return false;
     }
@@ -2700,7 +2700,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
             strnz__cpy(em1, "unable to ", MAXLEN - 1);
             strnz__cat(em1, "mkstemp ", MAXLEN - 1);
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
-            strerror_r(errno, em2, MAXLEN - 1);
+            strerror__r(errno, em2, MAXLEN - 1);
             ui_display_error(em0, em1, nullptr, nullptr);
             return false;
         }
@@ -2722,7 +2722,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
             strnz__cpy(em1, "unable to ", MAXLEN - 1);
             strnz__cat(em1, "fopen ", MAXLEN - 1);
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
-            strerror_r(errno, em2, MAXLEN - 1);
+            strerror__r(errno, em2, MAXLEN - 1);
             ui_display_error(em0, em1, em2, nullptr);
             return false;
         }

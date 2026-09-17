@@ -93,7 +93,7 @@ UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *
    Lifecycle
    ------------------------------------------------------------------------- */
 struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
-    setlocale(LC_ALL, "");
+    setlocale(LC_ALL, "en_US.UTF-8");
     ui = calloc(1, sizeof(*ui));
     if (!ui)
         return NULL;
