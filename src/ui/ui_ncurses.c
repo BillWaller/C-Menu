@@ -385,6 +385,7 @@ void ui_surface_destroy(UiSurface *s) {
     for (int i = SUB_SFC_MAX; i >= 0; i--) {
         if (s->mpan[i] != NULL) {
             hide_panel(s->mpan[i]);
+            ui_render();
             del_panel(s->mpan[i]);
             s->mpan[i] = NULL;
         }

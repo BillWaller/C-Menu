@@ -186,8 +186,8 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
             ui_surface_destroy(ui_mm.sfc);
             ui_mm.sfc = nullptr;
         }
-        ui_render();
 #endif
+        ui_render();
     }
     return 0;
 }
@@ -1561,8 +1561,15 @@ void new_view_file(Init *init, char *file) {
     case FT_TEXT:
         if (!pick->p_view_files)
             return;
-        new_pick_view(init);
-        view = init->view;
+        if (init->view == nullptr) {
+            new_pick_view(init);
+            view = init->view;
+        } else {
+            view = init->view;
+            destroy_line_table(view);
+            munmap(view->buf, view->file_size);
+            view->buf = nullptr;
+        }
         strnz__cpy(view->provider_cmd, "tree-sitter highlight ", MAXLEN - 1);
         strnz__cat(view->provider_cmd, file, MAXLEN - 1);
         strnz__cpy(view->title, file, MAXLEN - 1);
