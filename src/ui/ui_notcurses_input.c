@@ -149,10 +149,17 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
                     return ev->key;
                 } else
                     return 0;
+            } else {
+                if (ev->in_win == w) {
+                    ev->mouse_action = UIKEY_BUTTON1_CLICKED;
+                    ev->key = ev->y;
+                    return ev->key;
+                } else
+                    return 0;
             }
         }
     }
-    return ni.id;
+    return ev->ch;
 }
 /** @brief Wait for a single input character from the NotCurses context.
    @return The NotCurses key code, or -1 if @p ui is NULL.
