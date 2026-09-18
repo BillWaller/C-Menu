@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-17T19:05:07-05:00* - FIXES: NCurses mouse functioning was broken while refactoring the Event and Chyron data structures. This commit restores that mouse functionality. We are continuing to test and debug C-Menu after adding the Uniform Abstraction Layer. This is to be expected after changing thousands of lines of code. The codebase has become much easier to maintain because of the refactoring, and we are confident that we will be able to fix the remaining issues in a timely manner. 
+
+*2026-09-17T17:33:21-05:00* - Update CHANGELOG.md 
+
 *2026-09-17T17:32:19-05:00* - FIX: Accidentally put external references to error messages in notcurses section of include/ui_backend.h. Moved it to the common area. 
 
 *2026-09-17T17:27:56-05:00* - Update CHANGELOG.md 
