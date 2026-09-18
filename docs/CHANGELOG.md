@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-17T19:40:20-05:00* - FIXES: Same problem with Notcurses input handling as in the previous commit. The input handling was not properly integrated with the rest of the UI, leading to unexpected behavior when processing user input. This commit addresses those issues by refactoring the input handling code and ensuring it works seamlessly with the Notcurses library. 
+
+*2026-09-17T19:12:32-05:00* - Update CHANGELOG.md 
+
 *2026-09-17T19:05:07-05:00* - FIXES: NCurses mouse functioning was broken while refactoring the Event and Chyron data structures. This commit restores that mouse functionality. We are continuing to test and debug C-Menu after adding the Uniform Abstraction Layer. This is to be expected after changing thousands of lines of code. The codebase has become much easier to maintain because of the refactoring, and we are confident that we will be able to fix the remaining issues in a timely manner. 
 
 *2026-09-17T17:33:21-05:00* - Update CHANGELOG.md 
