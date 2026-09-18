@@ -63,6 +63,38 @@ Usage: lf [-iLRS?V] [-a time] [-b time] [-c[s]] [-d number] [-D 12345678]
 Report bugs to billxwaller@gmail.com.
 ```
 
+## find, lf, and fd Performance Comparison
+
+Why are Rust programs so fast, and why isn't lf (or C-Menu for that matter) written in Rust? Rust is a great language, but its executables are generally much larger than C
+programs, and it isn't inherently faster than C. The steep learning curve for Rust selects good programmers and Rust itself is conducive to well-written code. Nevertheless, the design objective for C-Menu (and lf) was to be fast, small, portable across a wide rage of platforms, and accessible to a wide range of developers. Nothing but C can meet those objectives. lf is written in C, and it is fast, small, and portable. It is also easy to read and understand, and it is easy to modify and extend. The lf source code is well-documented, and it is easy to learn from. The lf source code is also well-tested, and it is easy to verify that it works correctly and competitively. Here's a comparison of find, fd, and lf on a large directory tree. The results are impressive.
+
+### find - 0.82 elapsed - "Very Fast"
+
+```
+find /home/bill
+0.34user 0.47system 0:00.82elapsed 100%CPU (0avgtext+0avgdata 35184maxresident)k
+0inputs+0outputs (0major+11782minor)pagefaults 0swaps
+find found 517552 files
+```
+
+### fd - 0.16 elapsed - "Extremely Fast"
+
+```
+fd . -H -I /home/bill
+0.74user 0.61system 0:00.16elapsed 835%CPU (0avgtext+0avgdata 118364maxresident)k
+0inputs+0outputs (0major+3694minor)pagefaults 0swaps
+fd found 517551 files
+```
+
+### lf - 0.10 elapsed - "Ridiculously Fast"
+
+```
+./lf -H -T9 /home/bill
+0.36user 0.49system 0:00.10elapsed 794%CPU (0avgtext+0avgdata 9400maxresident)k
+0inputs+0outputs (0major+957minor)pagefaults 0swaps
+lf found 517551 files
+```
+
 ## Uniform Abstraction Layer User Interface
 
 C-Menu has fully integrated the new Uniform Abstraction Layer (UAL) for UI
