@@ -150,7 +150,7 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
                 ev->mouse_action = UIKEY_SCROLL_DOWN;
             else if (me.bstate == UIKEY_BUTTON1_CLICKED)
                 ev->mouse_action = UIKEY_BUTTON1_CLICKED;
-            for (int i = WIN; i < SUB_SFC_MAX; i++) {
+            for (ss_t i = WIN; i < SUB_SFC_MAX; i++) {
                 if (s->mwin[i] != NULL &&
                     wenclose(s->mwin[i], me.y, me.x) &&
                     wmouse_trafo(s->mwin[i], &me.y, &me.x, false)) {

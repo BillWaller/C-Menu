@@ -45,6 +45,23 @@ typedef enum {
     SUB_SURFACE_LIST(AS_ENUM)
         SUB_SFC_MAX
 } ss_t;
+#define CHYRON_KEY_MAXLEN 64 /**< maximum length of the command text */
+#define CHYRON_KEYS 20       /**< maximum number of key bindings for the chyron */
+
+#define MOUSE_ACTION(X)   \
+    X(UI_MOUSE_NONE)      \
+    X(UI_MOUSE_PRESS)     \
+    X(UI_MOUSE_RELEASE)   \
+    X(UI_MOUSE_DRAG)      \
+    X(UI_MOUSE_SCROLL_UP) \
+    X(UI_MOUSE_SCROLL_DOWN)
+#define AS_ENUM(NAME) NAME,
+typedef enum {
+    MOUSE_ACTION(AS_ENUM)
+        MOUSE_ACTION_MAX
+} UiMouseAction;
+
+typedef uint32_t UiKey;
 // ---------------------------------------------------------------
 // Logging enums
 // ---------------------------------------------------------------
@@ -80,6 +97,24 @@ typedef enum {
 // ---------------------------------------------------------------
 // Input
 // ---------------------------------------------------------------
+
+typedef struct {
+    UiKey key;
+    uint32_t ch; /* Unicode codepoint when key == UIKEY_CHAR */
+    bool alt;
+    bool ctrl;
+    bool shift;
+    uint y;
+    uint x;
+    bool active;
+    int chyron;
+    ss_t in_win;
+    int bstate;
+    UiMouseAction mouse_action;
+    bool mouse_inside;
+    char keybound[16];
+} UiEvent;
+
 typedef struct {
     union {
         uint32_t u32;
@@ -99,40 +134,6 @@ typedef uint16_t UiPairIdx;
 typedef uint UiColorIdx;
 typedef struct ncinput NcInput;
 typedef struct ncvisual NcVisual;
-
-// ---------------------------------------------------------------
-// Input
-// ---------------------------------------------------------------
-#define MOUSE_ACTION(X)   \
-    X(UI_MOUSE_NONE)      \
-    X(UI_MOUSE_PRESS)     \
-    X(UI_MOUSE_RELEASE)   \
-    X(UI_MOUSE_DRAG)      \
-    X(UI_MOUSE_SCROLL_UP) \
-    X(UI_MOUSE_SCROLL_DOWN)
-#define AS_ENUM(NAME) NAME,
-typedef enum {
-    MOUSE_ACTION(AS_ENUM)
-        MOUSE_ACTION_MAX
-} UiMouseAction;
-
-typedef uint32_t UiKey;
-typedef struct {
-    UiKey key;
-    uint32_t ch; /* Unicode codepoint when key == UIKEY_CHAR */
-    bool alt;
-    bool ctrl;
-    bool shift;
-    uint y;
-    uint x;
-    bool active;
-    int chyron;
-    uint in_win;
-    int bstate;
-    UiMouseAction mouse_action;
-    bool mouse_inside;
-    char keybound[16];
-} UiEvent;
 
 typedef struct {
     wchar_t wc;       // Wide character    4-bytes
@@ -1028,8 +1029,6 @@ extern uint ui_pair_cnt;
 // ---------------------------------------------------------------
 // Chyron Data Structures
 // ---------------------------------------------------------------
-#define CHYRON_KEY_MAXLEN 64 /**< maximum length of the command text */
-#define CHYRON_KEYS 20       /**< maximum number of key bindings for the chyron */
 
 typedef struct {
     bool active;                  /**< whether the key binding is active */
@@ -1043,11 +1042,10 @@ typedef struct {
     UiChyronKey *key[CHYRON_KEYS]; /**< array of key bindings for the chyron */
     char s[MAXLEN];                /**< the chyron string, for displaying messages in */
     UiCell cmplx_buf[MAXLEN];      /**< the chyron wide character string */
-    // wchar_t wstr[MAXLEN];        /**< the chyron wide character string */
-    uint l;                /**< length of the chyron string, for display */
-    struct UiSurface *sfc; /** pointer to surface for the chyron */
-    ss_t w;                /** index to window of surface */
-    uint y;                /** y coordinante of the chyron in the window */
+    uint l;                        /**< length of the chyron string, for display */
+    struct UiSurface *sfc;         /** pointer to surface for the chyron */
+    ss_t w;                        /** index to window of surface */
+    uint y;                        /** y coordinante of the chyron in the window */
 } UiChyron;
 
 // ---------------------------------------------------------------

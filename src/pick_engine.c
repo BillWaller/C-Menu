@@ -424,6 +424,7 @@ void pick_std_chyron(Pick *pick) {
     pick->chyron->key[11]->active = pick->tbl_page > 0 ? true : false;                   // PgUp
     pick->chyron->key[12]->active = pick->tbl_page < pick->tbl_pages - 1 ? true : false; // PgDn
     pick->chyron->key[13]->active = false;                                               // INS
+    pick->chyron->y = 1;
 }
 /** @brief Saves a string as an object in the pick structure
  *  @ingroup pick_engine
