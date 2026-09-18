@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-18T10:16:34-05:00* - DOCUMENTATION UPDATES: Readme.md 
+
+*2026-09-17T19:41:03-05:00* - Update CHANGELOG.md 
+
 *2026-09-17T19:40:20-05:00* - FIXES: Same problem with Notcurses input handling as in the previous commit. The input handling was not properly integrated with the rest of the UI, leading to unexpected behavior when processing user input. This commit addresses those issues by refactoring the input handling code and ensuring it works seamlessly with the Notcurses library. 
 
 *2026-09-17T19:12:32-05:00* - Update CHANGELOG.md 
