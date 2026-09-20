@@ -341,7 +341,24 @@ wchar_t *ui_mbstr_to_wcstr(const char *mb_str) {
    the maximum length specified by atmost.
 */
 #ifdef NCURSES_UI
-
+/** ui__mbstr_to_cellstr
+    @brief Convert multibyte string to complex character array (NCurses version)
+    @ingroup UiChyron
+    @param cmplx_buf Output buffer for complex characters
+    @param str Input multibyte string
+    @param cell_base Base cell for attributes and color pair
+    @param p Pointer to current position in the output buffer, updated as
+   characters are added
+    @param atmost Maximum length of the output buffer
+    @return Number of bytes processed from the input string
+    @details This function is a specialized version of ui_mbstr_to_cellstr for use
+   with NCurses. It converts a multibyte string to an array of complex characters
+   (cchar_t) that can be used with NCurses functions. It handles multibyte
+   characters and applies the attributes and color pair from the base cell to each
+   character. The p parameter is updated to reflect the current position in the
+   output buffer, and the function ensures that it does not exceed the maximum
+   length specified by atmost.
+*/
 uint ui__mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
     attr_t attrs;
     short cp;
@@ -392,8 +409,24 @@ void destroy_curses() {
     sig_dfl_mode();
     return;
 }
-// -----------------------------------------------------------------------------
 #else
+/** ui__mbstr_to_cellstr
+    @brief Convert multibyte string to complex character array (Notcurses version)
+    @ingroup UiChyron
+    @param cmplx_buf Output buffer for complex characters
+    @param str Input multibyte string
+    @param cell_base Base cell for attributes and color pair
+    @param p Pointer to current position in the output buffer, updated as
+   characters are added
+    @param atmost Maximum length of the output buffer
+    @return Number of bytes processed from the input string
+    @details This function is a specialized version of ui_mbstr_to_cellstr for use
+   with NCurses. It converts a multibyte string to an array of complex characters
+   (cchar_t) that can be used with NCurses functions. It handles multibyte
+   characters and applies the attributes and color pair from the base cell to each
+   character. The p parameter is updated to reflect the current position in the
+   output buffer, and the function ensures that it does not exceed the maximum
+   length specified by atmost. */
 uint ui_mbstr_to_cellstr(UiSurface *sfc, ss_t w, UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
     short cp;
     uint p1 = 0;
@@ -434,6 +467,15 @@ uint ui_mbstr_to_cellstr(UiSurface *sfc, ss_t w, UiCell *cmplx_buf, const char *
     return *pos;
 }
 #endif
+/** ui_abend
+    @brief Handle abnormal termination of the program
+    @ingroup window_support
+    @param ec Exit code to return to the operating system
+    @param s Message describing the reason for termination
+    @details This function is called when the program encounters a critical error
+   that requires it to terminate. It performs necessary cleanup, restores terminal
+   settings, and outputs an error message to stderr before exiting with the
+   specified exit code. */
 void ui_abend(int ec, char *s) {
     ui_shutdown();
     restore_shell_tioctl();
@@ -538,7 +580,6 @@ int ui_tracked_sfc_split_box(uint wlines, uint wcols, uint split_y, uint split_x
     @details This function destroys the most recently created surface and decrements the surface pointer. It should be called when a surface is no longer needed to free up resources. If there are no surfaces to destroy, it returns -1.
     @note The difference between this function and ui_surface_destroy() is that this function destroys the surface pointed to by the surface pointer (sfc_ptr) and decrements the surface pointer after destroying the surface.
  */
-
 int ui_cm_surface_destroy(UiSurface *sfc) {
     ui_surface_destroy(sfc);
     sfc_ptr--;
@@ -1249,6 +1290,13 @@ bool ui_action_disposition(char *title, char *action_str) {
 // -----------------------------------------------------------------------
 // Logging
 // -----------------------------------------------------------------------
+/** ui_iso8601_timestamp
+    @brief Generate an ISO 8601 timestamp string
+    @ingroup logging
+    @param buf Buffer to store the timestamp string
+    @param n Size of the buffer
+    @param local If true, use local time; if false, use UTC
+    @return Pointer to the buffer containing the timestamp string */
 char *ui_iso8601_timestamp(char *buf, size_t n, bool local) {
     if (buf == NULL)
         return NULL;
@@ -1289,7 +1337,10 @@ const char *const ui_logcolor[];
 UiLogLevel ui_min_log_level = INFO;
 bool ui_timestamp_local = true; // default to local time for timestamps
 char ui_timestamp[32];
-
+/** ui_open_log
+    @brief Open the log file for writing
+    @ingroup logging
+    @return FILE pointer to the opened log file */
 FILE *ui_open_log() {
     if (!ui_log_fp) {
         if (strlen(ui_log_file_name) == 0)
@@ -1315,9 +1366,16 @@ FILE *ui_open_log() {
 /* -------------------------------------------------------------------------
    Formatting
    ------------------------------------------------------------------------- */
-
-/** @brief Parse an ANSI SGR sequence and update attributes and color pair
- * index. */
+/** parse_ansi
+    @brief Parse ANSI escape sequences for color and attributes
+    @ingroup formatting
+    @param ansi_str ANSI escape sequence string
+    @param attr Pointer to attribute variable to be updated
+    @param cpx Pointer to color pair index to be updated
+    @details This function parses an ANSI escape sequence string (e.g., "\033[31;1m")
+   and updates the provided attribute and color pair index accordingly. It handles
+   standard colors, extended colors, and text attributes like bold, underline, etc.
+ */
 void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
     char *tok;
     char t0, t1;

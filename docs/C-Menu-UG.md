@@ -635,6 +635,7 @@ highlighting by tree-sitter.
 ### File Browser Pick, LF, and View
 
 ![File Browser](../screenshots/FileBrowser.png)
+
 ---
 
 ### Detached Execution

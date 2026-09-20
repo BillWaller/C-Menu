@@ -21,7 +21,12 @@
 :     Cash Receipts
 !form receipt.f -i receipt.dat -o receipt.dat
 :     Rustlings Source
-!pick -S "lf -S rustlings -d3 \".*exercises.*\.rs$\"" -v -n 1 -T "Rustlings Source - Edit" -c "nvim %%"
+!pick -S "lf rustlings \".*exercises.*\.rs$\" -d4 -S -T9" -v -n 1 -T "Rustlings Source - Edit" -c "nvim %%"
+:     Mixed Files
+!pick -S "lf -S photos -d3" -v -n 1 -T "Mixed Files" -c "gimp %%"
+:     Edit Photos
+!pick -S "lf -S photos "\.*\.(jpg|png)$\"" -v -n 1 -T "Photos - Gimp" -c "gimp 
+# %%"
 :     -PView Manual Pages
 !pick -S "listman.sh" -n 1 -T \"Select Manual Page to View\" -c "readman.sh %%"
 :     Edit C-Menu Description Files

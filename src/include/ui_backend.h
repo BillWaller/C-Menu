@@ -5,7 +5,8 @@
 extern "C" {
 #endif
 
-/** @file ui_backend.h
+/** @defgroup ui_backend Ui Backend
+    @file ui_backend.h
     @ingroup ui_backend
     @brief Backend API for terminal UI library
 */
@@ -864,7 +865,7 @@ int ui_draw_hline(UiSurface *s, ss_t w, uint y, uint x, uint len, const UiStyle 
  *  ...... wch....   wide character cchar_t
  *  ...... ...n...   at most n characters
  *  ...... ....str   string
- *  @end varbatim
+ *  @end verbatim
  *  @param s The UiSurface to draw on.
  *  @param w The sub-surface identifier (ss_t) to draw on.
  *  @param y

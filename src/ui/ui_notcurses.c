@@ -6,7 +6,6 @@
    using the NotCurses library.
 */
 
-#include "common.h"
 #include <iso646.h>
 #define _XOPEN_SOURCE_EXTENDED 1
 
@@ -34,18 +33,31 @@ UiConfig *ui_config;
 UiSurface *ui_surface[UI_SFC_MAX];
 UiCell bkgd_cell;
 
-int win_ptr = -1;
 int sfc_ptr = -1;
 NcPlane *stdplane;
 
 /* -------------------------------------------------------------------------
    Backend identification and capability query
    ------------------------------------------------------------------------- */
-
+/** @brief Get the current UI backend in use.
+ * @return The current UI backend as an enum value of type UiBackend.
+ *
+ * This function returns the current UI backend being used by the application.
+ * In this implementation, it always returns UI_BACKEND_NOTCURSES, indicating
+ * that the NotCurses library is being used as the UI backend.
+ */
 UiBackend ui_get_backend() {
     return UI_BACKEND_NOTCURSES;
 }
-
+/** @brief Get the capabilities of the current UI backend.
+ * @param caps Pointer to a UiCaps structure to be filled with the capabilities.
+ *
+ * This function populates the provided UiCaps structure with information about
+ * the capabilities of the current UI backend. It sets various fields in the
+ * structure, such as truecolor support, palette size, mouse support, Unicode
+ * support, and resize capability. If the provided pointer is NULL or if the
+ * UI runtime is not initialized, the function does nothing.
+ */
 void ui_get_caps(UiCaps *caps) {
     if (!caps)
         return;
@@ -63,6 +75,16 @@ void ui_get_caps(UiCaps *caps) {
 /* -------------------------------------------------------------------------
    Lifecycle
    ------------------------------------------------------------------------- */
+/** @brief Initialize the UI runtime with the specified configuration and SIO.
+ * @param cfg Pointer to a UiConfig structure containing configuration options.
+ * @param sio Pointer to a SIO structure for input/output operations.
+ * @return Pointer to the initialized UiRuntime structure, or NULL on failure.
+ *
+ * This function initializes the UI runtime using the NotCurses library. It sets
+ * up the terminal, creates the standard plane, and initializes various UI
+ * components based on the provided configuration. If any step fails, it cleans
+ * up and returns NULL.
+ */
 UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
     setlocale(LC_ALL, "en_US.UTF-8");
     ui = calloc(1, sizeof(*ui));
@@ -182,7 +204,21 @@ UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
 /* -------------------------------------------------------------------------
    Surface Creation and Destruction
    ------------------------------------------------------------------------- */
-
+/** @brief Create a new UI surface with the specified parameters.
+ * @param w The index of the surface to create.
+ * @param parent Pointer to the parent UiSurface, or NULL for no parent.
+ * @param p The index of the parent plane to attach to.
+ * @param lines The number of lines (rows) for the new surface.
+ * @param cols The number of columns for the new surface.
+ * @param y The y-coordinate for the new surface's position.
+ * @param x The x-coordinate for the new surface's position.
+ * @return Pointer to the newly created UiSurface, or NULL on failure.
+ *
+ * This function creates a new UI surface and initializes its properties based
+ * on the provided parameters. It allocates memory for the surface, sets up its
+ * metadata, and creates a new ncplane for rendering. If any step fails, it
+ * cleans up and returns NULL.
+ */
 UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
     if (!ui)
         return NULL;
@@ -224,7 +260,20 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
     }
     return s;
 }
-
+/** @brief Create a new UI surface with a border box and optional title.
+ * @param parent Pointer to the parent UiSurface, or NULL for no parent.
+ * @param p The index of the parent plane to attach to.
+ * @param lines The number of lines (rows) for the new surface.
+ * @param cols The number of columns for the new surface.
+ * @param y The y-coordinate for the new surface's position.
+ * @param x The x-coordinate for the new surface's position.
+ * @param wtitle The title to display on the border box, or NULL for no title.
+ * @return Pointer to the newly created UiSurface, or NULL on failure.
+ *
+ * This function creates a new UI surface with a border box and an optional
+ * title. It allocates memory for the surface, sets up its metadata, and creates
+ * a new ncplane for rendering. If any step fails, it cleans up and returns NULL.
+ */
 UiSurface *ui_surface_box(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *wtitle) {
     if (!ui)
         return NULL;
@@ -264,7 +313,21 @@ UiSurface *ui_surface_box(UiSurface *parent, uint p, uint lines, uint cols, uint
     ui_border_title(s, wtitle);
     return s;
 }
-
+/** @brief Add padding to an existing UI surface.
+ * @param s Pointer to the UiSurface to which padding will be added.
+ * @param w The index of the new padded surface.
+ * @param p The index of the parent plane to attach to.
+ * @param lines The number of lines (rows) for the padded surface.
+ * @param cols The number of columns for the padded surface.
+ * @param y The y-coordinate for the padded surface's position.
+ * @param x The x-coordinate for the padded surface's position.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function adds padding to an existing UI surface by creating a new
+ * ncplane with the specified dimensions and position. It updates the metadata
+ * for the new padded surface and sets its background and scrolling properties.
+ * If any step fails, it cleans up and returns -1.
+ */
 int ui_surface_addpad(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint y, uint x) {
     uint plines, pcols;
     ncplane_dim_yx(s->mplane[p], &plines, &pcols);
@@ -295,7 +358,21 @@ int ui_surface_addpad(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
     ui_scrollok(s, w, true);
     return 0;
 }
-
+/** @brief Add a new window to an existing UI surface.
+ * @param s Pointer to the UiSurface to which the window will be added.
+ * @param w The index of the new window.
+ * @param p The index of the parent plane to attach to.
+ * @param lines The number of lines (rows) for the new window.
+ * @param cols The number of columns for the new window.
+ * @param y The y-coordinate for the new window's position.
+ * @param x The x-coordinate for the new window's position.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function adds a new window to an existing UI surface by creating a new
+ * ncplane with the specified dimensions and position. It updates the metadata
+ * for the new window and sets its background properties. If any step fails, it
+ * cleans up and returns -1.
+ */
 int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint y, uint x) {
     ncplane_options plane_opts = {
         .y = y,
@@ -321,11 +398,23 @@ int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
     ui_bkgdset(s, w, &cell_nt);
     return 0;
 }
-
+/** @brief Destroy a UI surface and free its resources.
+ * @param s Pointer to the UiSurface to be destroyed.
+ *
+ * This function destroys a UI surface by freeing its associated ncplanes and
+ * metadata. It also frees the memory allocated for the UiSurface structure.
+ * If the provided pointer is NULL, the function does nothing.
+ */
 void ui_endwin() {
     ui_shutdown();
 }
-
+/** @brief Shutdown the UI runtime and free all associated resources.
+ *
+ * This function shuts down the UI runtime by destroying all surfaces, freeing
+ * memory, and stopping the NotCurses library. It also closes the terminal file
+ * pointer if it was opened. If the UI runtime is not initialized, the function
+ * does nothing.
+ */
 void ui_shutdown() {
     if (ui == NULL)
         return;
@@ -378,7 +467,13 @@ void ui_shutdown() {
         }
     }
 }
-
+/** @brief Destroy a UI surface and free its resources.
+ * @param s Pointer to the UiSurface to be destroyed.
+ *
+ * This function destroys a UI surface by freeing its associated ncplanes and
+ * metadata. It also frees the memory allocated for the UiSurface structure.
+ * If the provided pointer is NULL, the function does nothing.
+ */
 void ui_surface_destroy(UiSurface *s) {
     if (!s)
         return;
@@ -403,6 +498,18 @@ void ui_surface_destroy(UiSurface *s) {
 /* -------------------------------------------------------------------------
    Surface Navigation and Management
    ------------------------------------------------------------------------- */
+/** @brief Move a UI surface to a new position on the screen.
+ * @param s Pointer to the UiSurface to be moved.
+ * @param w The index of the window within the surface to move.
+ * @param y The new y-coordinate for the surface's position.
+ * @param x The new x-coordinate for the surface's position.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function moves a UI surface to a new position on the screen by updating
+ * its metadata and moving the associated ncplane. If the surface is hidden, it
+ * only updates the metadata without moving the ncplane. If any step fails, it
+ * returns -1.
+ */
 int ui_surface_move(UiSurface *s, ss_t w, uint y, uint x) {
     if (!s)
         return -1;
@@ -412,7 +519,16 @@ int ui_surface_move(UiSurface *s, ss_t w, uint y, uint x) {
         return ncplane_move_yx(s->mplane[w], y, x) == 0 ? 0 : -1;
     return 0;
 }
-
+/** @brief Resize a UI surface to new dimensions.
+ * @param s Pointer to the UiSurface to be resized.
+ * @param w The index of the window within the surface to resize.
+ * @param lines The new number of lines (rows) for the surface.
+ * @param cols The new number of columns for the surface.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function resizes a UI surface to new dimensions by updating its metadata
+ * and resizing the associated ncplane. If any step fails, it returns -1.
+ */
 int ui_surface_resize(UiSurface *s, ss_t w, uint lines, uint cols) {
     if (!s)
         return -1;
@@ -421,39 +537,87 @@ int ui_surface_resize(UiSurface *s, ss_t w, uint lines, uint cols) {
                ? 0
                : -1;
 }
-
+/** @brief Clear the contents of the standard plane.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function clears the contents of the standard plane by erasing its
+ * contents. If the standard plane is not initialized, it returns -1.
+ */
 int ui_clear() {
     if (!stdplane)
         return -1;
     ncplane_erase_region(stdplane, 0, 0, 0, 0);
     return 0;
 }
+/** @brief Clear the contents of the specified window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window to clear.
+ * @param w The index of the window to clear.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function clears the contents of the specified window within a UI surface
+ * by erasing its contents. If the surface or window is not initialized, it
+ * returns -1.
+ */
 int ui_erase() {
     if (!stdplane)
         return -1;
     ncplane_erase_region(stdplane, 0, 0, 0, 0);
     return 0;
 }
+/** @brief Clear the contents of the specified window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window to clear.
+ * @param w The index of the window to clear.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function clears the contents of the specified window within a UI surface
+ * by erasing its contents. If the surface or window is not initialized, it
+ * returns -1.
+ */
 int ui_werase(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     ncplane_erase_region(s->mplane[w], 0, 0, 0, 0);
     return 0;
 }
+/** @brief Clear the contents of the specified window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window to clear.
+ * @param w The index of the window to clear.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function clears the contents of the specified window within a UI surface
+ * by erasing its contents. If the surface or window is not initialized, it
+ * returns -1.
+ */
 int ui_wclear(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     ncplane_erase_region(s->mplane[w], 0, 0, 0, 0);
     return 0;
 }
-
+/** @brief Move the specified window within a UI surface to the top of the z-order.
+ * @param s Pointer to the UiSurface containing the window to move.
+ * @param w The index of the window to move to the top.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function moves the specified window within a UI surface to the top of
+ * the z-order, making it the foremost window. If the surface or window is not
+ * initialized, it returns -1.
+ */
 int ui_top_surface(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
     ncplane_move_top(s->mplane[w]);
     return 0;
 }
-
+/** @brief Show the specified window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window to show.
+ * @param w The index of the window to show.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function shows the specified window within a UI surface by updating its
+ * metadata and moving it to its designated position. If the surface or window
+ * is not initialized, it returns -1.
+ */
 int ui_surface_show(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
@@ -463,7 +627,15 @@ int ui_surface_show(UiSurface *s, ss_t w) {
     }
     return 0;
 }
-
+/** @brief Hide the specified window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window to hide.
+ * @param w The index of the window to hide.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function hides the specified window within a UI surface by updating its
+ * metadata and moving it far off-screen. If the surface or window is not
+ * initialized, it returns -1.
+ */
 int ui_surface_hide(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
@@ -477,6 +649,16 @@ int ui_surface_hide(UiSurface *s, ss_t w) {
 // -------------------------------------------------------------------------
 // Screen Navigation
 // -------------------------------------------------------------------------
+/** @brief Move the cursor to the specified position within a window of a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param y The y-coordinate for the new cursor position.
+ * @param x The x-coordinate for the new cursor position.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function moves the cursor to the specified position within a window of
+ * a UI surface. If the surface or window is not initialized, it returns -1.
+ */
 int ui_wmove(UiSurface *s, ss_t w, uint y, uint x) {
     if (!s)
         return -1;
@@ -484,6 +666,16 @@ int ui_wmove(UiSurface *s, ss_t w, uint y, uint x) {
         return -1;
     return 0;
 }
+/** @brief Move the cursor to the specified position within a window of a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param y The y-coordinate for the new cursor position.
+ * @param x The x-coordinate for the new cursor position.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function moves the cursor to the specified position within a window of
+ * a UI surface. If the surface or window is not initialized, it returns -1.
+ */
 int ui_cursor_move(UiSurface *s, ss_t w, uint y, uint x) {
     if (!s)
         return -1;
@@ -491,24 +683,69 @@ int ui_cursor_move(UiSurface *s, ss_t w, uint y, uint x) {
         return -1;
     return 0;
 }
+/** @brief Get the current cursor position within a window of a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param y Pointer to an unsigned integer to store the y-coordinate of the cursor.
+ * @param x Pointer to an unsigned integer to store the x-coordinate of the cursor.
+ *
+ * This function retrieves the current cursor position within a window of a UI
+ * surface. If the surface or window is not initialized, it does nothing.
+ */
 void ui_cursor_yx(int *y, int *x) {
     notcurses_cursor_yx(ui->nc, y, x);
 }
+/** @brief Get the absolute cursor position within a window of a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param y Pointer to an integer to store the absolute y-coordinate of the cursor.
+ * @param x Pointer to an integer to store the absolute x-coordinate of the cursor.
+ *
+ * This function retrieves the absolute cursor position within a window of a UI
+ * surface. If the surface or window is not initialized, it does nothing.
+ */
 void ui_abs_yx(UiSurface *s, ss_t w, int *y, int *x) {
     if (!s)
         return;
     ncplane_abs_yx(s->mplane[w], y, x);
 }
+/** @brief Get the current cursor position within a window of a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param y Pointer to an unsigned integer to store the y-coordinate of the cursor.
+ * @param x Pointer to an unsigned integer to store the x-coordinate of the cursor.
+ *
+ * This function retrieves the current cursor position within a window of a UI
+ * surface. If the surface or window is not initialized, it does nothing.
+ */
 void ui_getyx(UiSurface *s, ss_t w, uint *y, uint *x) {
     if (!s)
         return;
     ncplane_cursor_yx(s->mplane[w], y, x);
 }
+/** @brief Get the maximum dimensions of a window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param y Pointer to an unsigned integer to store the maximum number of lines (rows).
+ * @param x Pointer to an unsigned integer to store the maximum number of columns.
+ *
+ * This function retrieves the maximum dimensions of a window within a UI
+ * surface. If the surface or window is not initialized, it does nothing.
+ */
 void ui_getmaxyx(UiSurface *s, ss_t w, uint *y, uint *x) {
     if (!s)
         return;
     ncplane_dim_yx(s->mplane[w], y, x);
 }
+/** @brief Get the maximum number of lines (rows) of a window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @return The maximum number of lines (rows) of the window, or -1 on failure.
+ *
+ * This function retrieves the maximum number of lines (rows) of a window
+ * within a UI surface. If the surface or window is not initialized, it returns
+ * -1.
+ */
 int ui_getmaxy(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
@@ -516,6 +753,14 @@ int ui_getmaxy(UiSurface *s, ss_t w) {
     ncplane_dim_yx(s->mplane[w], &y, &x);
     return y;
 }
+/** @brief Get the maximum number of columns of a window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @return The maximum number of columns of the window, or -1 on failure.
+ *
+ * This function retrieves the maximum number of columns of a window within a
+ * UI surface. If the surface or window is not initialized, it returns -1.
+ */
 int ui_getmaxx(UiSurface *s, ss_t w) {
     if (!s)
         return -1;
@@ -539,7 +784,6 @@ int ui_getmaxx(UiSurface *s, ss_t w) {
  * leaving blank lines at the top. In the view application, the view scope is
  * moved toward beginning of file (bof). - scope_toward_bof()
  */
-
 int ui_wscrl(UiSurface *s, ss_t w, int r) {
     uint rows, cols;
     ncplane_dim_yx(s->mplane[w], &rows, &cols);
@@ -579,24 +823,58 @@ int ui_wscrl(UiSurface *s, ss_t w, int r) {
 /* -------------------------------------------------------------------------
    Configuration Control
    ------------------------------------------------------------------------- */
+/** @brief Enable or disable scrolling for the specified window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param enable True to enable scrolling, false to disable scrolling.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function enables or disables scrolling for the specified window within
+ * a UI surface. If the surface or window is not initialized, it returns -1.
+ */
 int ui_scrollok(UiSurface *s, ss_t w, bool enable) {
     if (!s)
         return -1;
     ncplane_set_scrolling(s->mplane[w], enable);
     return 0;
 }
+/** @brief Enable or disable the keypad for the specified window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param enable True to enable the keypad, false to disable the keypad.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function does nothing.
+ */
 int ui_idcok(UiSurface *s, ss_t w, bool enable) {
     (void)s;
     (void)w;
     (void)enable;
     return 0;
 }
+/** @brief Enable or disable the use of the keypad for the specified window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param enable True to enable the use of the keypad, false to disable it.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function does nothing.
+ */
 int ui_idlok(UiSurface *s, ss_t w, bool enable) {
     (void)s;
     (void)w;
     (void)enable;
     return 0;
 }
+/** @brief Set the scrolling region for the specified window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param top The top line of the scrolling region.
+ * @param bottom The bottom line of the scrolling region.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function does nothing.
+ */
 int ui_setscrreg(UiSurface *s, ss_t w, uint top, uint bottom) {
     (void)s;
     (void)w;
@@ -604,6 +882,14 @@ int ui_setscrreg(UiSurface *s, ss_t w, uint top, uint bottom) {
     (void)bottom;
     return 0;
 }
+/** @brief Enable or disable the keypad for the specified window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param enable True to enable the keypad, false to disable it.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function does nothing.
+ */
 int ui_keypad(UiSurface *s, ss_t w, bool enable) {
     (void)s;
     (void)w;
@@ -613,6 +899,12 @@ int ui_keypad(UiSurface *s, ss_t w, bool enable) {
 /* -------------------------------------------------------------------------
    Screen management functions
    ------------------------------------------------------------------------- */
+/** @brief Get the current screen size in lines and columns.
+ * @param lines Pointer to an unsigned integer to store the number of lines (rows).
+ * @param cols Pointer to an unsigned integer to store the number of columns.
+ *
+ * This function retrieves the current screen size in lines and columns.
+ */
 void ui_get_screen_size(uint *lines, uint *cols) {
     if (!ui)
         return;
@@ -625,25 +917,48 @@ void ui_get_screen_size(uint *lines, uint *cols) {
     if (cols)
         *cols = ui->cols;
 }
+/** @brief Update the panels and render the UI.
+ *
+ * This function updates the panels and renders the UI.
+ */
 void ui_update_panels() {
     if (!ui)
         return;
     notcurses_render(ui->nc);
 }
-
+/** @brief Render the UI.
+ *
+ * This function renders the UI.
+ */
 void ui_render() {
     if (!ui)
         return;
     notcurses_render(ui->nc);
 }
-
+/** @brief Suspend the UI and leave the alternate screen.
+ *
+ * This function suspends the UI and leaves the alternate screen.
+ * It is typically used when the application needs to temporarily exit
+ * the UI mode, such as when executing a shell command or displaying
+ * a message outside of the UI context.
+ *
+ * @return 0 on success, -1 on failure.
+ */
 int ui_suspend() {
     if (!ui)
         return -1;
     notcurses_leave_alternate_screen(ui->nc);
     return 0;
 }
-
+/** @brief Resume the UI and enter the alternate screen.
+ *
+ * This function resumes the UI and enters the alternate screen.
+ * It is typically used after a suspension of the UI, allowing
+ * the application to return to its previous state and continue
+ * rendering the UI.
+ *
+ * @return 0 on success, -1 on failure.
+ */
 int ui_resume() {
     if (!ui)
         return -1;
@@ -654,6 +969,14 @@ int ui_resume() {
 // -------------------------------------------------------------------------
 // Cursor Control
 // -------------------------------------------------------------------------
+/** @brief Enable or disable the cursor visibility.
+ * @param visible True to enable the cursor, false to disable it.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function enables or disables the cursor visibility. If the UI is not
+ * initialized, it returns -1. When enabling the cursor, it retrieves the
+ * current cursor position and enables the cursor at that position.
+ */
 int ui_curs_set(int visible) {
     if (!ui)
         return -1;
@@ -669,9 +992,16 @@ int ui_curs_set(int visible) {
     }
     return 0;
 }
-/** @brief Disable (visible = false) or enable (visibile = true) the cursor at a
- * specified position on the surface and plane specified.
- * Include workaround for NotCurses cursor position bug
+/** @brief Enable or disable the cursor at a specific position on the surface and plane specified.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param y The y-coordinate for the cursor position.
+ * @param x The x-coordinate for the cursor position.
+ * @param visible True to enable the cursor, false to disable it.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function enables or disables the cursor at a specific position on the
+ * surface and plane specified. If the UI is not initialized, it returns -1.
  */
 int ui_cursor_enable_yx(UiSurface *s, ss_t w, uint y, uint x, bool visible) {
     if (!s)
@@ -690,8 +1020,14 @@ int ui_cursor_enable_yx(UiSurface *s, ss_t w, uint y, uint x, bool visible) {
     }
     return 0;
 }
-/** @brief Disable (visible = false) or enable (visibile = true) the cursor at
- * its current position on the surface and plane specified.
+/** @brief Enable or disable the cursor at the current position on the surface and plane specified.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param visible True to enable the cursor, false to disable it.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function enables or disables the cursor at the current position on the
+ * surface and plane specified. If the UI is not initialized, it returns -1.
  */
 int ui_cursor_enable(UiSurface *s, ss_t w, bool visible) {
     if (!s)
@@ -714,6 +1050,17 @@ int ui_cursor_enable(UiSurface *s, ss_t w, bool visible) {
 /* -------------------------------------------------------------------------
    background
    ------------------------------------------------------------------------- */
+/** @brief Set the background cell for the specified window within a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param cell Pointer to the UiCell representing the background cell.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function sets the background cell for the specified window within a UI
+ * surface. It updates the styles and channels of the ncplane associated with
+ * the window and stores the background cell in the metadata. If the surface is
+ * not initialized, it returns -1.
+ */
 int ui_bkgd(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
@@ -724,6 +1071,17 @@ int ui_bkgd(UiSurface *s, ss_t w, const UiCell *cell) {
     s->meta[w].bkgd_cell = *cell;
     return 0;
 }
+/** @brief Set the background cell for the specified window within a UI surface without changing the base character.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param cell Pointer to the UiCell representing the background cell.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function sets the background cell for the specified window within a UI
+ * surface without changing the base character. It updates the styles and
+ * channels of the ncplane associated with the window and stores the background
+ * cell in the metadata. If the surface is not initialized, it returns -1.
+ */
 int ui_bkgdset(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
@@ -734,6 +1092,17 @@ int ui_bkgdset(UiSurface *s, ss_t w, const UiCell *cell) {
     //                  cell->stylemask, cell->channels);
     return 0;
 }
+/** @brief Set the background cell for the specified window within a UI surface without changing the base character.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param cell Pointer to the UiCell representing the background cell.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function sets the background cell for the specified window within a UI
+ * surface without changing the base character. It updates the styles and
+ * channels of the ncplane associated with the window and stores the background
+ * cell in the metadata. If the surface is not initialized, it returns -1.
+ */
 int ui_bkgrnd(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
@@ -743,6 +1112,17 @@ int ui_bkgrnd(UiSurface *s, ss_t w, const UiCell *cell) {
                      cell->stylemask, cell->channels);
     return 0;
 }
+/** @brief Set the background cell for the specified window within a UI surface without changing the base character.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param cell Pointer to the UiCell representing the background cell.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function sets the background cell for the specified window within a UI
+ * surface without changing the base character. It updates the styles and
+ * channels of the ncplane associated with the window and stores the background
+ * cell in the metadata. If the surface is not initialized, it returns -1.
+ */
 int ui_bkgrndset(UiSurface *s, ss_t w, const UiCell *cell) {
     if (!s)
         return -1;
@@ -755,6 +1135,20 @@ int ui_bkgrndset(UiSurface *s, ss_t w, const UiCell *cell) {
 /* -------------------------------------------------------------------------
    Cell Manipulation
    ------------------------------------------------------------------------- */
+/** @brief Get the properties of a cell at the current cursor position in a window of a UI surface.
+ * @param sfc Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param cell Pointer to a UiCell structure to store the cell properties.
+ * @param wstr Pointer to a wide character string to store the cell's character(s).
+ * @param style Pointer to a UiStyle variable to store the cell's style attributes.
+ * @param pair Pointer to a short variable to store the color pair index of the cell.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function retrieves the properties of a cell at the current cursor position
+ * in a window of a UI surface. It fills in the provided UiCell structure with
+ * the cell's properties, including its character(s), style attributes, and
+ * color pair index. If any of the input pointers are NULL, it returns -1.
+ */
 int ui_get_nccell(
     UiSurface *sfc,
     ss_t w,
@@ -788,6 +1182,20 @@ int ui_get_nccell(
     *pair = ui_add_pair(fg, bg);
     return 0;
 }
+/** @brief Set the properties of a cell at the current cursor position in a window of a UI surface.
+ * @param sfc Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @param cell Pointer to a UiCell structure representing the cell properties to set.
+ * @param wstr Pointer to a wide character string representing the character(s) to set in the cell.
+ * @param style The style attributes to set for the cell.
+ * @param pair The color pair index to set for the cell.
+ * @return 0 on success, -1 on failure.
+ *
+ * This function sets the properties of a cell at the current cursor position
+ * in a window of a UI surface. It updates the specified UiCell structure with
+ * the provided character(s), style attributes, and color pair index. If any
+ * of the input pointers are NULL, it returns -1.
+ */
 int ui_set_nccell(
     UiSurface *sfc,
     ss_t w,
@@ -811,6 +1219,18 @@ int ui_set_nccell(
     nccell_load_egc32(sfc->mplane[w], cell, gc.u32);
     return 0;
 }
+/** @brief Create a UiCell from a Unicode codepoint and specified foreground and background colors.
+ * @param ucp Pointer to a wide character string representing the Unicode codepoint.
+ * @param fg Pointer to a 32-bit unsigned integer representing the foreground color.
+ * @param bg Pointer to a 32-bit unsigned integer representing the background color.
+ * @return A UiCell structure representing the created cell.
+ *
+ * This function creates a UiCell from a Unicode codepoint and specified foreground
+ * and background colors. It initializes the cell, sets its width based on the
+ * Unicode codepoint, converts the codepoint to UTF-8, and sets the styles and
+ * channels for the cell. The resulting UiCell can be used for rendering text
+ * in a UI surface.
+ */
 UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *bg) {
     nccell cell;
     nccell_init(&cell);
@@ -830,6 +1250,16 @@ UiCell ui_cell_from_ucp(const wchar_t *ucp, const uint32_t *fg, const uint32_t *
 /* -------------------------------------------------------------------------
    Colors, Color Pairs
    ------------------------------------------------------------------------- */
+/** @brief Convert an RGB color to a color index in the UI color palette.
+ * @param rgb Pointer to an RGB structure representing the color to convert.
+ * @return The color index corresponding to the RGB color, or -1 if the color cannot be added.
+ *
+ * This function converts an RGB color to a color index in the UI color palette.
+ * It applies gamma correction to the RGB values and checks if the color already
+ * exists in the palette. If it does, it returns the existing index. If not, it
+ * adds the new color to the palette and returns its index. If the palette is full,
+ * it returns -1.
+ */
 uint ui_color_from_rgb(RGB *rgb) {
     uint i;
     RGB tmp;
@@ -853,6 +1283,17 @@ uint ui_color_from_rgb(RGB *rgb) {
     return -1;
 }
 /* ------------------------------------------------------------------------- */
+/** @brief Add a new color pair to the UI color pair palette.
+ * @param fg The foreground color index for the new color pair.
+ * @param bg The background color index for the new color pair.
+ * @return The index of the newly added color pair, or EXIT_FAILURE if the maximum number of pairs is exceeded.
+ *
+ * This function adds a new color pair to the UI color pair palette. It checks
+ * if the specified foreground and background colors already exist in the palette.
+ * If they do, it returns the existing index. If not, it adds the new color pair
+ * and returns its index. If the maximum number of pairs is exceeded, it displays
+ * an error message and returns EXIT_FAILURE.
+ */
 uint ui_add_pair(uint fg, uint bg) {
     uint16_t i;
     for (i = 1; i < ui_pair_cnt; i++) {
@@ -885,6 +1326,16 @@ int ui_get_pair(uint16_t pair, uint *fg, uint *bg) {
     *bg = ui_pair[pair].bg;
     return 0;
 }
+/** @brief Get the combined foreground and background color channels for a given color pair index.
+ * @param pair The color pair index.
+ * @return A 64-bit unsigned integer representing the combined foreground and background color channels.
+ *
+ * This function retrieves the combined foreground and background color channels
+ * for a given color pair index. It uses the ui_get_pair function to obtain the
+ * foreground and background color indices, then retrieves their RGB values and
+ * constructs a UiChannels structure. The resulting combined channels are returned
+ * as a 64-bit unsigned integer.
+ */
 uint64_t ui_get_channels_from_pair(uint16_t pair) {
     uint fg, bg;
     // ui_channels is a struct that holds the foreground and background color
@@ -905,6 +1356,16 @@ uint64_t ui_get_channels_from_pair(uint16_t pair) {
     ui_channels.b_b = ui_color[bg].b;
     return ui_channels.fb;
 }
+/** @brief Initialize a color from a hexadecimal string representation.
+ * @param s A string representing the color in hexadecimal format (e.g., "#RRGGBB").
+ * @return The index of the initialized color in the UI color palette, or 0 if the color cannot be added.
+ *
+ * This function initializes a color from a hexadecimal string representation.
+ * It converts the hex string to an RGB structure, applies gamma correction,
+ * and checks if the color already exists in the UI color palette. If it does,
+ * it returns the existing index. If not, it adds the new color to the palette
+ * and returns its index. If the palette is full, it returns 0.
+ */
 uint ui_init_color_hex(char *s) {
     RGB rgb;
     rgb = ui_hex_to_rgb(s);
@@ -929,11 +1390,31 @@ uint ui_init_color_hex(char *s) {
     }
     return 0;
 }
+/** @brief Convert a hexadecimal color string to an RGB structure.
+ * @param s A string representing the color in hexadecimal format (e.g., "#RRGGBB").
+ * @return An RGB structure containing the red, green, and blue components of the color.
+ *
+ * This function converts a hexadecimal color string to an RGB structure. It
+ * uses sscanf to parse the hex string and extract the red, green, and blue
+ * components. The resulting RGB structure is returned.
+ */
 RGB ui_hex_to_rgb(char *s) {
     RGB rgb;
     sscanf(s, "#%02hhX%02hhX%02hhX", &rgb.r, &rgb.g, &rgb.b);
     return rgb;
 }
+/** @brief Get the RGB components of a color from the UI color palette.
+ * @param color The index of the color in the UI color palette.
+ * @param r Pointer to store the red component of the color.
+ * @param g Pointer to store the green component of the color.
+ * @param b Pointer to store the blue component of the color.
+ * @return 0 on success, -1 on error (if the color index is out of bounds).
+ *
+ * This function retrieves the RGB components of a color from the UI color
+ * palette. It checks if the specified color index is valid and then fills
+ * in the provided pointers with the corresponding RGB values. If the color
+ * index is out of bounds, it returns -1.
+ */
 int ui_color_content(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
     if (color + 1 >= UI_COLORS)
         return -1;
@@ -942,6 +1423,18 @@ int ui_color_content(uint16_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
     *b = ui_color[color].b;
     return 0;
 }
+/** @brief Initialize a color in the UI color palette with specified RGB components.
+ * @param color The index of the color to initialize in the UI color palette.
+ * @param r The red component of the color (0-255).
+ * @param g The green component of the color (0-255).
+ * @param b The blue component of the color (0-255).
+ * @return 0 on success, -1 on error (if the color index is out of bounds).
+ *
+ * This function initializes a color in the UI color palette with specified
+ * RGB components. It checks if the specified color index is valid and then
+ * sets the corresponding RGB values in the ui_color array. If the color index
+ * is out of bounds, it returns -1.
+ */
 int ui_init_color(uint16_t color, uint8_t r, uint8_t g, uint8_t b) {
     if (color + 1 >= UI_COLORS)
         return -1;
@@ -950,7 +1443,17 @@ int ui_init_color(uint16_t color, uint8_t r, uint8_t g, uint8_t b) {
     ui_color[color].b = b;
     return 0;
 }
-
+/** @brief Get the foreground and background color indices for a given color pair index.
+ * @param pair The color pair index.
+ * @param fg Pointer to store the foreground color index.
+ * @param bg Pointer to store the background color index.
+ * @return 0 on success, -1 on error (if the pair index is out of bounds).
+ *
+ * This function retrieves the foreground and background color indices for a
+ * given color pair index. It checks if the specified pair index is valid and
+ * then fills in the provided pointers with the corresponding foreground and
+ * background color indices. If the pair index is out of bounds, it returns -1.
+ */
 int ui_pair_content(uint16_t pair, uint *fg, uint *bg) {
     if (pair + 1 >= UI_PAIRS)
         return -1;
@@ -958,7 +1461,18 @@ int ui_pair_content(uint16_t pair, uint *fg, uint *bg) {
     *bg = ui_pair[pair].bg;
     return 0;
 }
-
+/** @brief Initialize a color pair in the UI color pair palette with specified foreground and background colors.
+ * @param pair The index of the color pair to initialize in the UI color pair palette.
+ * @param fg The foreground color index for the color pair.
+ * @param bg The background color index for the color pair.
+ * @return 0 on success, -1 on error (if the pair index is out of bounds).
+ *
+ * This function initializes a color pair in the UI color pair palette with
+ * specified foreground and background colors. It checks if the specified
+ * pair index is valid and then sets the corresponding foreground and background
+ * color indices in the ui_pair array. If the pair index is out of bounds,
+ * it returns -1.
+ */
 int ui_init_pair(uint16_t pair, uint fg, uint bg) {
     if (pair + 1 >= UI_PAIRS)
         return -1;
@@ -966,7 +1480,16 @@ int ui_init_pair(uint16_t pair, uint fg, uint bg) {
     ui_pair[pair].bg = bg;
     return 0;
 }
-
+/** @brief Change the color at a specified index in the UI color palette.
+ * @param color_idx The index of the color to change in the UI color palette.
+ * @param color Pointer to a 32-bit unsigned integer representing the new color value.
+ * @return 0 on success, -1 on error (if the color index is out of bounds).
+ *
+ * This function changes the color at a specified index in the UI color palette.
+ * It applies gamma correction to the new color value and updates both the
+ * standard and UI color arrays with the new RGB components. If the color index
+ * is out of bounds, it returns -1.
+ */
 int ui_chg_color(uint16_t color_idx, uint32_t *color) {
     RGB rgb;
     rgb.color = *color;
@@ -986,13 +1509,25 @@ int ui_chg_color(uint16_t color_idx, uint32_t *color) {
 /* -------------------------------------------------------------------------
    Non-portable escape-hatch getters (see ui_notcurses_compat.h)
    ------------------------------------------------------------------------- */
-
+/** @brief Get the pointer to the Notcurses context associated with the UI.
+ * @return A pointer to the Notcurses context, or NULL if the UI is not initialized.
+ *
+ * This function retrieves the pointer to the Notcurses context associated
+ * with the UI. If the UI is not initialized, it returns NULL.
+ */
 struct notcurses *ui_notcurses_get_nc() {
     if (!ui)
         return NULL;
     return ui->nc;
 }
-
+/** @brief Get the pointer to the NcPlane associated with a specific window in a UI surface.
+ * @param s Pointer to the UiSurface containing the window.
+ * @param w The index of the window within the surface.
+ * @return A pointer to the NcPlane associated with the specified window, or NULL if the surface is not initialized.
+ *
+ * This function retrieves the pointer to the NcPlane associated with a specific
+ * window in a UI surface. If the surface is not initialized, it returns NULL.
+ */
 NcPlane *ui_notcurses_surface_get_plane(const UiSurface *s, ss_t w) {
     (void)w;
     if (!s)

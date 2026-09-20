@@ -15,7 +15,10 @@
 /* -------------------------------------------------------------------------
    Key translation
    ------------------------------------------------------------------------- */
-
+/** @brief Translate a raw NCurses key code into a UiKey.
+   @param ch Raw NCurses key code.
+   @return Corresponding UiKey, or UIKEY_NONE if unrecognized.
+*/
 static UiKey translate_key(int ch) {
     switch (ch) {
     case ERR:
@@ -177,8 +180,13 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
     curs_set(0);
     return ch;
 }
-// int ui_getch()
-//
+/** @brief
+ *  Wait for an input event on @p target (or stdscr if NULL) without mouse support.
+   @param ui         UI runtime context (unused — event comes from the window).
+   @param target     Surface to read from, or NULL for stdscr.
+   @param ev         Output UiEvent structure.
+   @return 0 on success, -1 if @p ev is NULL.
+*/
 int ui_get_event_no_mouse(UiSurface *s, ss_t w, UiEvent *ev) {
     int ch;
     mousemask(0, NULL);
@@ -203,6 +211,10 @@ int ui_get_event_no_mouse(UiSurface *s, ss_t w, UiEvent *ev) {
 /* -------------------------------------------------------------------------
    Mice
    ------------------------------------------------------------------------- */
+/** @brief Enable or disable mouse support.
+   @param mask Mouse event mask (0 to disable, non-zero to enable).
+   @return 0 on success, -1 if UI is not initialized.
+*/
 int ui_mousemask(int mask) {
     if (!ui)
         return -1;
@@ -212,6 +224,10 @@ int ui_mousemask(int mask) {
         mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
     return 0;
 }
+/** @brief Enable or disable mouse support.
+   @param mask Mouse event mask (0 to disable, non-zero to enable).
+   @return 0 on success, -1 if UI is not initialized.
+*/
 int ui_mice_enable(int mask) {
     if (!ui)
         return -1;

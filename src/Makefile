@@ -59,7 +59,7 @@ INSTALL_BIN_DIR:=$(PREFIX)/bin
 INSTALL_MAN_DIR:=$(PREFIX)/man/man1
 RPATH:=./:$(INSTALL_LIB_DIR):$(LIB_DIR)
 PAM_DIR:=/etc/pam.d
-CX:=-std=c23
+CX:=-std=gnu2y
 CC:=gcc $(CX) $(INCLUDE_DIRS)
 
 BINEXES:=menu form pick view ckeys whence rsh rsh_static \

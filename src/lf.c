@@ -46,31 +46,40 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-
+// #define CYCLE_DETECTION 1
 #define QUEUE_CAPACITY 16384
 #define QUEUE_MASK (QUEUE_CAPACITY - 1)
 #define MAX_PATH_LEN _POSIX_PATH_MAX
 #define MAX_DEPTH 64
+#define DIR_BUF_SIZE 262144
+#define CACHE_LINE_SIZE 64
+typedef struct MPMCQueue MPMCQueue;
+typedef struct QueuePayload QueuePayload;
+typedef struct LocalQueuePayload LocalQueuePayload;
 
-// typedef struct {
-//     dev_t dev;
-//     ino_t ino;
-// } DevIno;
-//  DevIno dev_ino[MAX_DEPTH];
-
+#ifdef CYCLE_DETECTION
 typedef struct {
-    char path[_POSIX_PATH_MAX];
+    dev_t dev;
+    ino_t ino;
+} DevIno;
+DevIno dev_ino[MAX_DEPTH];
+#endif
+
+struct QueuePayload {
+    size_t path_len;
     uint16_t depth;
-} QueuePayload;
+    char path[MAX_PATH_LEN];
+    size_t parent_pos;
+};
 
-typedef struct {
-    alignas(64) _Atomic size_t sequences[QUEUE_CAPACITY];
-    alignas(64) _Atomic size_t enqueue_pos;
-    alignas(64) _Atomic size_t dequeue_pos;
-    alignas(64) _Atomic atomic_int active_tasks;
-    alignas(64) _Atomic atomic_int shut_down;
+struct MPMCQueue {
+    alignas(CACHE_LINE_SIZE) _Atomic size_t sequence[QUEUE_CAPACITY];
+    alignas(CACHE_LINE_SIZE) _Atomic size_t enqueue_pos;
+    alignas(CACHE_LINE_SIZE) _Atomic size_t dequeue_pos;
+    alignas(CACHE_LINE_SIZE) _Atomic atomic_int active_tasks;
+    alignas(CACHE_LINE_SIZE) _Atomic atomic_int shut_down;
     QueuePayload nodes[QUEUE_CAPACITY];
-} MPMCQueue;
+};
 
 typedef enum {
     TS_SUCCESS = 0,
@@ -78,8 +87,6 @@ typedef enum {
     TS_MATCH = 2,
     TS_MATCH_PLUS_ERROR = 3,
 } TerminationStatus;
-
-#define DIR_BUF_SIZE 262144
 
 struct linux_dirent64 {
     unsigned long long d_ino; /* 64-bit inode number */
@@ -153,7 +160,7 @@ typedef struct {
 } LfContext;
 
 typedef struct {
-    char data[64 * 1024];
+    char data[256 * MAX_PATH_LEN];
     size_t len;
 } OutputBuffer;
 
@@ -171,12 +178,12 @@ char *debug_p;
 void debug_out(LfContext *lf, int, char **);
 bool init_find(LfContext *lf, int, char **);
 void sort_lf_output(LfContext *lf, int, char **);
-MPMCQueue *queue_init();
-bool enqueue_dir(LfContext *, const QueuePayload *dir);
-bool dequeue_dir(LfContext *, QueuePayload *task);
+MPMCQueue *mpmc_queue_init();
+bool mpmc_enqueue(LfContext *, const QueuePayload *dir);
+bool mpmc_dequeue(LfContext *, QueuePayload *task);
 void *worker(void *arg);
 void *finder(LfContext *lf, QueuePayload *current_node);
-int scan_file(const char *, LfContext *lf, const unsigned char,
+int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf, const unsigned char,
               const struct stat *, OutputBuffer *);
 bool build_full_path(char *, size_t, const char *, const char *, size_t *);
 void flush_output_buffer(LfContext *, OutputBuffer *);
@@ -507,14 +514,14 @@ int main(int argc, char **argv) {
  * the pipe, while the child process will read from the pipe and
  * execute the sort command. */
 void sort_lf_output(LfContext *lf, int argc, char **argv) {
-    char tmp_str[MAXLEN];
+    // char tmp_str[MAXLEN];
     char *eargv[MAXARGS];
     int eargc = 0;
     eargv[eargc++] = strdup("sort");
-    snprintf(tmp_str, MAXLEN - 1, "--parallel=%d", lf->nthreads);
-    eargv[eargc++] = strdup(tmp_str);
-    snprintf(tmp_str, MAXLEN - 1, "--buffer-size=%s", lf->sbuffer);
-    eargv[eargc++] = strdup(tmp_str);
+    // snprintf(tmp_str, MAXLEN - 1, "--parallel=%d", lf->nthreads);
+    // eargv[eargc++] = strdup(tmp_str);
+    //  snprintf(tmp_str, MAXLEN - 1, "--buffer-size=%s", lf->sbuffer);
+    //  eargv[eargc++] = strdup(tmp_str);
     if (lf->sort_reverse)
         eargv[eargc++] = strdup("-r");
     eargv[eargc] = nullptr;
@@ -539,7 +546,7 @@ void sort_lf_output(LfContext *lf, int argc, char **argv) {
     // fclose(stdout);
     dup2(fds[1], STDOUT_FILENO);         // Clone write pipe to STDOUT_FILENO
     stdout = fdopen(STDOUT_FILENO, "w"); // Reopen STDOUT as a stream
-    setvbuf(stdout, NULL, _IONBF, 0);    //  line buffering
+    setvbuf(stdout, NULL, _IOLBF, 0);    //  line buffering
     init_find(lf, argc, argv);           // Initialize and transfer control to the finder
     fclose(stdout);
     close(fds[1]);
@@ -589,16 +596,16 @@ bool init_find(LfContext *lf, int argc, char **argv) {
     if (rc != 0)
         perror("Mutex initialization failed");
     if (stat(lf->base_path, &st) == 0) {
-        lf->q = queue_init();
+        lf->q = mpmc_queue_init();
         QueuePayload child_node;
         if (S_ISDIR(st.st_mode)) {
-            strnz__cpy(child_node.path, lf->base_path, MAX_PATH_LEN - 1);
-#ifdef CYCLIC
+            child_node.path_len = strnz__cpy(child_node.path, lf->base_path, MAX_PATH_LEN - 1);
+#ifdef CYCLE_DETECTION
             child_node.depth = 0;
             child_node.dev_ino[0].dev = st.st_dev;
             child_node.dev_ino[0].ino = st.st_ino;
 #endif
-            if (!enqueue_dir(lf, &child_node)) {
+            if (!mpmc_enqueue(lf, &child_node)) {
                 fprintf(stderr, "Failed to enqueue initial directory\n");
                 return false;
             }
@@ -785,23 +792,6 @@ void debug_out(LfContext *lf, int argc, char **argv) {
     }
     return;
 }
-// ----------------------------------------------------------------------
-// QUEUE_INIT
-// ----------------------------------------------------------------------
-/** @brief Initialize the MPMCQueue.
-    @param q A pointer to the MPMCQueue struct representing the queue.
-    @details This function initializes the MPMCQueue by setting up the sequence numbers for each node in the queue and initializing the enqueue and dequeue positions. It ensures that the queue is ready for concurrent access by multiple producer and consumer threads.
-   */
-MPMCQueue *queue_init() {
-    MPMCQueue *q = calloc(1, sizeof(MPMCQueue));
-    for (size_t i = 0; i < QUEUE_CAPACITY; i++)
-        atomic_init(&q->sequences[i], i);
-    atomic_init(&q->enqueue_pos, 0);
-    atomic_init(&q->dequeue_pos, 0);
-    atomic_init(&q->active_tasks, 0);
-    atomic_init(&q->shut_down, 0);
-    return q;
-}
 bool build_full_path(char *dst, size_t dst_size, const char *dir_path,
                      const char *name, size_t *out_len) {
     if (dst == nullptr || dir_path == nullptr || name == nullptr || dst_size == 0)
@@ -868,16 +858,35 @@ bool append_output_buffer(LfContext *lf, OutputBuffer *output, const char *path,
     return true;
 }
 // ----------------------------------------------------------------------
-// ENQUEUE
+// MPMC_QUEUE_INIT
 // ----------------------------------------------------------------------
-bool enqueue_dir(LfContext *lf, const QueuePayload *dir) {
+/** @brief Initialize the MPMCQueue.
+    @param q A pointer to the MPMCQueue struct representing the queue.
+    @details This function initializes the MPMCQueue by setting up the sequence numbers for each node in the queue and initializing the enqueue and dequeue indexes. It ensures that the queue is ready for concurrent access by multiple producer and consumer threads.
+   */
+MPMCQueue *mpmc_queue_init() {
+    MPMCQueue *q = calloc(1, sizeof(MPMCQueue));
+    if (q == nullptr)
+        return nullptr;
+    for (size_t i = 0; i < QUEUE_CAPACITY; i++)
+        atomic_init(&q->sequence[i], i);
+    atomic_init(&q->enqueue_pos, 0);
+    atomic_init(&q->dequeue_pos, 0);
+    atomic_init(&q->active_tasks, 0);
+    atomic_init(&q->shut_down, 0);
+    return q;
+}
+// ----------------------------------------------------------------------
+// MPMC_ENQUEUE
+// ----------------------------------------------------------------------
+bool mpmc_enqueue(LfContext *lf, const QueuePayload *dir) {
     size_t pos = atomic_load_explicit(&lf->q->enqueue_pos,
                                       memory_order_relaxed);
     int spin_count = 0;
     const int SPIN_LIMIT = 16;
     while (true) {
         // Fast tracking check using the clean tracking array
-        size_t seq = atomic_load_explicit(&lf->q->sequences[pos & QUEUE_MASK], memory_order_acquire);
+        size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)pos;
         if (diff == 0) {
             // Weak CAS allows the CPU to immediately fail out if a conflict occurs
@@ -885,39 +894,37 @@ bool enqueue_dir(LfContext *lf, const QueuePayload *dir) {
                                                       memory_order_relaxed, memory_order_relaxed)) {
                 break;
             }
-        } else if (diff < 0) {
-            return false; // Queue is full, hit your local recursive fallback
-        } else {
+        } else if (diff < 0)
+            return false; // Queue is full, trigger recursion
+        else
             pos++;
-        }
         // Drop out early if threads are colliding heavily to save context
         // switching
-        if (++spin_count > SPIN_LIMIT) {
+        if (++spin_count > SPIN_LIMIT)
             return false;
-        }
-// Relieve hardware bus pressure during contention
-#if defined(__x86_64__)
-        __builtin_ia32_pause();
-#endif
+        // Relieve hardware bus pressure during contention
+        // #if defined(__x86_64__)
+        //         __builtin_ia32_pause();
+        // #endif
     }
     // This section is now guaranteed unique to our thread
     // Only copy the small data footprint
-    memcpy(&lf->q->nodes[pos & QUEUE_MASK], dir, sizeof(QueuePayload));
+    memcpy(&lf->q->nodes[pos & QUEUE_MASK].path, dir->path, dir->path_len + 1);
+    lf->q->nodes[pos & QUEUE_MASK].depth = dir->depth;
+    lf->q->nodes[pos & QUEUE_MASK].path_len = dir->path_len;
     // Release the block slot to workers
-    atomic_store_explicit(&lf->q->sequences[pos & QUEUE_MASK], pos + 1, memory_order_release);
+    atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + 1, memory_order_release);
     return true;
 }
 // ----------------------------------------------------------------------
-// DEQUEUE
+// MPMC_DEQUEUE
 // ----------------------------------------------------------------------
-bool dequeue_dir(LfContext *lf, QueuePayload *task) {
-    QueuePayload *node;
+bool mpmc_dequeue(LfContext *lf, QueuePayload *task) {
     size_t pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
     while (true) {
         if (atomic_load_explicit(&lf->q->shut_down, memory_order_relaxed))
             return false;
-        node = &lf->q->nodes[pos & QUEUE_MASK];
-        size_t seq = atomic_load_explicit(&lf->q->sequences[pos & QUEUE_MASK], memory_order_acquire);
+        size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)(pos + 1);
         if (diff == 0) {
             // Full slot, try to claim it
@@ -928,21 +935,22 @@ bool dequeue_dir(LfContext *lf, QueuePayload *task) {
             }
         } else if (diff < 0) { // Queue is temporarily empty
             // If the global shutdown was triggered while we were waiting, exit smoothly
-            if (atomic_load_explicit(&lf->q->shut_down, memory_order_relaxed)) {
-                return false;
-            }
+            // if (atomic_load_explicit(&lf->q->shut_down, memory_order_relaxed))
+            //     return false;
             // Back off to prevent high-core cache bus starvation
             sched_yield();
             // Reload pos because another thread might have advanced it
-            pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
+            // pos = atomic_load_explicit(&lf->q->dequeue_pos,
+            // memory_order_relaxed);
         } else {
             pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
         }
     }
+    QueuePayload *node;
     node = &lf->q->nodes[pos & QUEUE_MASK];
-    *task = *node; // node becomes a task
+    *task = *node;
     // Release the slot back to producers (advancing sequence by capacity)
-    atomic_store_explicit(&lf->q->sequences[pos & QUEUE_MASK], pos + QUEUE_CAPACITY, memory_order_release);
+    atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + QUEUE_CAPACITY, memory_order_release);
     return true;
 }
 // ----------------------------------------------------------------------
@@ -952,7 +960,7 @@ void *worker(void *arg) {
     LfContext *lf = (LfContext *)arg;
     QueuePayload node; // node becomes a task
     while (true) {
-        if (dequeue_dir(lf, &node)) {
+        if (mpmc_dequeue(lf, &node)) {
             finder(lf, &node);
             if (atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_acq_rel) == 1)
                 atomic_store_explicit(&lf->q->shut_down, true, memory_order_relaxed);
@@ -968,7 +976,6 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
     OutputBuffer output = {{'\0'}, 0};
     long nread;
     char dir_buf[DIR_BUF_SIZE];
-    //    char lnk_path[MAX_PATH_LEN] = {'\0'};
     struct stat st = {};
     struct linux_dirent64 *entry;
     unsigned char effective_type;
@@ -983,6 +990,7 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
             pthread_mutex_unlock(&lf->output_mutex);
         }
         atomic_fetch_sub(&lf->q->active_tasks, 1);
+        flush_output_buffer(lf, &output);
         return NULL;
     }
     // Read the directory entries and process each one. We use readdir to
@@ -1023,20 +1031,20 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
             // whether to follow links or not). If fstatat fails, we log the
             // error (if debugging is enabled) and continue to the next
             // entry without processing this one further.
-            if (strcmp(entry->d_name, "scriou.c") == 0) {
-                // Debugging breakpoint for specific file
-                int debug_breakpoint = 1;
-            }
             full_path[0] = '\0';
             effective_type = entry->d_type;
             if (effective_type == DT_DIR) {
-                if (is_dirsys(entry->d_name))
-                    continue;
+                if (entry->d_name[0] == '.') {
+                    if (entry->d_name[1] == '\0')
+                        continue;
+                    if (entry->d_name[1] == '.' && entry->d_name[2] == '\0')
+                        continue;
+                }
             }
-            if (effective_type == DT_UNKNOWN ||
-                (lf->follow_links && effective_type == DT_LNK) ||
+            if ((lf->follow_links && effective_type == DT_LNK) ||
                 (lf->report_badlinks &&
-                 (effective_type == DT_DIR || effective_type == DT_LNK))) {
+                 (effective_type == DT_DIR || effective_type == DT_LNK)) ||
+                effective_type == DT_UNKNOWN) {
                 //--------------------------------------------------------------------
                 // GET ADVANCED METADATA
                 //--------------------------------------------------------------------
@@ -1046,7 +1054,8 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                     if (lf->report_badlinks) {
                         if (!build_full_path(full_path, sizeof(full_path),
                                              current_node->path,
-                                             entry->d_name, nullptr)) {
+                                             entry->d_name,
+                                             nullptr)) {
                         }
                         pthread_mutex_lock(&lf->output_mutex);
                         fprintf(stderr, "LSTAT_FAIL,%s,%s\n", full_path,
@@ -1069,9 +1078,9 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                 // metadata.
                 if (S_ISLNK(st.st_mode)) {
                     if (lf->follow_links) {
-                        //--------------------------------------------------------------------
+                        //------------------------------------------------------------
                         // GET LINK METADATA
-                        //--------------------------------------------------------------------
+                        //------------------------------------------------------------
                         rc = fstatat(dir_fd, entry->d_name, &st, 0);
 
                         if (rc == -1) {
@@ -1079,7 +1088,8 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                             if (lf->report_errors) {
                                 if (!build_full_path(full_path, sizeof(full_path),
                                                      current_node->path,
-                                                     entry->d_name, nullptr)) {
+                                                     entry->d_name,
+                                                     nullptr)) {
                                     pthread_mutex_lock(&lf->output_mutex);
                                     fprintf(stderr, "STAT_FAIL,%s,%s\n", full_path,
                                             strerror(errno));
@@ -1102,7 +1112,8 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                 if (!build_full_path(child_node.path,
                                      sizeof(child_node.path),
                                      current_node->path,
-                                     entry->d_name, nullptr)) {
+                                     entry->d_name,
+                                     &child_node.path_len)) {
                     atomic_fetch_add(&lf->error_count, 1);
                     if (lf->report_errors) {
                         pthread_mutex_lock(&lf->output_mutex);
@@ -1112,7 +1123,7 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                     }
                     continue;
                 }
-#ifdef CYCLIC
+#ifdef CYCLE_DETECTION
                 // Determine the effective type of the entry. We use the st_mode
                 // field from the stat struct to determine the file type by
                 // applying the S_IFMT mask and shifting it to get a value that
@@ -1160,10 +1171,10 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                         pthread_mutex_lock(&lf->output_mutex);
                         if (len != -1) {
                             lnk_path[len] = '\0';
-                            fprintf(stderr, "CYCLIC_LINK,%s,%s\n", child_node.path,
+                            fprintf(stderr, "CYCLE_DETECTION_LINK,%s,%s\n", child_node.path,
                                     lnk_path);
                         } else
-                            fprintf(stderr, "CYCLIC_LINK,%s\n", child_node.path);
+                            fprintf(stderr, "CYCLE_DETECTION_LINK,%s\n", child_node.path);
                         pthread_mutex_unlock(&lf->output_mutex);
                         continue;
                     }
@@ -1182,10 +1193,10 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                 // --------------------------------------------------------
                 // BUILD AND ENQUEUE CHILD TASK
                 // --------------------------------------------------------
-                if (lf->max_depth != 0 && current_node->depth + 1 == lf->max_depth)
+                if (lf->max_depth != 0 && current_node->depth + 1 >= lf->max_depth)
                     continue;
                 child_node.depth = current_node->depth + 1;
-#ifdef CYCLIC
+#ifdef CYCLE_DETECTION
                 if (lf->report_badlinks) {
                     int i;
                     for (i = 0; i < current_node->depth; i++) {
@@ -1194,12 +1205,13 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                     }
                     child_node.dev_ino[i + 1].dev = st.st_dev;
                     child_node.dev_ino[i + 1].ino = st.st_ino;
+                    child_node.parent_pos = lf->q->sequence;
                 } else {
                     child_node.dev_ino[0].dev = 0;
                     child_node.dev_ino[0].ino = 0;
                 }
 #endif
-                if (enqueue_dir(lf, &child_node)) {
+                if (mpmc_enqueue(lf, &child_node)) {
                     // Success! Track it as a new outstanding global task
                     atomic_fetch_add_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
                 } else {
@@ -1208,23 +1220,22 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                     // staying within its current execution bubble.
                     finder(lf, &child_node);
                 }
-
                 // --------------------------------------------------------
                 // CONDITIONALLY PRINT THE DIRECTORY
                 // --------------------------------------------------------
-                if (is_hidden(entry->d_name)) {
+                if (entry->d_name[0] == '.') {
                     if (!lf->include_hidden && !lf->hidden_only)
                         continue;
                 } else {
                     if (lf->hidden_only)
                         continue;
                 }
-                scan_file(child_node.path, lf, effective_type, &st, &output);
+                scan_file(child_node.path, &child_node.path_len, lf, effective_type, &st, &output);
             } else {
                 // --------------------------------------------------------
                 // NOT DIRECTORY - CONDITIONALLY PRINT THE ENTRY
                 // --------------------------------------------------------
-                if (is_hidden(entry->d_name)) {
+                if (entry->d_name[0] == '.') {
                     if (!lf->include_hidden && !lf->hidden_only)
                         continue;
                 } else {
@@ -1234,7 +1245,8 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                 if (full_path[0] == '\0') {
                     if (!build_full_path(full_path, sizeof(full_path),
                                          current_node->path,
-                                         entry->d_name, nullptr)) {
+                                         entry->d_name,
+                                         &current_node->path_len)) {
                         atomic_fetch_add(&lf->error_count, 1);
                         if (lf->report_errors) {
                             pthread_mutex_lock(&lf->output_mutex);
@@ -1245,37 +1257,13 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                         continue;
                     }
                 }
-                scan_file(full_path, lf, effective_type, &st, &output);
+                scan_file(full_path, &current_node->path_len, lf, effective_type, &st, &output);
             }
         }
     }
     close(dir_fd);
     flush_output_buffer(lf, &output);
     return NULL;
-}
-/** @brief Check if a file or directory is hidden based on its name.
-    @param name The name of the file or directory to check.
-    @return true if the name indicates a hidden file or directory, false otherwise.
-    @details A file or directory is considered hidden if its name starts with a
-   dot ('.') character, except for the special cases of '.' and '..' which
-   represent the current and parent directories, respectively. This function
-   is used to determine whether to include or exclude hidden files and
-   directories during the search process based on user-specified options.
-   */
-bool is_dirsys(const char *name) {
-    if (name[0] == '.') {
-        if (name[1] == '\0')
-            return true; // "."
-        if (name[1] == '.' && name[2] == '\0')
-            return true; // ".."
-    }
-    return false;
-}
-
-// Fast check: does it start with a dot?
-// (Since is_dirsys filters "." and "..", any remaining dot-file is truly hidden)
-bool is_hidden(const char *name) {
-    return name[0] == '.';
 }
 /** @brief Scan a file or directory and apply filters based on the LfContext.
     @param file_spec The full path of the file or directory to scan.
@@ -1289,7 +1277,7 @@ bool is_hidden(const char *name) {
 // ----------------------------------------------------------------------
 // SCAN_FILE
 // ----------------------------------------------------------------------
-int scan_file(const char *file_spec, LfContext *lf,
+int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
               const unsigned char effective_type, const struct stat *cached_sb,
               OutputBuffer *output) {
     bool stat_cached = cached_sb != nullptr;
@@ -1369,7 +1357,7 @@ int scan_file(const char *file_spec, LfContext *lf,
         atomic_fetch_add(&lf->file_count, 1);
         if (!lf->count_silently) {
             const char *display_path = file_spec;
-            size_t display_len = strlen(display_path);
+            size_t display_len = *path_len;
             if (display_len > 2 && display_path[0] == '.' && display_path[1] == '/') {
                 display_path += 2;
                 display_len -= 2;

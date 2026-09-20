@@ -20,7 +20,7 @@ echo "## directory: $directory"
 echo
 echo "### lf"
 echo
-for i in 1 2 3 4 5 6 7 8 9 10 11; do
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16; do
     echo lf -H -T"$i" "$directory"
     /bin/time -o time.out ./lf -H -T"$i" "$directory" | wc -l >lf.out 2>/dev/null
     grep -v "^Command" time.out
