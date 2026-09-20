@@ -410,7 +410,8 @@ int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
 /** @brief End the UI application, cleaning up resources and shutting down the UI runtime.
  */
 void ui_endwin() {
-    ui_shutdown();
+    endwin();
+    // ui_shutdown();
 }
 /** @brief Shutdown the UI runtime, cleaning up resources and freeing memory.
  */

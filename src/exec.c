@@ -133,6 +133,7 @@ int fork_exec(char **argv) {
     ui_curs_set(1);
     sig_dfl_mode();
     stdio_names(stdio_names_str, "exec.c:139");
+    def_prog_mode();
     ui_endwin();
     stdio_names(stdio_names_str, "exec.c:141");
     tmp_str[0] = '\0';
