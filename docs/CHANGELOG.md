@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-19T21:34:55-05:00* - FIXES: After exiting from the shell invoked by the Menu selection, Full Screen Root Shell, a core dump occurred. This was due to the abstraction layer calling ui_shutdown() instead of NCurses endwin() directly. 
+
+*2026-09-19T21:18:17-05:00* - Update CHANGELOG.md 
+
 *2026-09-19T21:17:36-05:00* - FIXES: Various clean-up chores and a few bug fixes. 
 
 *2026-09-18T10:16:54-05:00* - Update CHANGELOG.md 
