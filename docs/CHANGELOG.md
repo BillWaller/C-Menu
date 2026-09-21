@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-21T17:53:50-05:00* - EXPERIMENTAL DEVELOPMENT: Adding batch queueing to lf.c 
+
+*2026-09-20T20:16:30-05:00* - Update CHANGELOG.md 
+
 *2026-09-20T19:42:08-05:00* - EXPERIMENTAL DEVELOPMENT: A bulk enqueueing facility is being added to lf5.c to see if that might raise its performance to an even more ridiculous level. lf is already the fastest file finder in existence, having surpassed fd, but I am convinced it can be made even faster. It's not that it needs to be, but as an academic exercise in MPMC ring buffer queue performance. If my benchmark numbers seem exaggerated, it's because I have an Intel Optane SSD. Its 10 ns latency is a huge advantage over the 100-200 ns latency of a typical NVMe SSD. The 10x lower latency of the Optane SSD allows it to handle many more small file operations in parallel, which is exactly what a file finder does. So, you probably won't get benchmark numbers like mine unless you have an Optane SSD. Of course, you could get even better benchmarks by running the tests on a RAM disk. It's unfortunate that Intel stopped making the Optane drives. There is currently nothing on the market that can replace it for low latency mass storage. I suspect that the Optane had something to do with the exclusion of latency statistics in many benchmarking programs. Nothing else could approach the Optane's low latency, so it was probably considered unfair to include it in benchmarks. I have a feeling that the Optane was a victim of Intel's marketing department, which is more concerned with selling high margin NVMe drives than low margin Optane drives. The Optane was a niche product that Intel probably didn't want to support, so they killed it off. It's a shame, because the Optane was a great product that filled a niche that no other product could fill. RIP Optane. 
 
 *2026-09-19T21:38:47-05:00* - Update CHANGELOG.md 
