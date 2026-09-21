@@ -1,17 +1,8 @@
-/** ANNOUNCEMENT: This file is part of the lf project, which is currently being
- * tested in anticipation of public release. The test suite consists of a test
- * script, lf_tests.sh, which uses diff to compare the output with find. There
- * is also an accompanying markdown file, lf_tests.md, that outlines the testing
- * methodology, cases, and expected results.
- *
- * As a design choice, lf segregates directory entries with fatal errors,
- * meaning those that do not provide functionality conforming to known
- * standards.
- *
- * Your feedback and suggestions are always welcome.
- *
- * Feel free to run the test script on your own system, and if you encounter any
- * issues, please report them to the author.
+/** ANNOUNCEMENT: This file is part of the lf project, which is currently
+ * undergoing experimental development and testing of bulk enqueueing and
+ * re-implementation of cycle detection. As it turns out, the old method of
+ * cycle detection was not as performant as we had expected, so we are trying a
+ * newer method that is more efficient and scalable.
  */
 
 /** @file lf4.c
@@ -53,33 +44,65 @@
 #define MAX_DEPTH 64
 #define DIR_BUF_SIZE 262144
 #define CACHE_LINE_SIZE 64
-typedef struct MPMCQueue MPMCQueue;
-typedef struct QueuePayload QueuePayload;
-typedef struct LocalQueuePayload LocalQueuePayload;
+#define CHUNK_CAPACITY 4096 // Nodes per thread-local block (approx 98 KB per chunk)
 
-#ifdef CYCLE_DETECTION
 typedef struct {
     dev_t dev;
     ino_t ino;
-} DevIno;
-DevIno dev_ino[MAX_DEPTH];
-#endif
+    struct FSNode *parent;
+} FSNode;
 
-struct QueuePayload {
-    size_t path_len;
+typedef struct {
+    FSNode nodes[CHUNK_CAPACITY];
+    size_t count;
+} FSNodeBuffer;
+
+typedef struct {
+    alignas(CACHE_LINE_SIZE) _Atomic size_t sequence;
+    dev_t dev;
+    ino_t ino;
     uint16_t depth;
     char path[MAX_PATH_LEN];
-    size_t parent_pos;
-};
+    size_t path_len;
+} QueueNode;
 
-struct MPMCQueue {
+typedef struct {
+    QueueNode nodes[CHUNK_CAPACITY];
+    size_t count;
+} LocalNodeBuffer;
+
+typedef struct {
+    alignas(CACHE_LINE_SIZE) _Atomic size_t sequence[QUEUE_CAPACITY];
     alignas(CACHE_LINE_SIZE) _Atomic size_t enqueue_pos;
     alignas(CACHE_LINE_SIZE) _Atomic size_t dequeue_pos;
-    alignas(CACHE_LINE_SIZE) _Atomic atomic_int active_tasks;
-    alignas(CACHE_LINE_SIZE) _Atomic atomic_int shut_down;
-    alignas(CACHE_LINE_SIZE) _Atomic size_t sequence[QUEUE_CAPACITY];
-    QueuePayload nodes[QUEUE_CAPACITY];
-};
+    QueueNode nodes[QUEUE_CAPACITY];
+} MPMCQueue;
+
+typedef struct {
+    MPMCQueue queue;
+    pthread_mutex_t cv_mutex;
+    pthread_cond_t cv_cond;
+    _Atomic int32_t active_workers; // Number of active workers
+    _Atomic bool should_terminate;
+} ThreadPoolContext;
+
+// Global tracker for a block of nodes
+typedef struct ArenaChunk {
+    FSNode nodes[CHUNK_CAPACITY];
+    struct ArenaChunk *next;
+} ArenaChunk;
+
+// Shared global context for managing the memory backend
+typedef struct {
+    _Atomic(ArenaChunk *) head; // Lock-free list of all chunks allocated for cleanup
+} GlobalArenaContext;
+
+// The actual thread-local structure assigned to each worker thread
+typedef struct {
+    ArenaChunk *current_chunk;
+    size_t next_index;
+    GlobalArenaContext *global_ctx;
+} ThreadLocalArena;
 
 typedef enum {
     TS_SUCCESS = 0,
@@ -117,6 +140,8 @@ static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
 TerminationStatus termination_status;
 typedef struct {
     MPMCQueue *q;
+    ThreadPoolContext *ctx;
+    LocalNodeBuffer *lnb;
     pthread_t *threads;
     unsigned int nthreads;
     atomic_size_t file_count;
@@ -176,19 +201,20 @@ char *file_types_p;
 char *perms_p;
 char *debug_p;
 void debug_out(LfContext *lf, int, char **);
-bool init_find(LfContext *lf, int, char **);
+bool init_lf(LfContext *lf, int, char **);
 void sort_lf_output(LfContext *lf, int, char **);
 MPMCQueue *mpmc_queue_init();
-bool mpmc_enqueue(LfContext *, const QueuePayload *dir);
-bool mpmc_dequeue(LfContext *, QueuePayload *task);
+size_t mpmc_enqueue(LfContext *lf, LocalNodeBuffer *lnb, size_t count);
+bool mpmc_dequeue(LfContext *, QueueNode *task);
 void *worker(void *arg);
-void *finder(LfContext *lf, QueuePayload *current_node);
+void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node);
 int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf, const unsigned char,
               const struct stat *, OutputBuffer *);
 bool build_full_path(char *, size_t, const char *, const char *, size_t *);
 void flush_output_buffer(LfContext *, OutputBuffer *);
 bool append_output_buffer(LfContext *, OutputBuffer *, const char *, size_t,
                           bool);
+bool worker_dequeue_and_check(LfContext *lf, QueueNode *out_node);
 // ---------------------------------------------------------------
 
 static struct argp_option options[] = {
@@ -489,7 +515,7 @@ int main(int argc, char **argv) {
     }
     termination_status = TS_SUCCESS;
     if (!lf->sort) {
-        init_find(lf, argc, argv);
+        init_lf(lf, argc, argv);
     } else
         sort_lf_output(lf, argc, argv);
 
@@ -547,7 +573,7 @@ void sort_lf_output(LfContext *lf, int argc, char **argv) {
     dup2(fds[1], STDOUT_FILENO);         // Clone write pipe to STDOUT_FILENO
     stdout = fdopen(STDOUT_FILENO, "w"); // Reopen STDOUT as a stream
     setvbuf(stdout, NULL, _IOLBF, 0);    //  line buffering
-    init_find(lf, argc, argv);           // Initialize and transfer control to the finder
+    init_lf(lf, argc, argv);             // Initialize and transfer control to the finder
     fclose(stdout);
     close(fds[1]);
     wait(&wstatus);
@@ -557,7 +583,7 @@ void sort_lf_output(LfContext *lf, int argc, char **argv) {
 // ----------------------------------------------------------------------
 // INIT_FIND
 // ----------------------------------------------------------------------
-bool init_find(LfContext *lf, int argc, char **argv) {
+bool init_lf(LfContext *lf, int argc, char **argv) {
     /** suppress file types that aren't included */
     if (!lf->include_types)
         lf->include_types = 0xff;
@@ -588,61 +614,69 @@ bool init_find(LfContext *lf, int argc, char **argv) {
     }
     debug_out(lf, argc, argv);
     //--------------------------------------------------------------------
-    // Create and enqueue the first QueuePayload
+    // Initialize data structures
+    //--------------------------------------------------------------------
+    ThreadPoolContext *ctx = (ThreadPoolContext *)calloc(1, sizeof(ThreadPoolContext));
+    lf->ctx = ctx;
+    //--------------------------------------------------------------------
+    // Create and enqueue the first QueueNode
+    //--------------------------------------------------------------------
     termination_status = TS_SUCCESS;
     int rc = 0;
     struct stat st;
     rc = pthread_mutex_init(&lf->output_mutex, NULL);
     if (rc != 0)
         perror("Mutex initialization failed");
-    if (stat(lf->base_path, &st) == 0) {
-        lf->q = mpmc_queue_init();
-        QueuePayload child_node;
-        if (S_ISDIR(st.st_mode)) {
-            child_node.path_len = strnz__cpy(child_node.path, lf->base_path, MAX_PATH_LEN - 1);
-#ifdef CYCLE_DETECTION
-            child_node.depth = 0;
-            child_node.dev_ino[0].dev = st.st_dev;
-            child_node.dev_ino[0].ino = st.st_ino;
-#endif
-            if (!mpmc_enqueue(lf, &child_node)) {
-                fprintf(stderr, "Failed to enqueue initial directory\n");
-                return false;
-            }
-            atomic_fetch_add_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
-            //------------------------------------------------------------
-            // INITIALIZE THREADS
-            //------------------------------------------------------------
-            lf->threads = calloc(lf->nthreads, sizeof(pthread_t));
-            if (!lf->threads) {
-                fprintf(stderr, "Out of memory allocating threads\n");
-                return false;
-            }
-            for (unsigned int i = 0; i < lf->nthreads; i++) {
-                rc = pthread_create(
-                    &lf->threads[i],
-                    NULL,
-                    worker,
-                    lf);
-
-                if (rc != 0) {
-                    fprintf(stderr, "Error: Unable to create thread %d\n", rc);
-                    lf->q->shut_down = 1;
-                    termination_status = TS_ERROR;
-                    return false;
-                }
-            }
-            for (unsigned int i = 0; i < lf->nthreads; i++)
-                pthread_join(lf->threads[i], NULL);
-            return true;
-        } else {
-            fprintf(stderr,
-                    "Warning: Base path '%s' is not a directory. No "
-                    "files will be found.\n",
-                    lf->base_path);
-            termination_status = TS_ERROR;
+    if (stat(lf->base_path, &st) != 0) {
+        perror("stat failed on base path");
+        return false;
+    }
+    lf->q = mpmc_queue_init();
+    LocalNodeBuffer *lnb = calloc(1, sizeof(LocalNodeBuffer));
+    if (S_ISDIR(st.st_mode)) {
+        lnb->nodes[0].path_len = strnz__cpy(lnb->nodes[0].path, lf->base_path, MAX_PATH_LEN - 1);
+        lnb->nodes[0].depth = 0;
+        lnb->nodes[0].dev = st.st_dev;
+        lnb->nodes[0].ino = st.st_ino;
+        lnb->nodes[0].sequence = 0;
+        if (!mpmc_enqueue(lf, lnb, 1)) {
+            fprintf(stderr, "Failed to enqueue initial directory\n");
             return false;
         }
+        free(lnb);
+        atomic_fetch_add_explicit(&lf->ctx->active_workers, 1, memory_order_relaxed);
+        //------------------------------------------------------------
+        // INITIALIZE THREADS
+        //------------------------------------------------------------
+        lf->threads = calloc(lf->nthreads, sizeof(pthread_t));
+        if (!lf->threads) {
+            fprintf(stderr, "Out of memory allocating threads\n");
+            return false;
+        }
+        for (unsigned int i = 0; i < lf->nthreads; i++) {
+            rc = pthread_create(
+                &lf->threads[i],
+                NULL,
+                worker,
+                lf);
+
+            if (rc != 0) {
+                fprintf(stderr, "Error: Unable to create thread %d\n", rc);
+                lf->ctx->should_terminate = 1;
+                termination_status = TS_ERROR;
+                return false;
+            }
+        }
+        for (unsigned int i = 0; i < lf->nthreads; i++)
+            pthread_join(lf->threads[i], NULL);
+        return true;
+    } else {
+        fprintf(stderr,
+                "Warning: Base path '%s' is not a directory. No "
+                "files will be found.\n",
+                lf->base_path);
+        termination_status = TS_ERROR;
+        return false;
     }
     // ------------------------------------------------------------------
     // END PROGRAM
@@ -872,107 +906,172 @@ MPMCQueue *mpmc_queue_init() {
         atomic_init(&q->sequence[i], i);
     atomic_init(&q->enqueue_pos, 0);
     atomic_init(&q->dequeue_pos, 0);
-    atomic_init(&q->active_tasks, 0);
-    atomic_init(&q->shut_down, 0);
     return q;
 }
 // ----------------------------------------------------------------------
 // MPMC_ENQUEUE
 // ----------------------------------------------------------------------
-bool mpmc_enqueue(LfContext *lf, const QueuePayload *dir) {
-    size_t pos = atomic_load_explicit(&lf->q->enqueue_pos,
-                                      memory_order_relaxed);
-    int spin_count = 0;
-    const int SPIN_LIMIT = 16;
+size_t mpmc_enqueue(LfContext *lf, LocalNodeBuffer *lnb, size_t count) {
+    if (count == 0)
+        return 0;
+    ThreadPoolContext *ctx = lf->ctx;
+    MPMCQueue *q = &ctx->queue;
+    size_t pos = atomic_load_explicit(&q->enqueue_pos, memory_order_relaxed);
     while (true) {
-        // Fast tracking check using the clean tracking array
-        size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
-        intptr_t diff = (intptr_t)seq - (intptr_t)pos;
-        if (diff == 0) {
-            // Weak CAS allows the CPU to immediately fail out if a conflict occurs
-            if (atomic_compare_exchange_weak_explicit(&lf->q->enqueue_pos, &pos, pos + 1,
-                                                      memory_order_relaxed, memory_order_relaxed)) {
-                break;
+        size_t current_dequeue = atomic_load_explicit(&q->dequeue_pos, memory_order_acquire);
+        size_t occupied = pos - current_dequeue;
+        if (occupied >= QUEUE_CAPACITY)
+            return 0;
+        size_t available = QUEUE_CAPACITY - occupied;
+        size_t to_reserve = (count > available) ? available : count;
+        bool was_empty = (occupied == 0);
+        if (atomic_compare_exchange_strong_explicit(&q->enqueue_pos, &pos, pos + to_reserve,
+                                                    memory_order_relaxed, memory_order_relaxed)) {
+            for (size_t i = 0; i < to_reserve; i++) {
+                size_t target_pos = pos + i;
+                QueueNode *node = &q->nodes[target_pos & QUEUE_MASK];
+                while (atomic_load_explicit(&node->sequence, memory_order_acquire) != target_pos) {
+#if defined(__x86_64__)
+                    __builtin_ia32_pause();
+#endif
+                }
+                node->dev = lnb->nodes[i].dev;
+                node->ino = lnb->nodes[i].ino;
+                node->depth = lnb->nodes[i].path_len;
+                size_t len = lnb->nodes[i].depth;
+                if (len >= MAX_PATH_LEN)
+                    len = MAX_PATH_LEN - 1;
+                memcpy(node->path, lnb->nodes[i].path, lnb->nodes[i].path_len);
+                node->path_len = lnb->nodes[i].path_len;
+                // Release data to consumers
+                atomic_store_explicit(&node->sequence, target_pos + 1, memory_order_release);
             }
-        } else if (diff < 0)
-            return false; // Queue is full, trigger recursion
-        else
-            pos++;
-        // Drop out early if threads are colliding heavily to save context
-        // switching
-        if (++spin_count > SPIN_LIMIT)
-            return false;
-        // Relieve hardware bus pressure during contention
-        // #if defined(__x86_64__)
-        //         __builtin_ia32_pause();
-        // #endif
+            if (was_empty || to_reserve > 4) {
+                pthread_mutex_lock(&ctx->cv_mutex);
+                if (to_reserve == 1) {
+                    pthread_cond_signal(&ctx->cv_cond);
+                } else {
+                    pthread_cond_broadcast(&ctx->cv_cond);
+                }
+                pthread_mutex_unlock(&ctx->cv_mutex);
+            }
+
+            return to_reserve;
+        }
     }
-    // This section is now guaranteed unique to our thread
-    // Only copy the small data footprint
-    memcpy(&lf->q->nodes[pos & QUEUE_MASK].path, dir->path, dir->path_len + 1);
-    lf->q->nodes[pos & QUEUE_MASK].depth = dir->depth;
-    lf->q->nodes[pos & QUEUE_MASK].path_len = dir->path_len;
-    // Release the block slot to workers
-    atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + 1, memory_order_release);
-    return true;
 }
 // ----------------------------------------------------------------------
 // MPMC_DEQUEUE
 // ----------------------------------------------------------------------
-bool mpmc_dequeue(LfContext *lf, QueuePayload *task) {
+bool mpmc_dequeue(LfContext *lf, QueueNode *task) {
     size_t pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
     while (true) {
-        if (atomic_load_explicit(&lf->q->shut_down, memory_order_relaxed))
+        if (atomic_load_explicit(&lf->ctx->should_terminate, memory_order_relaxed))
             return false;
         size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)(pos + 1);
         if (diff == 0) {
-            // Full slot, try to claim it
-            // Upgraded to strong CAS to avoid spurious fails under high contention
             if (atomic_compare_exchange_strong_explicit(&lf->q->dequeue_pos, &pos, pos + 1,
                                                         memory_order_relaxed, memory_order_relaxed)) {
                 break;
             }
-        } else if (diff < 0) { // Queue is temporarily empty
-            // If the global shutdown was triggered while we were waiting, exit smoothly
-            // if (atomic_load_explicit(&lf->q->shut_down, memory_order_relaxed))
-            //     return false;
-            // Back off to prevent high-core cache bus starvation
+        } else if (diff < 0) {
             sched_yield();
-            // Reload pos because another thread might have advanced it
-            // pos = atomic_load_explicit(&lf->q->dequeue_pos,
-            // memory_order_relaxed);
         } else {
             pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
         }
     }
-    QueuePayload *node;
+    QueueNode *node;
     node = &lf->q->nodes[pos & QUEUE_MASK];
     *task = *node;
-    // Release the slot back to producers (advancing sequence by capacity)
     atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + QUEUE_CAPACITY, memory_order_release);
     return true;
+}
+// ----------------------------------------------------------------------
+// WORKER_DEQUEUE_AND_CHECK
+// ----------------------------------------------------------------------
+bool worker_dequeue_and_check(LfContext *lf, QueueNode *out_node) {
+
+    ThreadPoolContext *ctx = lf->ctx;
+
+    while (true) {
+        // --- 1. THE LOCK-FREE FAST PATH ---
+        // If there is data in the queue, grab it and immediately exit the sleep logic.
+        if (mpmc_dequeue(lf, out_node)) {
+            return true;
+        }
+
+        // Check if the system was explicitly told to shut down
+        if (atomic_load_explicit(&ctx->should_terminate, memory_order_relaxed)) {
+            return false;
+        }
+
+        // --- 2. THE MUTEX-PROTECTED SLOW PATH ---
+        // The queue appears empty. We must acquire the mutex to safely transition to sleep
+        // without missing an overlapping bulk enqueue wake-up signal.
+        pthread_mutex_lock(&ctx->cv_mutex);
+
+        // Double-check the lock-free state *inside* the lock boundary to eliminate the race window
+        if (mpmc_dequeue(lf, out_node)) {
+            pthread_mutex_unlock(&ctx->cv_mutex);
+            return true;
+        }
+
+        // Decrement active workers because this thread is about to go to sleep
+        int32_t remaining_workers = atomic_fetch_sub_explicit(&ctx->active_workers, 1, memory_order_acq_rel) - 1;
+
+        // --- GLOBAL TERMINATION CONDITION CHECK ---
+        // If the queue is empty AND there are absolutely no active workers left in the field,
+        // it means the entire directory tree traversal is fully complete.
+        if (remaining_workers == 0) {
+            atomic_store_explicit(&ctx->should_terminate, true, memory_order_relaxed);
+
+            // Wake up all other sleeping threads so they can clean up and exit
+            pthread_cond_broadcast(&ctx->cv_cond);
+            pthread_mutex_unlock(&ctx->cv_mutex);
+            return false;
+        }
+
+        // Re-verify termination flag inside the lock
+        if (atomic_load_explicit(&ctx->should_terminate, memory_order_relaxed)) {
+            pthread_mutex_unlock(&ctx->cv_mutex);
+            return false;
+        }
+
+        // --- 3. GO TO SLEEP SAFELY ---
+        // Hand off the mutex to the OS atomicity window. The thread parks here.
+        pthread_cond_wait(&ctx->cv_cond, &ctx->cv_mutex);
+
+        // --- 4. WAKING UP ---
+        // We have re-acquired the mutex. Increment active workers back up before releasing lock.
+        atomic_fetch_add_explicit(&ctx->active_workers, 1, memory_order_relaxed);
+        pthread_mutex_unlock(&ctx->cv_mutex);
+
+        // Loop back around to try peeling an entry out of the queue again
+    }
 }
 // ----------------------------------------------------------------------
 // WORKER
 // ----------------------------------------------------------------------
 void *worker(void *arg) {
     LfContext *lf = (LfContext *)arg;
-    QueuePayload node; // node becomes a task
+    QueueNode node; // node becomes a task
+    LocalNodeBuffer *lnb = calloc(1, sizeof(LocalNodeBuffer));
     while (true) {
-        if (mpmc_dequeue(lf, &node)) {
-            finder(lf, &node);
-            if (atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_acq_rel) == 1)
-                atomic_store_explicit(&lf->q->shut_down, true, memory_order_relaxed);
+        if (worker_dequeue_and_check(lf, &node)) {
+            finder(lf, lnb, &node);
+            if (atomic_fetch_sub_explicit(&lf->ctx->active_workers, 1, memory_order_acq_rel) == 1)
+                atomic_store_explicit(&lf->ctx->should_terminate, true, memory_order_relaxed);
         } else
             break; // shutdown detected
     }
+    free(lnb);
     return NULL;
 }
 // ----------------------------------------------------------------------
 // FINDER
 // ----------------------------------------------------------------------
-void *finder(LfContext *lf, QueuePayload *current_node) {
+void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node) {
     OutputBuffer output = {{'\0'}, 0};
     long nread;
     char dir_buf[DIR_BUF_SIZE];
@@ -980,6 +1079,7 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
     struct linux_dirent64 *entry;
     unsigned char effective_type;
     char full_path[MAX_PATH_LEN] = {'\0'};
+    size_t node_count = 0;
     int rc;
     int dir_fd = open(current_node->path, O_RDONLY | O_DIRECTORY);
     if (dir_fd == -1) {
@@ -989,7 +1089,7 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
             fprintf(stderr, "OPEN_FAIL,%s,%s\n", current_node->path, strerror(errno));
             pthread_mutex_unlock(&lf->output_mutex);
         }
-        atomic_fetch_sub(&lf->q->active_tasks, 1);
+        atomic_fetch_sub(&lf->ctx->active_workers, 1);
         flush_output_buffer(lf, &output);
         return NULL;
     }
@@ -1108,17 +1208,16 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                 //--------------------------------------------------------------------
                 // PROCESS DIRECTORY ENTRY
                 //--------------------------------------------------------------------
-                QueuePayload child_node = {};
-                if (!build_full_path(child_node.path,
-                                     sizeof(child_node.path),
+                if (!build_full_path(lnb->nodes[node_count].path,
+                                     sizeof(lnb->nodes[node_count].path),
                                      current_node->path,
                                      entry->d_name,
-                                     &child_node.path_len)) {
+                                     &lnb->nodes[node_count].path_len)) {
                     atomic_fetch_add(&lf->error_count, 1);
                     if (lf->report_errors) {
                         pthread_mutex_lock(&lf->output_mutex);
                         fprintf(stderr, "PATH_TOO_LONG,%s/%s\n",
-                                child_node.path, entry->d_name);
+                                lnb->nodes[node_count].path, entry->d_name);
                         pthread_mutex_unlock(&lf->output_mutex);
                     }
                     continue;
@@ -1195,7 +1294,6 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                 // --------------------------------------------------------
                 if (lf->max_depth != 0 && current_node->depth + 1 >= lf->max_depth)
                     continue;
-                child_node.depth = current_node->depth + 1;
 #ifdef CYCLE_DETECTION
                 if (lf->report_badlinks) {
                     int i;
@@ -1211,14 +1309,19 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                     child_node.dev_ino[0].ino = 0;
                 }
 #endif
-                if (mpmc_enqueue(lf, &child_node)) {
+                lnb->nodes[node_count].depth = current_node->depth + 1;
+                lnb->nodes[node_count].dev = st.st_dev;
+                lnb->nodes[node_count].ino = st.st_ino;
+
+                if (mpmc_enqueue(lf, lnb, node_count)) {
                     // Success! Track it as a new outstanding global task
-                    atomic_fetch_add_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
+                    atomic_fetch_add_explicit(&lf->ctx->active_workers, 1, memory_order_relaxed);
                 } else {
                     // QUEUE FULL: Run inline recursively.
                     // We DO NOT touch the counter here because the thread is
                     // staying within its current execution bubble.
-                    finder(lf, &child_node);
+                    finder(lf, lnb, &lnb->nodes[node_count]);
+                    node_count--;
                 }
                 // --------------------------------------------------------
                 // CONDITIONALLY PRINT THE DIRECTORY
@@ -1230,7 +1333,7 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                     if (lf->hidden_only)
                         continue;
                 }
-                scan_file(child_node.path, &child_node.path_len, lf, effective_type, &st, &output);
+                scan_file(lnb->nodes[node_count].path, &lnb->nodes[node_count].path_len, lf, effective_type, &st, &output);
             } else {
                 // --------------------------------------------------------
                 // NOT DIRECTORY - CONDITIONALLY PRINT THE ENTRY

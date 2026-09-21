@@ -63,7 +63,7 @@ CX:=-std=gnu2y
 CC:=gcc $(CX) $(INCLUDE_DIRS)
 
 BINEXES:=menu form pick view ckeys whence rsh rsh_static \
-	rsh_pam iloan amort enterchr enterstr lf stripansi detach
+	rsh_pam iloan amort enterchr enterstr lf lf5 stripansi detach
 ifeq ($(UI), "-DNOTCURSES_UI")
 BINEXES+=ui_hello ui_visual
 endif
@@ -192,6 +192,9 @@ ui_visual:	ui_visual.c $(COMMON_OBJS) $(LIB_SHARED)
 lf: lf.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)
 
+lf5: lf5.c $(LIB_SHARED)
+	$(CC) $< -o $@ $(LDFLAGS)
+
 %:	%.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)
 
@@ -277,7 +280,7 @@ valgrind: menu
 install:
 	rm -f	$(INSTALL_LIB_DIR)/libcm*
 	install -CDp 	$(COMMON_HDRS)	-t $(PREFIX)/include
-	install -CDp	menu whence lf detach enterchr enterstr \
+	install -CDp	menu whence lf lf5 detach enterchr enterstr \
 		iloan amort stripansi -t $(INSTALL_BIN_DIR)
 	install -Dp -o root -g root -m 6711	rsh rsh_static rsh_pam -t $(INSTALL_BIN_DIR)
 	install -CDp $(LIB_STATIC) -t $(INSTALL_LIB_DIR)
@@ -320,4 +323,5 @@ uninstall:
 	$(INSTALL_BIN_DIR)/enterstr \
 	$(INSTALL_BIN_DIR)/stripansi \
 	$(INSTALL_BIN_DIR)/lf \
+	$(INSTALL_BIN_DIR)/lf5 \
 	$(INSTALL_LIB_DIR)/libcm.so
