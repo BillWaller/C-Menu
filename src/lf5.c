@@ -44,7 +44,8 @@
 #define MAX_DEPTH 64
 #define DIR_BUF_SIZE 262144
 #define CACHE_LINE_SIZE 64
-#define CHUNK_CAPACITY 4096 // Nodes per thread-local block (approx 98 KB per chunk)
+#define CHUNK_CAPACITY 1024 // Nodes per thread-local block (approx 98 KB per chunk)
+#define LNB_CAPACITY 10
 
 typedef struct {
     dev_t dev;
@@ -54,11 +55,10 @@ typedef struct {
 
 typedef struct {
     FSNode nodes[CHUNK_CAPACITY];
-    size_t count;
+    size_t idx;
 } FSNodeBuffer;
 
 typedef struct {
-    alignas(CACHE_LINE_SIZE) _Atomic size_t sequence;
     dev_t dev;
     ino_t ino;
     uint16_t depth;
@@ -67,12 +67,13 @@ typedef struct {
 } QueueNode;
 
 typedef struct {
-    QueueNode nodes[CHUNK_CAPACITY];
-    size_t count;
+    QueueNode nodes[LNB_CAPACITY];
+    size_t idx;
 } LocalNodeBuffer;
 
 typedef struct {
-    alignas(CACHE_LINE_SIZE) _Atomic size_t sequence[QUEUE_CAPACITY];
+    alignas(CACHE_LINE_SIZE) _Atomic size_t sequence;
+    alignas(CACHE_LINE_SIZE) _Atomic size_t sequences[QUEUE_CAPACITY];
     alignas(CACHE_LINE_SIZE) _Atomic size_t enqueue_pos;
     alignas(CACHE_LINE_SIZE) _Atomic size_t dequeue_pos;
     QueueNode nodes[QUEUE_CAPACITY];
@@ -82,8 +83,8 @@ typedef struct {
     MPMCQueue queue;
     pthread_mutex_t cv_mutex;
     pthread_cond_t cv_cond;
-    _Atomic int32_t active_workers; // Number of active workers
-    _Atomic bool should_terminate;
+    _Atomic int32_t active_tasks; // Number of active workers
+    _Atomic bool shut_down;
 } ThreadPoolContext;
 
 // Global tracker for a block of nodes
@@ -141,7 +142,6 @@ TerminationStatus termination_status;
 typedef struct {
     MPMCQueue *q;
     ThreadPoolContext *ctx;
-    LocalNodeBuffer *lnb;
     pthread_t *threads;
     unsigned int nthreads;
     atomic_size_t file_count;
@@ -204,7 +204,7 @@ void debug_out(LfContext *lf, int, char **);
 bool init_lf(LfContext *lf, int, char **);
 void sort_lf_output(LfContext *lf, int, char **);
 MPMCQueue *mpmc_queue_init();
-size_t mpmc_enqueue(LfContext *lf, LocalNodeBuffer *lnb, size_t count);
+size_t mpmc_enqueue(LfContext *lf, LocalNodeBuffer *lnb, size_t *count);
 bool mpmc_dequeue(LfContext *, QueueNode *task);
 void *worker(void *arg);
 void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node);
@@ -638,13 +638,13 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
         lnb->nodes[0].depth = 0;
         lnb->nodes[0].dev = st.st_dev;
         lnb->nodes[0].ino = st.st_ino;
-        lnb->nodes[0].sequence = 0;
-        if (!mpmc_enqueue(lf, lnb, 1)) {
+        lnb->idx = 1;
+        if (!mpmc_enqueue(lf, lnb, &lnb->idx)) {
             fprintf(stderr, "Failed to enqueue initial directory\n");
             return false;
         }
         free(lnb);
-        atomic_fetch_add_explicit(&lf->ctx->active_workers, 1, memory_order_relaxed);
+        atomic_init(&ctx->active_tasks, 1);
         //------------------------------------------------------------
         // INITIALIZE THREADS
         //------------------------------------------------------------
@@ -662,7 +662,7 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
 
             if (rc != 0) {
                 fprintf(stderr, "Error: Unable to create thread %d\n", rc);
-                lf->ctx->should_terminate = 1;
+                lf->ctx->shut_down = 1;
                 termination_status = TS_ERROR;
                 return false;
             }
@@ -903,7 +903,8 @@ MPMCQueue *mpmc_queue_init() {
     if (q == nullptr)
         return nullptr;
     for (size_t i = 0; i < QUEUE_CAPACITY; i++)
-        atomic_init(&q->sequence[i], i);
+        atomic_init(&q->sequences[i], i);
+    atomic_init(&q->sequence, 0);
     atomic_init(&q->enqueue_pos, 0);
     atomic_init(&q->dequeue_pos, 0);
     return q;
@@ -911,40 +912,48 @@ MPMCQueue *mpmc_queue_init() {
 // ----------------------------------------------------------------------
 // MPMC_ENQUEUE
 // ----------------------------------------------------------------------
-size_t mpmc_enqueue(LfContext *lf, LocalNodeBuffer *lnb, size_t count) {
+/** @brief Enqueue multiple nodes into the MPMCQueue.
+    @param lf A pointer to the LfContext struct containing the queue context.
+    @param lnb A pointer to the LocalNodeBuffer containing the nodes to enqueue.
+    @param count The number of nodes to enqueue from the LocalNodeBuffer.
+    @return The number of nodes successfully enqueued, or 0 if the queue is full.
+    @details This function attempts to enqueue multiple nodes from a LocalNodeBuffer into the MPMCQueue. It uses atomic operations to ensure thread-safe access to the queue's enqueue position. If the queue is full, it returns 0. If successful, it signals any waiting consumer threads that new data is available.
+   */
+size_t mpmc_enqueue(LfContext *lf, LocalNodeBuffer *lnb, size_t *count) {
     if (count == 0)
         return 0;
     ThreadPoolContext *ctx = lf->ctx;
     MPMCQueue *q = &ctx->queue;
     size_t pos = atomic_load_explicit(&q->enqueue_pos, memory_order_relaxed);
+
     while (true) {
         size_t current_dequeue = atomic_load_explicit(&q->dequeue_pos, memory_order_acquire);
         size_t occupied = pos - current_dequeue;
         if (occupied >= QUEUE_CAPACITY)
             return 0;
         size_t available = QUEUE_CAPACITY - occupied;
-        size_t to_reserve = (count > available) ? available : count;
+        size_t to_reserve = (*count > available) ? available : *count;
         bool was_empty = (occupied == 0);
         if (atomic_compare_exchange_strong_explicit(&q->enqueue_pos, &pos, pos + to_reserve,
                                                     memory_order_relaxed, memory_order_relaxed)) {
             for (size_t i = 0; i < to_reserve; i++) {
                 size_t target_pos = pos + i;
                 QueueNode *node = &q->nodes[target_pos & QUEUE_MASK];
-                while (atomic_load_explicit(&node->sequence, memory_order_acquire) != target_pos) {
+                while (atomic_load_explicit(&q->sequence, memory_order_acquire) != target_pos) {
 #if defined(__x86_64__)
                     __builtin_ia32_pause();
 #endif
                 }
                 node->dev = lnb->nodes[i].dev;
                 node->ino = lnb->nodes[i].ino;
-                node->depth = lnb->nodes[i].path_len;
-                size_t len = lnb->nodes[i].depth;
+                node->depth = lnb->nodes[i].depth;
+                size_t len = lnb->nodes[i].path_len;
                 if (len >= MAX_PATH_LEN)
                     len = MAX_PATH_LEN - 1;
+                node->path_len = len;
                 memcpy(node->path, lnb->nodes[i].path, lnb->nodes[i].path_len);
-                node->path_len = lnb->nodes[i].path_len;
                 // Release data to consumers
-                atomic_store_explicit(&node->sequence, target_pos + 1, memory_order_release);
+                atomic_store_explicit(&q->sequence, target_pos + 1, memory_order_release);
             }
             if (was_empty || to_reserve > 4) {
                 pthread_mutex_lock(&ctx->cv_mutex);
@@ -955,7 +964,6 @@ size_t mpmc_enqueue(LfContext *lf, LocalNodeBuffer *lnb, size_t count) {
                 }
                 pthread_mutex_unlock(&ctx->cv_mutex);
             }
-
             return to_reserve;
         }
     }
@@ -963,33 +971,48 @@ size_t mpmc_enqueue(LfContext *lf, LocalNodeBuffer *lnb, size_t count) {
 // ----------------------------------------------------------------------
 // MPMC_DEQUEUE
 // ----------------------------------------------------------------------
+/** @brief Dequeue a node from the MPMCQueue.
+    @param lf A pointer to the LfContext struct containing the queue context.
+    @param task A pointer to a QueueNode where the dequeued node will be stored.
+    @return true if a node was successfully dequeued, false if the queue is empty or termination is signaled.
+    @details This function attempts to dequeue a node from the MPMCQueue. It uses atomic operations to ensure thread-safe access to the queue's dequeue position. If the queue is empty, it yields the processor to allow other threads to enqueue data. If termination is signaled, it returns false.
+   */
 bool mpmc_dequeue(LfContext *lf, QueueNode *task) {
-    size_t pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
+    ThreadPoolContext *ctx = lf->ctx;
+    MPMCQueue *q = &ctx->queue;
+
+    size_t pos = atomic_load_explicit(&q->dequeue_pos, memory_order_relaxed);
     while (true) {
-        if (atomic_load_explicit(&lf->ctx->should_terminate, memory_order_relaxed))
+        if (atomic_load_explicit(&ctx->shut_down, memory_order_relaxed))
             return false;
-        size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
+        size_t seq = atomic_load_explicit(&q->sequence, memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)(pos + 1);
         if (diff == 0) {
-            if (atomic_compare_exchange_strong_explicit(&lf->q->dequeue_pos, &pos, pos + 1,
+            if (atomic_compare_exchange_strong_explicit(&q->dequeue_pos, &pos, pos + 1,
                                                         memory_order_relaxed, memory_order_relaxed)) {
                 break;
             }
         } else if (diff < 0) {
             sched_yield();
         } else {
-            pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
+            pos = atomic_load_explicit(&q->dequeue_pos, memory_order_relaxed);
         }
     }
     QueueNode *node;
-    node = &lf->q->nodes[pos & QUEUE_MASK];
+    node = &q->nodes[pos & QUEUE_MASK];
     *task = *node;
-    atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + QUEUE_CAPACITY, memory_order_release);
+    atomic_store_explicit(&q->sequences[pos & QUEUE_MASK], pos + QUEUE_CAPACITY, memory_order_release);
     return true;
 }
 // ----------------------------------------------------------------------
 // WORKER_DEQUEUE_AND_CHECK
 // ----------------------------------------------------------------------
+/** @brief Dequeue a node and check for termination conditions.
+    @param lf A pointer to the LfContext struct containing the queue context.
+    @param out_node A pointer to a QueueNode where the dequeued node will be stored.
+    @return true if a node was successfully dequeued, false if termination is signaled or the queue is empty and all workers are inactive.
+    @details This function attempts to dequeue a node from the MPMCQueue. It first tries a lock-free fast path to dequeue. If the queue is empty, it acquires a mutex to safely transition to sleep without missing any wake-up signals. It checks for global termination conditions and wakes up other threads if necessary. The function ensures that active worker counts are managed correctly to determine when the entire directory traversal is complete.
+   */
 bool worker_dequeue_and_check(LfContext *lf, QueueNode *out_node) {
 
     ThreadPoolContext *ctx = lf->ctx;
@@ -1002,7 +1025,7 @@ bool worker_dequeue_and_check(LfContext *lf, QueueNode *out_node) {
         }
 
         // Check if the system was explicitly told to shut down
-        if (atomic_load_explicit(&ctx->should_terminate, memory_order_relaxed)) {
+        if (atomic_load_explicit(&ctx->shut_down, memory_order_relaxed)) {
             return false;
         }
 
@@ -1018,13 +1041,13 @@ bool worker_dequeue_and_check(LfContext *lf, QueueNode *out_node) {
         }
 
         // Decrement active workers because this thread is about to go to sleep
-        int32_t remaining_workers = atomic_fetch_sub_explicit(&ctx->active_workers, 1, memory_order_acq_rel) - 1;
+        int32_t remaining_workers = atomic_fetch_sub_explicit(&ctx->active_tasks, 1, memory_order_acq_rel) - 1;
 
         // --- GLOBAL TERMINATION CONDITION CHECK ---
         // If the queue is empty AND there are absolutely no active workers left in the field,
         // it means the entire directory tree traversal is fully complete.
         if (remaining_workers == 0) {
-            atomic_store_explicit(&ctx->should_terminate, true, memory_order_relaxed);
+            atomic_store_explicit(&ctx->shut_down, true, memory_order_relaxed);
 
             // Wake up all other sleeping threads so they can clean up and exit
             pthread_cond_broadcast(&ctx->cv_cond);
@@ -1033,7 +1056,7 @@ bool worker_dequeue_and_check(LfContext *lf, QueueNode *out_node) {
         }
 
         // Re-verify termination flag inside the lock
-        if (atomic_load_explicit(&ctx->should_terminate, memory_order_relaxed)) {
+        if (atomic_load_explicit(&ctx->shut_down, memory_order_relaxed)) {
             pthread_mutex_unlock(&ctx->cv_mutex);
             return false;
         }
@@ -1044,7 +1067,7 @@ bool worker_dequeue_and_check(LfContext *lf, QueueNode *out_node) {
 
         // --- 4. WAKING UP ---
         // We have re-acquired the mutex. Increment active workers back up before releasing lock.
-        atomic_fetch_add_explicit(&ctx->active_workers, 1, memory_order_relaxed);
+        atomic_fetch_add_explicit(&ctx->active_tasks, 1, memory_order_relaxed);
         pthread_mutex_unlock(&ctx->cv_mutex);
 
         // Loop back around to try peeling an entry out of the queue again
@@ -1053,6 +1076,11 @@ bool worker_dequeue_and_check(LfContext *lf, QueueNode *out_node) {
 // ----------------------------------------------------------------------
 // WORKER
 // ----------------------------------------------------------------------
+/** @brief Worker thread function for processing directory nodes.
+    @param arg A pointer to the LfContext struct containing the queue context.
+    @return NULL upon completion.
+    @details This function represents a worker thread that continuously dequeues directory nodes from the MPMCQueue and processes them using the finder function. It checks for termination conditions and manages the active task count. The worker will exit when there are no more tasks to process or when termination is signaled.
+   */
 void *worker(void *arg) {
     LfContext *lf = (LfContext *)arg;
     QueueNode node; // node becomes a task
@@ -1060,8 +1088,8 @@ void *worker(void *arg) {
     while (true) {
         if (worker_dequeue_and_check(lf, &node)) {
             finder(lf, lnb, &node);
-            if (atomic_fetch_sub_explicit(&lf->ctx->active_workers, 1, memory_order_acq_rel) == 1)
-                atomic_store_explicit(&lf->ctx->should_terminate, true, memory_order_relaxed);
+            if (atomic_fetch_sub_explicit(&lf->ctx->active_tasks, 1, memory_order_acq_rel) == 1)
+                atomic_store_explicit(&lf->ctx->shut_down, true, memory_order_relaxed);
         } else
             break; // shutdown detected
     }
@@ -1071,6 +1099,13 @@ void *worker(void *arg) {
 // ----------------------------------------------------------------------
 // FINDER
 // ----------------------------------------------------------------------
+/** @brief Process a directory node and enqueue its children.
+    @param lf A pointer to the LfContext struct containing the queue context.
+    @param lnb A pointer to a LocalNodeBuffer for storing child nodes.
+    @param current_node A pointer to the QueueNode representing the current directory node to process.
+    @return NULL upon completion.
+    @details This function processes a directory node by reading its entries, applying filters, and enqueuing child directories for further processing. It handles errors, symbolic links, and various file types according to the specified options in the LfContext. The function uses low-level system calls for efficient directory traversal and metadata retrieval.
+   */
 void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node) {
     OutputBuffer output = {{'\0'}, 0};
     long nread;
@@ -1078,9 +1113,10 @@ void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node) {
     struct stat st = {};
     struct linux_dirent64 *entry;
     unsigned char effective_type;
+    bool restart_lnb_idx = false;
     char full_path[MAX_PATH_LEN] = {'\0'};
-    size_t node_count = 0;
     int rc;
+    lnb->idx = 0;
     int dir_fd = open(current_node->path, O_RDONLY | O_DIRECTORY);
     if (dir_fd == -1) {
         atomic_fetch_add(&lf->error_count, 1);
@@ -1089,7 +1125,7 @@ void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node) {
             fprintf(stderr, "OPEN_FAIL,%s,%s\n", current_node->path, strerror(errno));
             pthread_mutex_unlock(&lf->output_mutex);
         }
-        atomic_fetch_sub(&lf->ctx->active_workers, 1);
+        atomic_fetch_sub(&lf->ctx->active_tasks, 1);
         flush_output_buffer(lf, &output);
         return NULL;
     }
@@ -1148,6 +1184,7 @@ void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node) {
                 //--------------------------------------------------------------------
                 // GET ADVANCED METADATA
                 //--------------------------------------------------------------------
+                // We avoid using lstat or stat unless there is a specific need.
                 rc = fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW);
                 if (rc == -1) {
                     atomic_fetch_add(&lf->error_count, 1);
@@ -1208,36 +1245,30 @@ void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node) {
                 //--------------------------------------------------------------------
                 // PROCESS DIRECTORY ENTRY
                 //--------------------------------------------------------------------
-                if (!build_full_path(lnb->nodes[node_count].path,
-                                     sizeof(lnb->nodes[node_count].path),
+                if (!build_full_path(lnb->nodes[lnb->idx].path,
+                                     sizeof(lnb->nodes[lnb->idx].path),
                                      current_node->path,
                                      entry->d_name,
-                                     &lnb->nodes[node_count].path_len)) {
+                                     &lnb->nodes[lnb->idx].path_len)) {
                     atomic_fetch_add(&lf->error_count, 1);
                     if (lf->report_errors) {
                         pthread_mutex_lock(&lf->output_mutex);
                         fprintf(stderr, "PATH_TOO_LONG,%s/%s\n",
-                                lnb->nodes[node_count].path, entry->d_name);
+                                lnb->nodes[lnb->idx].path, entry->d_name);
                         pthread_mutex_unlock(&lf->output_mutex);
                     }
                     continue;
                 }
 #ifdef CYCLE_DETECTION
-                // Determine the effective type of the entry. We use the st_mode
-                // field from the stat struct to determine the file type by
-                // applying the S_IFMT mask and shifting it to get a value that
-                // corresponds to the DT_* constants. If the entry is a symbolic
-                // link and the user has chosen not to follow links, we treat it
-                // as a directory for the purpose of deciding whether to enqueue
-                // it for further searching. This allows us to handle symbolic
-                // links that point to directories in a way that respects the
-                // user's options while still allowing for traversal of linked
-                // directories if desired.
+                // CYCLE_DETECTION: has been disabled temporarily because I
+                // don't like the design and I don't want to maintain it. My
+                // original thinking was that I might remove previously visited
+                // nodes from memory but that probably isn't necessary. So,
+                // instead of copying and maintaining a growing list of dev/ino
+                // pairs history with each node, I will use a pointer to each
+                // node's parent and traverse the parent chain to check for
+                // cycles. This will be more efficient.
                 //
-                // Check for cycles by comparing the current
-                // directory's dev/inode with the history of dev/inode pairs
-                // from parent directories. If a match is found, it
-                // indicates a cycle and we skip processing this directory.
                 if (effective_type == DT_LNK && lf->report_badlinks) {
                     bool cycle_found = false;
                     for (int i = 0; i < current_node->depth; i++) {
@@ -1279,16 +1310,6 @@ void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node) {
                     }
                 }
 #endif
-                //-------------------------------------------------------
-                // We duplicate the current history of dev/inode pairs and
-                // add the current directory's dev/inode to the new history
-                // for the child task. This allows us to maintain a record
-                // of the directories we've visited in the current path,
-                // which is essential for cycle detection. By checking this
-                // history for each new directory we encounter, we can
-                // effectively prevent infinite loops caused by symbolic
-                // links or hard links that create cycles in the directory
-                // structure.
                 // --------------------------------------------------------
                 // BUILD AND ENQUEUE CHILD TASK
                 // --------------------------------------------------------
@@ -1309,22 +1330,26 @@ void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node) {
                     child_node.dev_ino[0].ino = 0;
                 }
 #endif
-                lnb->nodes[node_count].depth = current_node->depth + 1;
-                lnb->nodes[node_count].dev = st.st_dev;
-                lnb->nodes[node_count].ino = st.st_ino;
-
-                if (mpmc_enqueue(lf, lnb, node_count)) {
-                    // Success! Track it as a new outstanding global task
-                    atomic_fetch_add_explicit(&lf->ctx->active_workers, 1, memory_order_relaxed);
-                } else {
-                    // QUEUE FULL: Run inline recursively.
-                    // We DO NOT touch the counter here because the thread is
-                    // staying within its current execution bubble.
-                    finder(lf, lnb, &lnb->nodes[node_count]);
-                    node_count--;
+                // --------------------------------------------------------
+                // BATCH NODES
+                // --------------------------------------------------------
+                // We batch nodes to reduce the number of enqueue operations. Each worker thread maintains a local buffer of nodes (lnb). When the buffer reaches its capacity, we enqueue all the nodes in one operation. This reduces contention on the shared queue and improves performance. We also keep track of the depth of each node to enforce the maximum depth limit.
+                lnb->nodes[lnb->idx].depth = current_node->depth + 1;
+                lnb->nodes[lnb->idx].dev = st.st_dev;
+                lnb->nodes[lnb->idx].ino = st.st_ino;
+                if (lnb->idx == LNB_CAPACITY) {
+                    size_t queued = mpmc_enqueue(lf, lnb, &lnb->idx);
+                    if (queued > 0) {
+                        atomic_fetch_add_explicit(&lf->ctx->active_tasks, LNB_CAPACITY - queued, memory_order_relaxed);
+                    }
+                    if (lnb->idx > queued) {
+                        fprintf(stderr, "LNB Overrun - 1\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    restart_lnb_idx = true;
                 }
                 // --------------------------------------------------------
-                // CONDITIONALLY PRINT THE DIRECTORY
+                // DIRECTORY - CONDITIONALLY PRINT
                 // --------------------------------------------------------
                 if (entry->d_name[0] == '.') {
                     if (!lf->include_hidden && !lf->hidden_only)
@@ -1333,10 +1358,15 @@ void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node) {
                     if (lf->hidden_only)
                         continue;
                 }
-                scan_file(lnb->nodes[node_count].path, &lnb->nodes[node_count].path_len, lf, effective_type, &st, &output);
+                scan_file(lnb->nodes[lnb->idx].path, &lnb->nodes[lnb->idx].path_len, lf, effective_type, &st, &output);
+                if (restart_lnb_idx) {
+                    lnb->idx = 0;
+                } else
+                    lnb->idx++;
+                restart_lnb_idx = false;
             } else {
                 // --------------------------------------------------------
-                // NOT DIRECTORY - CONDITIONALLY PRINT THE ENTRY
+                // NOT DIRECTORY - CONDITIONALLY PRINT
                 // --------------------------------------------------------
                 if (entry->d_name[0] == '.') {
                     if (!lf->include_hidden && !lf->hidden_only)
@@ -1365,6 +1395,19 @@ void *finder(LfContext *lf, LocalNodeBuffer *lnb, QueueNode *current_node) {
         }
     }
     close(dir_fd);
+    if (lnb->idx > 0) {
+        // -----------------------------------------------------------
+        // ENQUEUE REMAINING NODES
+        // -----------------------------------------------------------
+        size_t queued = mpmc_enqueue(lf, lnb, &lnb->idx);
+        if (queued > 0) {
+            atomic_fetch_add_explicit(&lf->ctx->active_tasks, queued, memory_order_relaxed);
+        }
+        if (lnb->idx > queued) {
+            fprintf(stderr, "LNB Overrun - 2\n");
+            exit(EXIT_FAILURE);
+        }
+    }
     flush_output_buffer(lf, &output);
     return NULL;
 }
@@ -1467,6 +1510,11 @@ int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
             }
             append_output_buffer(lf, output, display_path, display_len,
                                  effective_type == DT_DIR);
+            if (strcmp(display_path, "photos/scriou.c") == 0) {
+                pthread_mutex_lock(&lf->output_mutex);
+                printf("DEBUG: %s\n", display_path);
+                pthread_mutex_unlock(&lf->output_mutex);
+            }
         }
         break;
     }
