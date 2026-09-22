@@ -136,6 +136,10 @@ providing a variety of options for customizing the search criteria.
     Use -R to sort the results in ascending order. By default, results
     are not sorted.
 
+    Note: This option invokes the sort command to sort the results. It is likely
+    that the user can obtain better results by piping the output of lf through
+    a custom sort command taylored to the specific needs of the application.
+
 -t, --include_types=pcdbflsu
 
     p-pipe
@@ -196,6 +200,10 @@ List all files in the current directory and its subdirectories that have a .txt 
 
     lf -r '.*\.txt$'
 
+List all C source files in the /usr/src directory that were modified after January 1, 2025:
+
+    lf -r '.*\.[ch]$' -a 2025-01-01T00:00:00 /usr/src
+
 List all files in the /var/log directory that are larger than 100 megabytes:
 
     lf -s 100M /var/log
@@ -207,6 +215,10 @@ List all files in the /home directory that were modified after January 1, 2025:
 List all files in the /usr directory that are owned by the user "bill":
 
     lf -u bill /usr
+
+List only broken or cyclic symbolic links:
+
+    lf -D58 /path/to/directory
 
 List all files in the /tmp directory that are symbolic links:
 
@@ -220,13 +232,24 @@ List all files in the /home directory that have a .log extension and were modifi
 
     lf -r '.*\.log$' -b 2025-06-01T00:00:00 /home
 
-List broken or bad symbolic links:
-
-    lf -D458 /path/to/directory
-
 Count the number of files in a directory tree using 7 threads:
 
     lf -L -H -T7 /path/to/directory | wc -l
+
+Compare number of files found in the current working directory by find, fd, and lf:
+
+    find . | wc -l
+    581
+
+    fd . -H -I | wc -l
+    580
+
+    lf -H | wc -l
+    580
+
+    Note: Subtract 1 from the count reported by find as it includes the top-level
+    base path. fd and lf do not include the top-level base path as that would be
+    tautilogical.
 
 # REPORTING BUGS
 

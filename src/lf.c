@@ -46,40 +46,36 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-// #define CYCLE_DETECTION 1
+#define CYCLE_DETECTION 1
 #define QUEUE_CAPACITY 16384
 #define QUEUE_MASK (QUEUE_CAPACITY - 1)
 #define MAX_PATH_LEN _POSIX_PATH_MAX
 #define MAX_DEPTH 64
 #define DIR_BUF_SIZE 262144
 #define CACHE_LINE_SIZE 64
-typedef struct MPMCQueue MPMCQueue;
-typedef struct QueuePayload QueuePayload;
-typedef struct LocalQueuePayload LocalQueuePayload;
 
-#ifdef CYCLE_DETECTION
-typedef struct {
+typedef struct DevIno {
     dev_t dev;
     ino_t ino;
+    struct DevIno *parent;
 } DevIno;
-DevIno dev_ino[MAX_DEPTH];
-#endif
 
-struct QueuePayload {
+typedef struct {
     size_t path_len;
     uint16_t depth;
     char path[MAX_PATH_LEN];
-    size_t parent_pos;
-};
+    struct DevIno dev_ino;
+} QueuePayload;
 
-struct MPMCQueue {
+typedef struct {
     alignas(CACHE_LINE_SIZE) _Atomic size_t enqueue_pos;
     alignas(CACHE_LINE_SIZE) _Atomic size_t dequeue_pos;
     alignas(CACHE_LINE_SIZE) _Atomic atomic_int active_tasks;
     alignas(CACHE_LINE_SIZE) _Atomic atomic_int shut_down;
     alignas(CACHE_LINE_SIZE) _Atomic size_t sequence[QUEUE_CAPACITY];
     QueuePayload nodes[QUEUE_CAPACITY];
-};
+    DevIno dev_ino[QUEUE_CAPACITY];
+} MPMCQueue;
 
 typedef enum {
     TS_SUCCESS = 0,
@@ -505,14 +501,12 @@ int main(int argc, char **argv) {
     free(lf);
     exit(termination_status);
 }
-// Initialize and transfer control to the finder
-/** If sorting is requested, execute the finder and pipe its output
- * to the sort command. We can achieve this by creating a child
- * process that runs the sort command, and redirecting the output of
- * the file finder to the input of the sort command using a pipe.
- * The parent process will run the finder and write its output to
- * the pipe, while the child process will read from the pipe and
- * execute the sort command. */
+/** @brief Sort the output of the lf command using the system's sort utility.
+    @param lf A pointer to the LfContext struct containing the search settings.
+    @param argc The number of command-line arguments.
+    @param argv An array of command-line argument strings.
+    @details This function sets up a pipeline to sort the output of the lf command. It creates a pipe, forks a child process to execute the sort command, and redirects the standard input and output streams accordingly. The sort command is executed with optional flags for parallel processing and buffer size, as well as a reverse sort option if specified in the LfContext. The function waits for the child process to complete before returning.
+   */
 void sort_lf_output(LfContext *lf, int argc, char **argv) {
     // char tmp_str[MAXLEN];
     char *eargv[MAXARGS];
@@ -557,6 +551,17 @@ void sort_lf_output(LfContext *lf, int argc, char **argv) {
 // ----------------------------------------------------------------------
 // INIT_FIND
 // ----------------------------------------------------------------------
+/** @brief Initialize the file search process.
+    @param lf A pointer to the LfContext struct containing the search settings.
+    @param argc The number of command-line arguments.
+    @param argv An array of command-line argument strings.
+    @return true if initialization is successful, false otherwise.
+    @details This function initializes the file search process based on the
+    provided settings in the LfContext struct. It sets up file type inclusion
+    and suppression, compiles regular expressions if specified, and creates a
+    multi-producer, multi-consumer queue for managing directory traversal tasks.
+    It also initializes threads for concurrent processing of directory entries.
+   */
 bool init_find(LfContext *lf, int argc, char **argv) {
     /** suppress file types that aren't included */
     if (!lf->include_types)
@@ -602,8 +607,9 @@ bool init_find(LfContext *lf, int argc, char **argv) {
             child_node.path_len = strnz__cpy(child_node.path, lf->base_path, MAX_PATH_LEN - 1);
 #ifdef CYCLE_DETECTION
             child_node.depth = 0;
-            child_node.dev_ino[0].dev = st.st_dev;
-            child_node.dev_ino[0].ino = st.st_ino;
+            child_node.dev_ino.dev = st.st_dev;
+            child_node.dev_ino.ino = st.st_ino;
+            child_node.dev_ino.parent = nullptr;
 #endif
             if (!mpmc_enqueue(lf, &child_node)) {
                 fprintf(stderr, "Failed to enqueue initial directory\n");
@@ -669,6 +675,12 @@ bool init_find(LfContext *lf, int argc, char **argv) {
 // ----------------------------------------------------------------------
 // DEBUG_OUT
 // ----------------------------------------------------------------------
+/** @brief Output debug information to stderr.
+    @param lf A pointer to the LfContext struct containing the debug settings.
+    @param argc The number of command-line arguments.
+    @param argv An array of command-line argument strings.
+    @details This function outputs debug information to stderr if debugging is enabled in the LfContext. It includes a timestamp, user information, IP addresses, command-line arguments, and various configuration settings. The output is formatted for readability and includes details about file types, permissions, regex patterns, and other relevant settings.
+   */
 void debug_out(LfContext *lf, int argc, char **argv) {
     char user_str[100];
     char ip_str[MAXLEN];
@@ -792,6 +804,15 @@ void debug_out(LfContext *lf, int argc, char **argv) {
     }
     return;
 }
+/** @brief Build a full file path by concatenating a directory path and a file name.
+    @param dst A pointer to the destination buffer where the full path will be stored.
+    @param dst_size The size of the destination buffer.
+    @param dir_path The directory path to be concatenated.
+    @param name The file name to be concatenated.
+    @param out_len A pointer to a size_t variable where the length of the resulting full path will be stored (optional).
+    @return true if the full path was successfully built, false if an error occurred (e.g., null pointers or insufficient buffer size).
+    @details This function constructs a full file path by concatenating the provided directory path and file name. It ensures that there is a single '/' separator between the directory and file name, and it checks for sufficient buffer size before performing the concatenation. If successful, it null-terminates the resulting string and optionally returns its length.
+   */
 bool build_full_path(char *dst, size_t dst_size, const char *dir_path,
                      const char *name, size_t *out_len) {
     if (dst == nullptr || dir_path == nullptr || name == nullptr || dst_size == 0)
@@ -879,17 +900,21 @@ MPMCQueue *mpmc_queue_init() {
 // ----------------------------------------------------------------------
 // MPMC_ENQUEUE
 // ----------------------------------------------------------------------
+/** @brief Enqueue a task into the MPMCQueue.
+    @param lf A pointer to the LfContext struct containing the queue.
+    @param dir A pointer to the QueuePayload struct representing the task to enqueue.
+    @return true if the task was successfully enqueued, false if the queue is full or an error occurred.
+    @details This function attempts to enqueue a task into the MPMCQueue. It uses atomic operations to ensure thread-safe access to the queue's enqueue position and sequence numbers. If the queue is full, it returns false, allowing for potential recursion or other handling by the caller. The function also includes a spin-wait mechanism to reduce contention when multiple threads are trying to enqueue tasks simultaneously.
+   */
 bool mpmc_enqueue(LfContext *lf, const QueuePayload *dir) {
     size_t pos = atomic_load_explicit(&lf->q->enqueue_pos,
                                       memory_order_relaxed);
     int spin_count = 0;
     const int SPIN_LIMIT = 16;
     while (true) {
-        // Fast tracking check using the clean tracking array
         size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)pos;
         if (diff == 0) {
-            // Weak CAS allows the CPU to immediately fail out if a conflict occurs
             if (atomic_compare_exchange_weak_explicit(&lf->q->enqueue_pos, &pos, pos + 1,
                                                       memory_order_relaxed, memory_order_relaxed)) {
                 break;
@@ -898,20 +923,17 @@ bool mpmc_enqueue(LfContext *lf, const QueuePayload *dir) {
             return false; // Queue is full, trigger recursion
         else
             pos++;
-        // Drop out early if threads are colliding heavily to save context
-        // switching
         if (++spin_count > SPIN_LIMIT)
             return false;
-        // Relieve hardware bus pressure during contention
-        // #if defined(__x86_64__)
-        //         __builtin_ia32_pause();
-        // #endif
+#if defined(__x86_64__)
+        __builtin_ia32_pause();
+#endif
     }
-    // This section is now guaranteed unique to our thread
-    // Only copy the small data footprint
     memcpy(&lf->q->nodes[pos & QUEUE_MASK].path, dir->path, dir->path_len + 1);
     lf->q->nodes[pos & QUEUE_MASK].depth = dir->depth;
     lf->q->nodes[pos & QUEUE_MASK].path_len = dir->path_len;
+    lf->q->dev_ino[pos & QUEUE_MASK].dev = dir->path_len;
+    lf->q->dev_ino[pos & QUEUE_MASK].ino = dir->path_len;
     // Release the block slot to workers
     atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + 1, memory_order_release);
     return true;
@@ -919,6 +941,12 @@ bool mpmc_enqueue(LfContext *lf, const QueuePayload *dir) {
 // ----------------------------------------------------------------------
 // MPMC_DEQUEUE
 // ----------------------------------------------------------------------
+/** @brief Dequeue a task from the MPMCQueue.
+    @param lf A pointer to the LfContext struct containing the queue.
+    @param task A pointer to the QueuePayload struct where the dequeued task will be stored.
+    @return true if a task was successfully dequeued, false if the queue is empty or shut down.
+    @details This function attempts to dequeue a task from the MPMCQueue. It uses atomic operations to ensure thread-safe access to the queue's dequeue position and sequence numbers. If the queue is empty, it yields the processor to reduce contention. If the queue has been shut down, it returns false, allowing for graceful termination of worker threads.
+   */
 bool mpmc_dequeue(LfContext *lf, QueuePayload *task) {
     size_t pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
     while (true) {
@@ -927,21 +955,12 @@ bool mpmc_dequeue(LfContext *lf, QueuePayload *task) {
         size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)(pos + 1);
         if (diff == 0) {
-            // Full slot, try to claim it
-            // Upgraded to strong CAS to avoid spurious fails under high contention
             if (atomic_compare_exchange_strong_explicit(&lf->q->dequeue_pos, &pos, pos + 1,
                                                         memory_order_relaxed, memory_order_relaxed)) {
                 break;
             }
         } else if (diff < 0) { // Queue is temporarily empty
-            // If the global shutdown was triggered while we were waiting, exit smoothly
-            // if (atomic_load_explicit(&lf->q->shut_down, memory_order_relaxed))
-            //     return false;
-            // Back off to prevent high-core cache bus starvation
             sched_yield();
-            // Reload pos because another thread might have advanced it
-            // pos = atomic_load_explicit(&lf->q->dequeue_pos,
-            // memory_order_relaxed);
         } else {
             pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
         }
@@ -949,13 +968,17 @@ bool mpmc_dequeue(LfContext *lf, QueuePayload *task) {
     QueuePayload *node;
     node = &lf->q->nodes[pos & QUEUE_MASK];
     *task = *node;
-    // Release the slot back to producers (advancing sequence by capacity)
     atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + QUEUE_CAPACITY, memory_order_release);
     return true;
 }
 // ----------------------------------------------------------------------
 // WORKER
 // ----------------------------------------------------------------------
+/** @brief Worker thread function that processes tasks from the MPMCQueue.
+    @param arg A pointer to the LfContext struct containing the queue and other context information.
+    @return NULL upon completion.
+    @details This function runs in a loop, dequeuing tasks from the MPMCQueue and processing them using the finder function. It decrements the active task count after processing each task. If the active task count reaches zero, it sets the shut_down flag to true, signaling other threads to terminate. The function exits when there are no more tasks to process or when a shutdown is detected.
+   */
 void *worker(void *arg) {
     LfContext *lf = (LfContext *)arg;
     QueuePayload node; // node becomes a task
@@ -965,13 +988,19 @@ void *worker(void *arg) {
             if (atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_acq_rel) == 1)
                 atomic_store_explicit(&lf->q->shut_down, true, memory_order_relaxed);
         } else
-            break; // shutdown detected
+            break;
     }
     return NULL;
 }
 // ----------------------------------------------------------------------
 // FINDER
 // ----------------------------------------------------------------------
+/** @brief Process a directory and its entries, applying filters and enqueuing subdirectories.
+    @param lf A pointer to the LfContext struct containing the queue and other context information.
+    @param current_node A pointer to the QueuePayload struct representing the current directory to process.
+    @return NULL upon completion.
+    @details This function opens the specified directory, reads its entries, and processes each entry according to the specified filters (e.g., file types, hidden files, max depth). It uses fstatat to get metadata for each entry and determines the effective type. If an entry is a directory and meets the criteria, it is enqueued for further processing. The function handles errors gracefully, logging them if necessary, and ensures that output is written in a thread-safe manner.
+   */
 void *finder(LfContext *lf, QueuePayload *current_node) {
     OutputBuffer output = {{'\0'}, 0};
     long nread;
@@ -993,18 +1022,18 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
         flush_output_buffer(lf, &output);
         return NULL;
     }
-    // Read the directory entries and process each one. We use readdir to
-    // iterate over the entries in the directory. For each entry, we
-    // construct the full path and use fstatat to get the metadata of
-    // the entry. If the entry is a symbolic link, we check if the user
-    // has chosen to follow links and get the metadata of the target it
-    // points to. We then determine the effective type of the entry and
-    // apply the specified filters (e.g., hidden files, max depth) to
-    // decide whether to process it further or enqueue it for searching.
     while (1) {
         //--------------------------------------------------------------------
         // READ DIRECTORY
         //--------------------------------------------------------------------
+        // Read the directory entries and process each one. We use readdir to
+        // iterate over the entries in the directory. For each entry, we
+        // construct the full path and use fstatat to get the metadata of
+        // the entry. If the entry is a symbolic link, we check if the user
+        // has chosen to follow links and get the metadata of the target it
+        // points to. We then determine the effective type of the entry and
+        // apply the specified filters (e.g., hidden files, max depth) to
+        // decide whether to process it further or enqueue it for searching.
         nread = syscall(SYS_getdents64, dir_fd, dir_buf, DIR_BUF_SIZE);
         if (nread == -1) {
             atomic_fetch_add(&lf->error_count, 1);
@@ -1031,6 +1060,11 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
             // whether to follow links or not). If fstatat fails, we log the
             // error (if debugging is enabled) and continue to the next
             // entry without processing this one further.
+            if (strcmp(entry->d_name, "TEST_CYCLIC_LINK") == 0) {
+                pthread_mutex_lock(&lf->output_mutex);
+                fprintf(stderr, "TEST_CYCLIC_LINK\n");
+                pthread_mutex_unlock(&lf->output_mutex);
+            }
             full_path[0] = '\0';
             effective_type = entry->d_type;
             if (effective_type == DT_DIR) {
@@ -1048,6 +1082,8 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                 //--------------------------------------------------------------------
                 // GET ADVANCED METADATA
                 //--------------------------------------------------------------------
+                // We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata of the
+                // symbolic link itself, rather than the target it points to. This allows us to determine if the entry is a symbolic link and handle it according to the user's options (e.g., whether to follow links or not). If fstatat fails, we log the error (if debugging is enabled) and continue to the next entry without processing this one further.
                 rc = fstatat(dir_fd, entry->d_name, &st, AT_SYMLINK_NOFOLLOW);
                 if (rc == -1) {
                     atomic_fetch_add(&lf->error_count, 1);
@@ -1065,18 +1101,18 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                     continue;
                 }
                 effective_type = (st.st_mode & S_IFMT) >> 12;
-                // Determine the real type of the entry. If the entry is a
-                // symbolic link, we set real_type to DT_LNK and then attempt to
-                // get the metadata of the target it points to using fstatat
-                // without AT_SYMLINK_NOFOLLOW. This allows us to determine the
-                // effective type of the entry based on the target's metadata,
-                // which is important for deciding how to process it (e.g.,
-                // whether it's a directory that we should enqueue for further
-                // searching). If fstatat fails when trying to get the target's
-                // metadata, we log the error (if debugging is enabled) but
-                // continue processing the entry based on its symbolic link
-                // metadata.
                 if (S_ISLNK(st.st_mode)) {
+                    // Determine the real type of the entry. If the entry is a
+                    // symbolic link, we set real_type to DT_LNK and then attempt to
+                    // get the metadata of the target it points to using fstatat
+                    // without AT_SYMLINK_NOFOLLOW. This allows us to determine the
+                    // effective type of the entry based on the target's metadata,
+                    // which is important for deciding how to process it (e.g.,
+                    // whether it's a directory that we should enqueue for further
+                    // searching). If fstatat fails when trying to get the target's
+                    // metadata, we log the error (if debugging is enabled) but
+                    // continue processing the entry based on its symbolic link
+                    // metadata.
                     if (lf->follow_links) {
                         //------------------------------------------------------------
                         // GET LINK METADATA
@@ -1108,6 +1144,7 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                 //--------------------------------------------------------------------
                 // PROCESS DIRECTORY ENTRY
                 //--------------------------------------------------------------------
+                // We build the full path for the child directory and check if it exceeds the maximum path length. If it does, we log an error and continue to the next entry. If the child directory is within the allowed depth, we create a new QueuePayload for it, copying the current history of dev/inode pairs for cycle detection. We then attempt to enqueue the child directory for further processing. If the queue is full, we handle it by running the finder function inline recursively.
                 QueuePayload child_node = {};
                 if (!build_full_path(child_node.path,
                                      sizeof(child_node.path),
@@ -1141,82 +1178,53 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
                 // indicates a cycle and we skip processing this directory.
                 if (effective_type == DT_LNK && lf->report_badlinks) {
                     bool cycle_found = false;
-                    for (int i = 0; i < current_node->depth; i++) {
-                        if (lf->report_trace) {
-                            pthread_mutex_lock(&lf->output_mutex);
-                            if (current_node->dev_ino[i].ino == st.st_ino &&
-                                current_node->dev_ino[i].dev == st.st_dev)
-                                fprintf(stderr, "%3d hist(%ju %ju) %ju %ju<===========\n", i,
-                                        current_node->dev_ino[i].dev,
-                                        current_node->dev_ino[i].ino,
-                                        st.st_dev, st.st_ino);
-                            else
-                                fprintf(stderr, "%3d hist(%ju %ju) %ju %ju\n", i,
-                                        current_node->dev_ino[i].dev,
-                                        current_node->dev_ino[i].ino,
-                                        st.st_dev, st.st_ino);
-                            pthread_mutex_unlock(&lf->output_mutex);
-                        }
-                        if (current_node->dev_ino[i].dev == st.st_dev &&
-                            current_node->dev_ino[i].ino == st.st_ino) {
+                    DevIno *dev_ino = &current_node->dev_ino;
+                    child_node.dev_ino.parent = dev_ino;
+                    while (dev_ino != nullptr) {
+                        if (st.st_dev == dev_ino->dev && st.st_ino == dev_ino->ino) {
                             cycle_found = true;
                             break;
                         }
+                        dev_ino = dev_ino->parent;
                     }
                     if (lf->report_badlinks && cycle_found) {
                         atomic_fetch_add(&lf->error_count, 1);
+                        char lnk_path[MAX_PATH_LEN] = {'\0'};
                         ssize_t len =
                             readlinkat(dir_fd, entry->d_name, lnk_path,
                                        sizeof(lnk_path) - 1);
+                        if (strcmp(lnk_path, "TEST_CYCLIC_LINK") == 0) {
+                            pthread_mutex_lock(&lf->output_mutex);
+                            fprintf(stderr, "TEST_CYCLIC_LINK\n");
+                            pthread_mutex_unlock(&lf->output_mutex);
+                        }
                         pthread_mutex_lock(&lf->output_mutex);
                         if (len != -1) {
                             lnk_path[len] = '\0';
-                            fprintf(stderr, "CYCLE_DETECTION_LINK,%s,%s\n", child_node.path,
+                            fprintf(stderr, "CYCLIC LINK,%s,%s\n", child_node.path,
                                     lnk_path);
                         } else
-                            fprintf(stderr, "CYCLE_DETECTION_LINK,%s\n", child_node.path);
+                            fprintf(stderr, "CYCLIC LINK,%s\n", child_node.path);
                         pthread_mutex_unlock(&lf->output_mutex);
                         continue;
                     }
                 }
 #endif
                 //-------------------------------------------------------
-                // We duplicate the current history of dev/inode pairs and
-                // add the current directory's dev/inode to the new history
-                // for the child task. This allows us to maintain a record
-                // of the directories we've visited in the current path,
-                // which is essential for cycle detection. By checking this
-                // history for each new directory we encounter, we can
-                // effectively prevent infinite loops caused by symbolic
-                // links or hard links that create cycles in the directory
-                // structure.
+                // Create the device/inode/parent history
+                // Used to detect cyclic loops
                 // --------------------------------------------------------
                 // BUILD AND ENQUEUE CHILD TASK
                 // --------------------------------------------------------
                 if (lf->max_depth != 0 && current_node->depth + 1 >= lf->max_depth)
                     continue;
                 child_node.depth = current_node->depth + 1;
-#ifdef CYCLE_DETECTION
-                if (lf->report_badlinks) {
-                    int i;
-                    for (i = 0; i < current_node->depth; i++) {
-                        child_node.dev_ino[i].dev = current_node->dev_ino[i].dev;
-                        child_node.dev_ino[i].ino = current_node->dev_ino[i].ino;
-                    }
-                    child_node.dev_ino[i + 1].dev = st.st_dev;
-                    child_node.dev_ino[i + 1].ino = st.st_ino;
-                    child_node.parent_pos = lf->q->sequence;
-                } else {
-                    child_node.dev_ino[0].dev = 0;
-                    child_node.dev_ino[0].ino = 0;
-                }
-#endif
                 if (mpmc_enqueue(lf, &child_node)) {
                     // Success! Track it as a new outstanding global task
                     atomic_fetch_add_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
                 } else {
-                    // QUEUE FULL: Run inline recursively.
-                    // We DO NOT touch the counter here because the thread is
+                    // QUEUE FULL: Run finder inline recursively.
+                    //  DO NOT touch the counter here because the thread is
                     // staying within its current execution bubble.
                     finder(lf, &child_node);
                 }
@@ -1265,6 +1273,9 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
     flush_output_buffer(lf, &output);
     return NULL;
 }
+// ----------------------------------------------------------------------
+// SCAN_FILE
+// ----------------------------------------------------------------------
 /** @brief Scan a file or directory and apply filters based on the LfContext.
     @param file_spec The full path of the file or directory to scan.
     @param lf A pointer to the LfContext struct containing the search filters and options.
@@ -1274,9 +1285,6 @@ void *finder(LfContext *lf, QueuePayload *current_node) {
     @return true if the file or directory passes all filters and is processed, false otherwise.
     @details This function checks various conditions based on the search filters specified in the LfContext. It evaluates whether the file or directory should be included in the output based on type, regex matching, ownership, permissions, modification time, and size. If all conditions are met, it appends the path to the output buffer. The function also handles caching of stat information to avoid redundant system calls when possible.
 */
-// ----------------------------------------------------------------------
-// SCAN_FILE
-// ----------------------------------------------------------------------
 int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
               const unsigned char effective_type, const struct stat *cached_sb,
               OutputBuffer *output) {
