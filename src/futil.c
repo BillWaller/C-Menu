@@ -24,6 +24,7 @@
 #include <fcntl.h>
 #include <grp.h>
 #include <ifaddrs.h>
+#include <pthread.h>
 #include <pwd.h>
 #include <regex.h>
 #include <stdbool.h>

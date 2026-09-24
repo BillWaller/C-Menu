@@ -218,7 +218,21 @@ List all files in the /usr directory that are owned by the user "bill":
 
 List only broken or cyclic symbolic links:
 
-    lf -D58 /path/to/directory
+    -D5 tells lf to print messages about broken symbolic links.
+    -D8 tells lf to print only error messages.
+    Option arguments may be combined in any order. For example:
+
+    lf -L -D85 /path/to/directory
+
+    Sample output:
+
+    STAT_FAIL,XXXX,No such file or directory
+    CYCLIC LINK:./FlameGraph/test/TEST_CYCLIC_LINK==>../../FlameGraph
+    Errors: 2
+
+    Always delete the link listed on the left, not the target on the right.
+    -D58 is the preferred way to find broken or cyclic symbolic links.
+    The 5 tells lf to report bad links and 8 to only report errors.
 
 List all files in the /tmp directory that are symbolic links:
 
@@ -232,9 +246,11 @@ List all files in the /home directory that have a .log extension and were modifi
 
     lf -r '.*\.log$' -b 2025-06-01T00:00:00 /home
 
-Count the number of files in a directory tree using 7 threads:
+Count the number of files in a directory tree using only 2 threads:
 
-    lf -L -H -T7 /path/to/directory | wc -l
+    lf -L -H -T2 /path/to/directory | wc -l
+
+    If you don't specify the number of threads, lf will use a reasonable value.
 
 Compare number of files found in the current working directory by find, fd, and lf:
 

@@ -21,7 +21,7 @@ echo "fd found "$(cat fd.out)" files"
 echo
 echo "### lf"
 echo
-echo ./lf -H -T10 "$directory"
-/bin/time -o time.out ./lf -H -T14 "$directory" | wc -l >lf.out 2>/dev/null
+echo ./lf -H "$directory"
+/bin/time -o time.out ./lf2 -H -D4 "$directory" | wc -l >lf.out 2>lf.errors
 grep -v "^Command" time.out
 echo "lf found "$(cat lf.out)" files"

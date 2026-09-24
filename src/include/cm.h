@@ -29,6 +29,7 @@ extern "C" {
 #include "ui_notcurses_internal.h"
 #include <notcurses/notcurses.h>
 #endif
+#include <pthread.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
