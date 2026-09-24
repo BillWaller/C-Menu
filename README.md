@@ -14,51 +14,7 @@ lf is a regular-expression-based file finder that can be used to generate file l
 
 To say that lf is fast is understated. It is easily ten times faster than the find command, and, in some benchmarks, faster than the revered fd. lf handles huge directories with ease. It can be used to find files based on name, type, date, size, and other attributes, making it a powerful tool for file discovery and filtering. It also has an option that only reports cyclic or broken links.
 
-```
-Usage: lf [OPTION...] [DIRECTORY] [REGULAR_EXPRESSION]
-lf list files
-
-  -a, --after=time           Modified after YYYY-MM-DDTHH:MM:SS
-  -b, --before=time          Modified before YYYY-MM-DDTHH:MM:SS
-  -c, --count[=s]            Count (s only report count)
-  -d, --max_depth=number     Depth into directory tree
-  -D, --debug=12345678       1-config, 2-info, 3-warnings, 4-errors,
-                             5-badlinks, 6-trace, 7-all, 8-only_errors
-  -e, --ere=regex            Exclude regular expression
-  -H, --include_hidden[=o]   Include hidden files (o=hidden only)
-  -i, --ignore_case          Search ignore case
-  -L, --follow_links         Follow symbolic links
-  -p, --include_perms=sgrwx  x-execute, w-write, r-read, s-setuid, g-setgid
-  -r, --re=regex             Regular expression to search for
-  -R, --sort_reverse         Sort in Reverse order
-  -s, --file_size_min=size   No Suffix-bytes, K-kilobytes, M-Megabytes, or
-                             G-Gigabytes
-  -S, --sort                 Sort in Ascending order
-  -t, --include_types=pcdbflsu   p-pipe, c-character_dev, d-directory,
-                             b-block_dev, f-regular_file, l-link, s-socket,
-                             u-unknown
-  -T, --nthreads=threads     Number of nthreads
-  -u, --user=user name       User Name of file owner
-  -?, --help                 Give this help list
-      --usage                Give a short usage message
-  -V, --version              Print program version
-
-Mandatory or optional arguments to long options are also mandatory or optional
-for any corresponding short options.
-
-If specified, DIRECTORY is the top-level directory to search.
-REGULAR_EXPRESSION is a properly formatted regular expression for which
-matching files will be listed.
-
-Usage: lf [-iLRS?V] [-a time] [-b time] [-c[s]] [-d number] [-D 12345678]
-            [-e regex] [-H[o]] [-p sgrwx] [-r regex] [-s size] [-t pcdbflsu]
-            [-T threads] [-u user name] [--after=time] [--before=time]
-            [--count[=s]] [--max_depth=number] [--debug=12345678]
-            [--ere=regex] [--include_hidden[=o]] [--ignore_case]
-            [--follow_links] [--include_perms=sgrwx] [--re=regex]
-            [--sort_reverse] [--file_size_min=size] [--sort]
-            [--include_types=pcdbflsu] [--nthreads=threads] [--user=user name]
-            [--help] [--usage] [--version] [DIRECTORY] [REGULAR_EXPRESSION]
+![lf help Screenshot](screenshots/lf.help.png)
 
 Report bugs to billxwaller@gmail.com.
 ```

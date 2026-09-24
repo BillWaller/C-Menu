@@ -140,7 +140,7 @@ typedef struct {
     unsigned char include_perms;
     unsigned char include_types;
     unsigned char suppress_types;
-    bool report_count;
+    bool report_error_count;
     bool ignore_case;
     bool sort;
     bool sort_reverse;
@@ -211,7 +211,7 @@ static struct argp_option options[] = {
     {"user", 'u', "user name", 0, "User Name of file owner ", 0},
     {"debug", 'D', "12345678", 0,
      "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, "
-     "8-only_errors, 9-report_count",
+     "8-only_errors, 9-report_error_count",
      0},
     {"include_hidden", 'H', "o", OPTION_ARG_OPTIONAL, "Include hidden files (o=hidden only)", 0},
     {"follow_links", 'L', 0, 0, "Follow symbolic links", 0},
@@ -294,7 +294,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
                     lf->report_errors = true;
                     break;
                 case '9': // ERROR COUNT
-                    lf->report_count = true;
+                    lf->report_error_count = true;
                     break;
                 default:
                     break;
@@ -438,7 +438,7 @@ int main(int argc, char **argv) {
     lf->count = 0;
     termination_status = TS_ERROR;
     lf->error_count = 0;
-    lf->report_count = false;
+    lf->report_error_count = false;
     lf->nthreads = 0;
     lf->ignore_case = false;
     lf->sort = false;
@@ -515,7 +515,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Files: %zu\n", count);
     }
     atomic_load(&lf->error_count);
-    if (lf->report_count && lf->error_count > 0) {
+    if (lf->report_error_count && lf->error_count > 0) {
         fprintf(stderr, "Errors: %zu\n", lf->error_count);
         termination_status |= TS_ERROR;
     }
