@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-24T10:32:31-05:00* - FEATURES: lf (lightweight file finder)- Refactored CYCLIC DETECTION with a simpler and faster algorithm. Added "-E" option to specify error output file. Added "9 - report error count" argument to "-D" option, so lf only reports the number of errors if "-D9" is specified. lf is now fully concurrent and very fast. 10x faster than find, and even faster than fd. 
+
+*2026-09-22T11:28:52-05:00* - Update CHANGELOG.md 
+
 *2026-09-22T11:28:21-05:00* - DOCUMENTATION UPDATE 
 
 *2026-09-21T17:54:19-05:00* - Update CHANGELOG.md 
