@@ -17,7 +17,6 @@ To say that lf is fast is understated. It is easily ten times faster than the fi
 ![lf help Screenshot](screenshots/lf.help.png)
 
 Report bugs to billxwaller@gmail.com.
-```
 
 ## find, lf, and fd Performance Comparison
 

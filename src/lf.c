@@ -209,7 +209,7 @@ static struct argp_option options[] = {
     {"file_size_min", 's', "size", 0,
      "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes", 0},
     {"user", 'u', "user name", 0, "User Name of file owner ", 0},
-    {"debug", 'D', "12345678", 0,
+    {"debug", 'D', "123456789", 0,
      "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, "
      "8-only_errors, 9-report_error_count",
      0},
