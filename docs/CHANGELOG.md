@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-25T14:42:51-05:00* - EXPERIMENTAL: working through issues with thread contention 
+
+*2026-09-25T08:02:01-05:00* - Update CHANGELOG.md 
+
 *2026-09-25T07:59:41-05:00* - FIXES: Corrected issue in view to make go_to_line work properly. 
 
 *2026-09-24T20:42:47-05:00* - Update CHANGELOG.md 
