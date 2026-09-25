@@ -260,7 +260,7 @@ endif
 
 helgrind: lf
 	valgrind --tool=helgrind --log-file=helgrind.out -s \
-		./lf -H -L -T6 $(HOME) 1>/dev/null 2>/dev/null
+		./lf -H $(HOME) 1>/dev/null 2>/dev/null
 
 valgrind: menu
 	valgrind -v \
@@ -275,7 +275,7 @@ valgrind: menu
 		--keep-debuginfo=yes \
 		--suppressions=valgrind.supp \
 		--gen-suppressions=all \
-		./lf -H
+		./lf -H /home/bill >/dev/null
 # 		./view -L60 -C90 -w lsp.log
 
 install:

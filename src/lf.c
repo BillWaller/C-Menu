@@ -178,7 +178,7 @@ char *perms_p;
 char *debug_p;
 void debug_out(LfContext *lf, int, char **);
 bool init_lf(LfContext *lf, int, char **);
-void sort_lf_output(LfContext *lf, int, char **);
+int sort_lf_output(LfContext *lf, int, char **);
 MPMCQueue *mpmc_queue_init();
 bool mpmc_enqueue(LfContext *, const QueuePayload *child_node);
 QueuePayload *mpmc_dequeue(LfContext *);
@@ -469,7 +469,7 @@ int main(int argc, char **argv) {
                 stderr,
                 "lf: arg1: '%s' is neither a directory nor a valid regex.\n",
                 lfargs[0]);
-            exit(termination_status);
+            exit(EXIT_FAILURE);
         }
     }
     if (lfargc > 1) {
@@ -487,7 +487,7 @@ int main(int argc, char **argv) {
                     "lf: '%s' is neither a directory nor a valid regular "
                     "expression.\n",
                     lfargs[1]);
-            exit(termination_status);
+            exit(EXIT_FAILURE);
         }
     }
     if (lf->base_path == nullptr || lf->base_path[0] == '\0')
@@ -508,7 +508,7 @@ int main(int argc, char **argv) {
     if (!lf->sort) {
         init_lf(lf, argc, argv);
     } else
-        sort_lf_output(lf, argc, argv);
+        termination_status = sort_lf_output(lf, argc, argv);
 
     if (lf->count) {
         size_t count = atomic_load(&lf->file_count);
@@ -519,6 +519,12 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Errors: %zu\n", lf->error_count);
         termination_status |= TS_ERROR;
     }
+    free(lf->q);
+    free(lf->base_path);
+    free(lf->user_name);
+    free(lf->re);
+    free(lf->ere);
+    free(lf->threads);
     free(lf);
     exit(termination_status);
 }
@@ -528,7 +534,7 @@ int main(int argc, char **argv) {
     @param argv An array of command-line argument strings.
     @details This function sets up a pipeline to sort the output of the lf command. It creates a pipe, forks a child process to execute the sort command, and redirects the standard input and output streams accordingly. The sort command is executed with optional flags for parallel processing and buffer size, as well as a reverse sort option if specified in the LfContext. The function waits for the child process to complete before returning.
    */
-void sort_lf_output(LfContext *lf, int argc, char **argv) {
+int sort_lf_output(LfContext *lf, int argc, char **argv) {
     // char tmp_str[MAXLEN];
     char *eargv[MAXARGS];
     int eargc = 0;
@@ -556,18 +562,19 @@ void sort_lf_output(LfContext *lf, int argc, char **argv) {
         close(fds[0]);              // Close the original read end of the pipe
         execvp(eargv[0], eargv);    // Execute the sort command
         fprintf(stderr, "Failed to execute sort: %s\n", strerror(errno));
-        exit(termination_status);
+        return TS_ERROR;
     }
     // fclose(stdout);
     dup2(fds[1], STDOUT_FILENO);         // Clone write pipe to STDOUT_FILENO
     stdout = fdopen(STDOUT_FILENO, "w"); // Reopen STDOUT as a stream
     setvbuf(stdout, NULL, _IOLBF, 0);    //  line buffering
-    init_lf(lf, argc, argv);             // Initialize and transfer control to the finder
+    init_lf(lf, argc, argv);
     fclose(stdout);
     close(fds[1]);
     wait(&wstatus);
     for (int i = 0; i < eargc; i++)
         free(eargv[i]);
+    return 0;
 }
 // ----------------------------------------------------------------------
 // INIT_FIND
@@ -656,8 +663,18 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
                     return false;
                 }
             }
+            //------------------------------------------------------------
+            // END THREADS
+            //------------------------------------------------------------
             for (unsigned int i = 0; i < lf->nthreads; i++)
                 pthread_join(lf->threads[i], NULL);
+            rc = pthread_mutex_destroy(&lf->output_mutex);
+            if (rc != 0)
+                perror("Mutex destroy failed");
+            if (lf->flags & LF_REGEX)
+                regfree(&lf->compiled_re);
+            if (lf->flags & LF_EXC_REGEX)
+                regfree(&lf->compiled_ere);
             return true;
         } else {
             fprintf(stderr,
@@ -668,24 +685,6 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
             return false;
         }
     }
-    // ------------------------------------------------------------------
-    // END PROGRAM
-    // ------------------------------------------------------------------
-    rc = pthread_mutex_destroy(&lf->output_mutex);
-    if (rc != 0)
-        perror("Mutex destroy failed");
-    if (lf->flags & LF_REGEX) {
-        regfree(&lf->compiled_re);
-    }
-    if (lf->flags & LF_EXC_REGEX) {
-        regfree(&lf->compiled_ere);
-    }
-    free(lf->q);
-    free(lf->base_path);
-    free(lf->user_name);
-    free(lf->re);
-    free(lf->ere);
-    free(lf->threads);
     if (reti)
         return false;
     return true;
@@ -932,15 +931,18 @@ bool mpmc_enqueue(LfContext *lf, const QueuePayload *child_node) {
     while (true) {
         size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)pos;
-        if (diff == 0) {
+        if (diff == 0) { // Queue is not full, ready to enqueue
             if (atomic_compare_exchange_weak_explicit(&lf->q->enqueue_pos, &pos, pos + 1,
                                                       memory_order_relaxed, memory_order_relaxed)) {
                 break;
             }
-        } else if (diff < 0)
-            return false; // Queue is full, trigger recursion
-        else
+        } else if (diff < 0) // Queue is full
+            return false;    // trigger recursion
+        else {
             pos++;
+            // pos = atomic_load_explicit(&lf->q->enqueue_pos,
+            // memory_order_relaxed);
+        }
         if (++spin_count > SPIN_LIMIT)
             return false;
 #if defined(__x86_64__)
@@ -948,6 +950,7 @@ bool mpmc_enqueue(LfContext *lf, const QueuePayload *child_node) {
 #endif
     }
     memcpy(&lf->q->nodes[pos & QUEUE_MASK], child_node, sizeof(QueuePayload));
+
     atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + 1, memory_order_release);
     return true;
 }
@@ -968,13 +971,18 @@ QueuePayload *mpmc_dequeue(LfContext *lf) {
             return nullptr;
         size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)(pos + 1);
-        if (diff == 0) {
+        if (diff == 0) { // Full queue, ready to dequeue
             if (atomic_compare_exchange_strong_explicit(&lf->q->dequeue_pos, &pos, pos + 1,
                                                         memory_order_relaxed, memory_order_relaxed)) {
                 break;
             }
         } else if (diff < 0) { // Queue is temporarily empty
+            if (atomic_load_explicit(&lf->q->active_tasks, memory_order_relaxed) == 0) {
+                atomic_store_explicit(&lf->q->shut_down, 1, memory_order_release);
+                return nullptr;
+            }
             sched_yield();
+            pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
         } else {
             pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
         }
@@ -993,13 +1001,17 @@ QueuePayload *mpmc_dequeue(LfContext *lf) {
    */
 void *worker(void *arg) {
     LfContext *lf = (LfContext *)arg;
+    // current_node is a pointer to the current task being processed, while child_node is a local variable used to hold the next task to be enqueued. The worker thread continuously dequeues tasks from the queue and processes them using the finder function. If the finder function returns NULL, indicating that there are no more tasks to process, the active task count is decremented. If the active task count reaches zero, the shut_down flag is set to true, signaling other threads to terminate.
     QueuePayload *current_node = nullptr;
-    QueuePayload child_node;
+    QueuePayload *child_node = calloc(1, sizeof(QueuePayload));
+    if (child_node == nullptr) {
+        fprintf(stderr, "Out of memory allocating child_node\n");
+        return NULL;
+    }
     while (true) {
         current_node = mpmc_dequeue(lf);
         if (current_node != nullptr) {
-            memset(&child_node, 0, sizeof(QueuePayload));
-            if (finder(lf, current_node, &child_node) == NULL) {
+            if (finder(lf, current_node, child_node) == NULL) {
                 if (atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_acq_rel) == 1) {
                     atomic_store_explicit(&lf->q->shut_down, 1, memory_order_release);
                 }
@@ -1007,6 +1019,7 @@ void *worker(void *arg) {
         } else
             break;
     }
+    free(child_node);
     return NULL;
 }
 // ----------------------------------------------------------------------
@@ -1360,7 +1373,7 @@ int err_out(LfContext *lf, const char *format, ...) {
                 lf->err_fd = stderr;
                 fprintf(stderr, "Failed to open error file %s: %s\n",
                         lf->error_file_spec, strerror(errno));
-                exit(EXIT_FAILURE);
+                return TS_ERROR;
             }
             lf->error_file_open = true;
             setvbuf(lf->err_fd, NULL, _IOLBF, 0); //  line buffering
