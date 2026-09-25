@@ -549,9 +549,9 @@ void sort_lf_output(LfContext *lf, int argc, char **argv) {
 
     pid_t pid1 = fork();
     if (pid1 == 0) { // Child process
-        // Child's STDIN will be redirected to the read end of the pipe, so that
-        // the sort process will read the output of the finder from the pipe.
-        close(fds[1]);              // Close the write end of the pipe in the child
+        // Child's STDIN will be redirected to the read end of the pipe, so that the sort process will read the output of the finder from the pipe.
+        // Close the write end of the pipe in the child
+        close(fds[1]);
         dup2(fds[0], STDIN_FILENO); // Clone child's read pipe to STDIN_FILENO
         close(fds[0]);              // Close the original read end of the pipe
         execvp(eargv[0], eargv);    // Execute the sort command
@@ -629,7 +629,7 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
             child_node.depth = 0;
             child_node.dev = st.st_dev;
             child_node.ino = st.st_ino;
-            child_node.parent = NULL;
+            child_node.parent = nullptr;
             if (!mpmc_enqueue(lf, &child_node)) {
                 fprintf(stderr, "Failed to enqueue initial directory\n");
                 return false;
@@ -999,9 +999,11 @@ void *worker(void *arg) {
         current_node = mpmc_dequeue(lf);
         if (current_node != nullptr) {
             memset(&child_node, 0, sizeof(QueuePayload));
-            finder(lf, current_node, &child_node);
-            if (atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_acq_rel) == 1)
-                atomic_store_explicit(&lf->q->shut_down, true, memory_order_relaxed);
+            if (finder(lf, current_node, &child_node) == NULL) {
+                if (atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_acq_rel) == 1) {
+                    atomic_store_explicit(&lf->q->shut_down, 1, memory_order_release);
+                }
+            }
         } else
             break;
     }
@@ -1022,13 +1024,14 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
     char dir_buf[DIR_BUF_SIZE];
     struct stat sb = {};
     struct linux_dirent64 *entry;
+    dev_t link_dev;
+    ino_t link_ino;
     unsigned char actual_type;
     unsigned char effective_type;
     char full_path[MAX_PATH_LEN] = {'\0'};
     int rc;
     int dir_fd = open(current_node->path, O_RDONLY | O_DIRECTORY);
     if (dir_fd == -1) {
-        atomic_fetch_add(&lf->error_count, 1);
         if (lf->report_errors) {
             err_out(lf, "OPEN_FAIL,%s,%s\n", current_node->path, strerror(errno));
         }
@@ -1039,14 +1042,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
         //--------------------------------------------------------------------
         // READ DIRECTORY
         //--------------------------------------------------------------------
-        // Read the directory entries and process each one. We use readdir to
-        // iterate over the entries in the directory. For each entry, we
-        // construct the full path and use fstatat to get the metadata of
-        // the entry. If the entry is a symbolic link, we check if the user
-        // has chosen to follow links and get the metadata of the target it
-        // points to. We then determine the effective type of the entry and
-        // apply the specified filters (e.g., hidden files, max depth) to
-        // decide whether to process it further or enqueue it for searching.
+        // Read the directory entries and process each one. We use SYS_getdents to iterate over the entries in the directory. For each entry, we construct the full path and use fstatat to get the metadata of the entry. If the entry is a symbolic link, we check if the user has chosen to follow links and get the metadata of the target it points to. We then determine the effective type of the entry and apply the specified filters (e.g., hidden files, max depth) to decide whether to process it further or enqueue it for searching.
         nread = syscall(SYS_getdents64, dir_fd, dir_buf, DIR_BUF_SIZE);
         if (nread == -1) {
             atomic_fetch_add(&lf->error_count, 1);
@@ -1063,14 +1059,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
             //--------------------------------------------------------------------
             // PROCESS DIRECTORY ENTRIES
             //--------------------------------------------------------------------
-            // Get link's metadata
-            // We use fstatat with AT_SYMLINK_NOFOLLOW t  get the metadata
-            // of the symbolic link itself, rather than the target it points
-            // to. This allows us to determine if the entry is a symbolic
-            // link and handle it according to the user's options (e.g.,
-            // whether to follow links or not). If fstatat fails, we log the
-            // error (if debugging is enabled) and continue to the next
-            // entry without processing this one further.
+            // Get link's metadata We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata of the symbolic link itself, rather than the target it points to. This allows us to determine if the entry is a symbolic link and handle it according to the user's options (e.g., whether to follow links or not). If fstatat fails, we log the error (if debugging is enabled) and continue to the next entry without processing this one further.
             full_path[0] = '\0';
             effective_type = entry->d_type;
             if (effective_type == DT_DIR) {
@@ -1087,8 +1076,8 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                 //--------------------------------------------------------------------
                 // GET ADVANCED METADATA
                 //--------------------------------------------------------------------
-                // We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata of the
-                // symbolic link itself, rather than the target it points to. This allows us to determine if the entry is a symbolic link and handle it according to the user's options (e.g., whether to follow links or not). If fstatat fails, we log the error (if debugging is enabled) and continue to the next entry without processing this one further.
+                // We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata of the symbolic link itself, rather than the target it points to. This allows us to determine if the entry is a symbolic link and handle it according to the user's options (e.g., whether to follow links or not). If fstatat fails, we log the error (if debugging is enabled) and continue to the next entry without processing this one further.
+                memset(&sb, 0, sizeof(struct stat));
                 rc = fstatat(dir_fd, entry->d_name, &sb, AT_SYMLINK_NOFOLLOW);
                 if (rc == -1) {
                     atomic_fetch_add(&lf->error_count, 1);
@@ -1098,20 +1087,12 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                     }
                     continue;
                 }
+                child_node->ino = sb.st_ino;
+                child_node->dev = sb.st_dev;
                 effective_type = (sb.st_mode & S_IFMT) >> 12;
                 actual_type = effective_type;
                 if (S_ISLNK(sb.st_mode)) {
-                    // Determine the real type of the entry. If the entry is a
-                    // symbolic link, we set real_type to DT_LNK and then attempt to
-                    // get the metadata of the target it points to using fstatat
-                    // without AT_SYMLINK_NOFOLLOW. This allows us to determine the
-                    // effective type of the entry based on the target's metadata,
-                    // which is important for deciding how to process it (e.g.,
-                    // whether it's a directory that we should enqueue for further
-                    // searching). If fstatat fails when trying to get the target's
-                    // metadata, we log the error (if debugging is enabled) but
-                    // continue processing the entry based on its symbolic link
-                    // metadata.
+                    // Determine the real type of the entry. If the entry is a symbolic link, we set actual_type to DT_LNK and then attempt to get the metadata of the target it points to using fstatat without AT_SYMLINK_NOFOLLOW. This allows us to determine the effective type of the entry based on the target's metadata, which is important for deciding how to process it (e.g., whether it's a directory that we should enqueue for further searching). If fstatat fails when trying to get the target's metadata, we log the error (if debugging is enabled) but continue processing the entry based on its symbolic link metadata.
                     if (lf->follow_links) {
                         //------------------------------------------------------------
                         // GET LINK METADATA
@@ -1128,6 +1109,8 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                             }
                             continue;
                         }
+                        link_ino = sb.st_ino;
+                        link_dev = sb.st_dev;
                         effective_type = (sb.st_mode & S_IFMT) >> 12;
                     } else {
                         effective_type = DT_REG;
@@ -1151,59 +1134,44 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                     }
                     continue;
                 }
+                child_node->parent = current_node;
                 bool cycle_found = false;
-                // Determine the effective type of the entry. We use the st_mode
-                // field from the stat struct to determine the file type by
-                // applying the S_IFMT mask and shifting it to get a value that
-                // corresponds to the DT_* constants. If the entry is a symbolic
-                // link and the user has chosen not to follow links, we treat it
-                // as a directory for the purpose of deciding whether to enqueue
-                // it for further searching. This allows us to handle symbolic
-                // links that point to directories in a way that respects the
-                // user's options while still allowing for traversal of linked
-                // directories if desired.
-                //
-                // Check for cycles by comparing the current
-                // directory's dev/inode with the history of dev/inode pairs
-                // from parent directories. If a match is found, it
-                // indicates a cycle and we skip processing this directory.
+                // Determine the effective type of the entry. We use the st_mode field from the stat struct to determine the file type by applying the S_IFMT mask and shifting it to get a value that corresponds to the DT_* constants. If the entry is a symbolic link and the user has chosen not to follow links, we treat it as a directory for the purpose of deciding whether to enqueue it for further searching. This allows us to handle symbolic links that point to directories in a way that respects the user's options while still allowing for traversal of linked directories if desired.
+
                 if (lf->follow_links && actual_type == DT_LNK) {
                     // -------------------------------------------------------
                     // CYCLE_DETECTION
                     // -------------------------------------------------------
+                    // Check for cycles by comparing the current directory's dev/inode with the history of dev/inode pairs from parent directories. If a match is found, it indicates a cycle and we skip processing this directory.
+                    char target_path[MAX_PATH_LEN] = {'\0'};
+                    if (lf->report_trace || lf->report_badlinks) {
+                        ssize_t len = readlinkat(dir_fd, entry->d_name, target_path, sizeof(target_path) - 1);
+                        if (len != -1)
+                            target_path[len] = '\0';
+                    }
                     if (lf->report_trace) {
-                        err_out(lf, "current_node: %12p, %8lu, %12p, %s\n", current_node, current_node->ino, current_node->parent, current_node->path);
-                        err_out(lf, "child_node:   %12p, %8lu, %12p, %s\n", child_node, child_node->ino, child_node->parent, child_node->path);
+                        err_out(lf, "---CYCLE_DETECTION---\n");
+                        err_out(lf, "child_node:   %12p, %8lu/%8lu, %12p, %s\n", child_node, child_node->dev, child_node->ino, child_node->parent, child_node->path);
+                        err_out(lf, "link: %8lu/%8lu, %s\n", link_dev, link_ino, target_path);
                     }
                     QueuePayload *parent = current_node;
-                    while (parent) {
+                    while (parent != nullptr) {
                         if (lf->report_trace)
-                            err_out(lf, "parent:       %12p, %8lu, %12p, %s\n", parent, parent->ino, parent->parent, parent->path);
-                        if (sb.st_dev == parent->dev && sb.st_ino == parent->ino) {
+                            err_out(lf, "parent:       %12p, %8lu/%8lu, %12p, %s\n", parent, parent->dev, parent->ino, parent->parent, parent->path);
+                        if (link_dev == parent->dev && link_ino == parent->ino) {
                             cycle_found = true;
-                            if (lf->report_trace)
-                                err_out(lf, "CYCLE: ==>     %8lu, %s\n", parent->ino, parent->path);
                             break;
                         }
                         parent = parent->parent;
                     }
                     if (cycle_found) {
                         if (lf->report_badlinks) {
-                            atomic_fetch_add(&lf->error_count, 1);
-                            char lnk_path[MAX_PATH_LEN] = {'\0'};
-                            ssize_t len =
-                                readlinkat(dir_fd, entry->d_name, lnk_path,
-                                           sizeof(lnk_path) - 1);
-                            if (len != -1) {
-                                lnk_path[len] = '\0';
-                                err_out(lf, "CYCLIC LINK:%s==>%s\n", child_node->path,
-                                        lnk_path);
-                            } else
-                                err_out(lf, "CYCLIC LINK,%s\n", child_node->path);
+                            err_out(lf, "CYCLER,%lu/%lu,%s,%lu/%lu,%s\n", child_node->dev, child_node->ino, child_node->path,
+                                    link_dev, link_ino, target_path);
+                        } else {
+                            err_out(lf, "CYCLER,%lu,%s\n", child_node->ino, child_node->path);
                         }
-                        child_node->dev = sb.st_dev;
-                        child_node->ino = sb.st_ino;
-                        child_node->parent = current_node;
+                        atomic_fetch_add(&lf->error_count, 1);
                         child_node->depth = current_node->depth + 1;
                         scan_file(child_node->path, &child_node->path_len, lf, effective_type, &sb, &output);
                         continue;
@@ -1214,28 +1182,21 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                 // --------------------------------------------------------
                 if (lf->max_depth != 0 && current_node->depth + 1 >= lf->max_depth)
                     continue;
-                // --------------------------------------
-                // Create the device/inode/parent history
-                // Used to detect cyclic loops
-                // --------------------------------------
-                child_node->dev = sb.st_dev;
-                child_node->ino = sb.st_ino;
-                child_node->parent = current_node;
                 child_node->depth = current_node->depth + 1;
                 if (!cycle_found) {
                     if (mpmc_enqueue(lf, child_node)) {
                         atomic_fetch_add_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
                     } else {
-                        // QUEUE FULL: Run finder inline recursively.
-                        //  DO NOT touch the counter here because the thread is
-                        // staying within its current execution bubble.
-                        current_node->depth = child_node->depth;
-                        memcpy(current_node->path, child_node->path, child_node->path_len + 1);
-                        current_node->dev = child_node->dev;
-                        current_node->ino = child_node->ino;
-                        current_node->parent = child_node->parent;
-                        memset(child_node, 0, sizeof(QueuePayload));
-                        finder(lf, current_node, child_node);
+                        QueuePayload *local_node = calloc(1, sizeof(QueuePayload));
+                        if (local_node == nullptr) {
+                            atomic_fetch_add(&lf->error_count, 1);
+                            if (lf->report_errors) {
+                                err_out(lf, "MEM_ALLOC_FAIL,%s\n", strerror(errno));
+                            }
+                            continue;
+                        }
+                        finder(lf, child_node, local_node);
+                        free(local_node);
                     }
                 }
                 // --------------------------------------------------------
