@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-24T19:39:44-05:00* - FIXES and REFINEMENTS: lf.c CYCLIC DETECTION, MEMORY MANAGEMENT and ERROR DETECTION. CYCLE DETECTION was added with no measurable performance penalty. lf is already obscenely fast, but we still have a few tricks up our sleeves to make it even faster after we let the dust settle. I started to write this project in Rust. It's new and exciting, and has great modern features that I like a lot. It also has a great community of forward thinkers around it. There were a couple of issues that didn't meet my design objectives. One was portability. Almost every platform provides tools for C development, but many don't have Rust. The big one was the size of executables and libraries. I have no intention of recreating the Vasa (previously Wasa), a Swedish warship that sank in 1628. C-Menu had to be compact enough to send into deep space on a slow connection. What I have learned in the past few months has revived my enthusiasm for C. I now understand where Linus is coming from. C is simple, fast, and portable. It seems the only thing that has held C back is people like me who have been seduced by the new and shiny. But I"m back, I understand the brilliance that went into the design of C. It is still there, and it is still relevant. With C, the limit is your resourcefulness. 
+
+*2026-09-24T11:49:32-05:00* - Update CHANGELOG.md 
+
 *2026-09-24T11:49:21-05:00* - DOCUMENTATION UPDATE: lf 
 
 *2026-09-24T11:46:04-05:00* - Update CHANGELOG.md 
