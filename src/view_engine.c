@@ -1919,7 +1919,8 @@ int go_to_line(View *view, off_t line_idx) {
         return EOF;
     }
     view->ln_no = line_idx;
-    view->file_pos = view->ln_tbl[view->ln_no];
+    view->file_pos = view->page_bot_pos;
+    // view->file_pos = view->ln_tbl[view->ln_no];
     sync_ln(view);
     view->page_top_pos = view->file_pos;
     view->page_bot_pos = view->file_pos;
@@ -2047,10 +2048,22 @@ void increment_ln(View *view) {
 void sync_ln(View *view) {
     int c = 0;
     off_t idx;
-    off_t target_pos;
+    off_t target_pos = view->file_pos;
+    off_t target_ln_no = view->ln_no;
+    view->ln_no = view->ln_tbl_cnt;
+    if (target_ln_no > view->ln_no) {
+        view->file_pos = view->ln_tbl[view->ln_no];
+        while (view->ln_no < target_ln_no) {
+            get_next_char();
+            if (view->f_eod) {
+                view->ln_no_max = view->ln_no;
+                return;
+            }
+        }
+        return;
+    }
     if (view->ln_tbl[view->ln_no] == view->file_pos)
         return;
-    target_pos = view->file_pos;
     view->file_pos = view->ln_tbl[view->ln_tbl_cnt];
     if (view->file_pos < target_pos) {
         view->ln_no = view->ln_tbl_cnt;

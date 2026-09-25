@@ -1085,11 +1085,12 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                         err_out(lf, "LSTAT_FAIL,%s,%s\n", full_path,
                                 strerror(errno));
                     }
-                    continue;
+                    // == continue;
+                } else {
+                    child_node->ino = sb.st_ino;
+                    child_node->dev = sb.st_dev;
+                    effective_type = (sb.st_mode & S_IFMT) >> 12;
                 }
-                child_node->ino = sb.st_ino;
-                child_node->dev = sb.st_dev;
-                effective_type = (sb.st_mode & S_IFMT) >> 12;
                 actual_type = effective_type;
                 if (S_ISLNK(sb.st_mode)) {
                     // Determine the real type of the entry. If the entry is a symbolic link, we set actual_type to DT_LNK and then attempt to get the metadata of the target it points to using fstatat without AT_SYMLINK_NOFOLLOW. This allows us to determine the effective type of the entry based on the target's metadata, which is important for deciding how to process it (e.g., whether it's a directory that we should enqueue for further searching). If fstatat fails when trying to get the target's metadata, we log the error (if debugging is enabled) but continue processing the entry based on its symbolic link metadata.
@@ -1107,11 +1108,12 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                                 ssnprintf(tmp_str, MAXLEN - 1, "FSTATAT_FAIL,%s/%s\n",
                                           entry->d_name, strerror(errno));
                             }
-                            continue;
+                            // == continue;
+                        } else {
+                            link_ino = sb.st_ino;
+                            link_dev = sb.st_dev;
+                            effective_type = (sb.st_mode & S_IFMT) >> 12;
                         }
-                        link_ino = sb.st_ino;
-                        link_dev = sb.st_dev;
-                        effective_type = (sb.st_mode & S_IFMT) >> 12;
                     } else {
                         effective_type = DT_REG;
                     }
@@ -1137,7 +1139,6 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                 child_node->parent = current_node;
                 bool cycle_found = false;
                 // Determine the effective type of the entry. We use the st_mode field from the stat struct to determine the file type by applying the S_IFMT mask and shifting it to get a value that corresponds to the DT_* constants. If the entry is a symbolic link and the user has chosen not to follow links, we treat it as a directory for the purpose of deciding whether to enqueue it for further searching. This allows us to handle symbolic links that point to directories in a way that respects the user's options while still allowing for traversal of linked directories if desired.
-
                 if (lf->follow_links && actual_type == DT_LNK) {
                     // -------------------------------------------------------
                     // CYCLE_DETECTION
