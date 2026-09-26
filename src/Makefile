@@ -14,6 +14,7 @@ BUILD_TYPE=Debug
 include UI.mk
 # EXP= Experimental executable name, e.g. lf3
 EXP=
+# CC_EXTRA = -fsanitize=thread
 ifneq ($(CMENU_HOME),)
 	PREFIX:=$(HOME)/menuapp
 endif
@@ -191,7 +192,7 @@ ui_visual:	ui_visual.c $(COMMON_OBJS) $(LIB_SHARED)
 # endif
 
 lf: lf.c $(LIB_SHARED)
-	$(CC) $< -o $@ $(LDFLAGS)
+	$(CC) $(CC_EXTRA) $< -o $@ $(LDFLAGS)
 
 $(EXP): $(EXP).c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)

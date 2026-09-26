@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/sysinfo.h>
@@ -53,20 +54,30 @@
 #define DIR_BUF_SIZE 262144
 #define CACHE_LINE_SIZE 64
 
-typedef struct DevIno {
-    // dev_t dev;
-    //  ino_t ino;
-    // struct DevIno *parent;
-} DevIno;
+// 32 Million directories max limit. Cost: 768MB Virtual Memory, 0MB RAM initially.
+#define ARENA_MAX_NODES (32 * 1024 * 1024)
+
+typedef struct CycleNode CycleNode;
+struct CycleNode {
+    dev_t dev;
+    ino_t ino;
+    CycleNode *parent;
+};
+
+typedef struct {
+    CycleNode *nodes;
+    _Atomic size_t index;
+    size_t capacity;
+} CycleArena;
+
+static CycleArena g_cycle_arena = {NULL, 0, 0};
 
 typedef struct QueuePayload QueuePayload;
 struct QueuePayload {
     size_t path_len;
     uint16_t depth;
     char path[MAX_PATH_LEN];
-    dev_t dev;
-    ino_t ino;
-    QueuePayload *parent;
+    CycleNode *ctx;
 };
 
 typedef struct {
@@ -76,7 +87,6 @@ typedef struct {
     alignas(CACHE_LINE_SIZE) _Atomic atomic_int shut_down;
     alignas(CACHE_LINE_SIZE) _Atomic size_t sequence[QUEUE_CAPACITY];
     QueuePayload nodes[QUEUE_CAPACITY];
-    DevIno dev_ino[QUEUE_CAPACITY];
 } MPMCQueue;
 
 typedef enum {
@@ -191,6 +201,10 @@ void flush_output_buffer(LfContext *, OutputBuffer *);
 bool append_output_buffer(LfContext *, OutputBuffer *, const char *, size_t,
                           bool);
 int err_out(LfContext *lf, const char *format, ...);
+void cycle_arena_init(void);
+void cycle_arena_destroy(void);
+static CycleNode *cycle_arena_alloc(dev_t dev, ino_t ino, CycleNode *parent);
+bool is_link_cycle(dev_t dev, ino_t ino, CycleNode *parent);
 // ---------------------------------------------------------------
 
 static struct argp_option options[] = {
@@ -577,119 +591,6 @@ int sort_lf_output(LfContext *lf, int argc, char **argv) {
     return 0;
 }
 // ----------------------------------------------------------------------
-// INIT_FIND
-// ----------------------------------------------------------------------
-/** @brief Initialize the file search process.
-    @param lf A pointer to the LfContext struct containing the search settings.
-    @param argc The number of command-line arguments.
-    @param argv An array of command-line argument strings.
-    @return true if initialization is successful, false otherwise.
-    @details This function initializes the file search process based on the
-    provided settings in the LfContext struct. It sets up file type inclusion
-    and suppression, compiles regular expressions if specified, and creates a
-    multi-producer, multi-consumer queue for managing directory traversal tasks.
-    It also initializes threads for concurrent processing of directory entries.
-   */
-bool init_lf(LfContext *lf, int argc, char **argv) {
-    /** suppress file types that aren't included */
-    if (!lf->include_types)
-        lf->include_types = 0xff;
-    if (lf->include_types)
-        lf->suppress_types = lf->include_types ^ 0xff;
-    // LF_HIDE = 0 - include hidden files,
-    // LF_HIDE = 1 - suppress hidden files
-    lf->include_hidden = !(lf->flags & LF_HIDE);
-    int reti = 0;
-    lf->reg_flags = REG_EXTENDED;
-    if (lf->ignore_case)
-        lf->reg_flags |= REG_ICASE;
-    if (lf->flags & LF_REGEX) {
-        reti = regcomp(&lf->compiled_re, lf->re, lf->reg_flags);
-        if (reti) {
-            fprintf(stderr, "lf: '%s' Invalid pattern\n", lf->re);
-            regfree(&lf->compiled_re);
-            return false;
-        }
-    }
-    if (lf->flags & LF_EXC_REGEX) {
-        reti = regcomp(&lf->compiled_ere, lf->ere, lf->reg_flags);
-        if (reti) {
-            fprintf(stderr, "lf: '%s' Invalid exclude pattern\n", lf->ere);
-            regfree(&lf->compiled_ere);
-            return false;
-        }
-    }
-    debug_out(lf, argc, argv);
-    //--------------------------------------------------------------------
-    // Create and enqueue the first QueuePayload
-    termination_status = TS_SUCCESS;
-    int rc = 0;
-    struct stat st;
-    rc = pthread_mutex_init(&lf->output_mutex, NULL);
-    if (rc != 0)
-        perror("Mutex initialization failed");
-    if (stat(lf->base_path, &st) == 0) {
-        lf->q = mpmc_queue_init();
-        QueuePayload child_node;
-        if (S_ISDIR(st.st_mode)) {
-            child_node.path_len = strnz__cpy(child_node.path, lf->base_path, MAX_PATH_LEN - 1);
-            child_node.depth = 0;
-            child_node.dev = st.st_dev;
-            child_node.ino = st.st_ino;
-            child_node.parent = nullptr;
-            if (!mpmc_enqueue(lf, &child_node)) {
-                fprintf(stderr, "Failed to enqueue initial directory\n");
-                return false;
-            }
-            atomic_fetch_add_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
-            //------------------------------------------------------------
-            // INITIALIZE THREADS
-            //------------------------------------------------------------
-            lf->threads = calloc(lf->nthreads, sizeof(pthread_t));
-            if (!lf->threads) {
-                fprintf(stderr, "Out of memory allocating threads\n");
-                return false;
-            }
-            for (unsigned int i = 0; i < lf->nthreads; i++) {
-                rc = pthread_create(
-                    &lf->threads[i],
-                    NULL,
-                    worker,
-                    lf);
-                if (rc != 0) {
-                    fprintf(stderr, "Error: Unable to create thread %d\n", rc);
-                    lf->q->shut_down = 1;
-                    termination_status = TS_ERROR;
-                    return false;
-                }
-            }
-            //------------------------------------------------------------
-            // END THREADS
-            //------------------------------------------------------------
-            for (unsigned int i = 0; i < lf->nthreads; i++)
-                pthread_join(lf->threads[i], NULL);
-            rc = pthread_mutex_destroy(&lf->output_mutex);
-            if (rc != 0)
-                perror("Mutex destroy failed");
-            if (lf->flags & LF_REGEX)
-                regfree(&lf->compiled_re);
-            if (lf->flags & LF_EXC_REGEX)
-                regfree(&lf->compiled_ere);
-            return true;
-        } else {
-            fprintf(stderr,
-                    "Warning: Base path '%s' is not a directory. No "
-                    "files will be found.\n",
-                    lf->base_path);
-            termination_status = TS_ERROR;
-            return false;
-        }
-    }
-    if (reti)
-        return false;
-    return true;
-}
-// ----------------------------------------------------------------------
 // DEBUG_OUT
 // ----------------------------------------------------------------------
 /** @brief Output debug information to stderr.
@@ -821,7 +722,170 @@ void debug_out(LfContext *lf, int argc, char **argv) {
     }
     return;
 }
-/** @brief Build a full file path by concatenating a directory path and a file name.
+// ----------------------------------------------------------------------
+// INIT_FIND
+// ----------------------------------------------------------------------
+/** @brief Initialize the file search process.
+    @param lf A pointer to the LfContext struct containing the search settings.
+    @param argc The number of command-line arguments.
+    @param argv An array of command-line argument strings.
+    @return true if initialization is successful, false otherwise.
+    @details This function initializes the file search process based on the
+    provided settings in the LfContext struct. It sets up file type inclusion
+    and suppression, compiles regular expressions if specified, and creates a
+    multi-producer, multi-consumer queue for managing directory traversal tasks.
+    It also initializes threads for concurrent processing of directory entries.
+   */
+bool init_lf(LfContext *lf, int argc, char **argv) {
+    /** suppress file types that aren't included */
+    if (!lf->include_types)
+        lf->include_types = 0xff;
+    if (lf->include_types)
+        lf->suppress_types = lf->include_types ^ 0xff;
+    // LF_HIDE = 0 - include hidden files,
+    // LF_HIDE = 1 - suppress hidden files
+    lf->include_hidden = !(lf->flags & LF_HIDE);
+    int reti = 0;
+    lf->reg_flags = REG_EXTENDED;
+    if (lf->ignore_case)
+        lf->reg_flags |= REG_ICASE;
+    if (lf->flags & LF_REGEX) {
+        reti = regcomp(&lf->compiled_re, lf->re, lf->reg_flags);
+        if (reti) {
+            fprintf(stderr, "lf: '%s' Invalid pattern\n", lf->re);
+            regfree(&lf->compiled_re);
+            return false;
+        }
+    }
+    if (lf->flags & LF_EXC_REGEX) {
+        reti = regcomp(&lf->compiled_ere, lf->ere, lf->reg_flags);
+        if (reti) {
+            fprintf(stderr, "lf: '%s' Invalid exclude pattern\n", lf->ere);
+            regfree(&lf->compiled_ere);
+            return false;
+        }
+    }
+    debug_out(lf, argc, argv);
+    //--------------------------------------------------------------------
+    // Create and enqueue the first QueuePayload
+    termination_status = TS_SUCCESS;
+    int rc = 0;
+    struct stat sb;
+    rc = pthread_mutex_init(&lf->output_mutex, NULL);
+    if (rc != 0)
+        perror("Mutex initialization failed");
+    rc = stat(lf->base_path, &sb);
+    if (rc != 0)
+        return false;
+    lf->q = mpmc_queue_init();
+    QueuePayload root_node;
+    cycle_arena_init();
+    if (S_ISDIR(sb.st_mode)) {
+        root_node.path_len = strnz__cpy(root_node.path, lf->base_path, MAX_PATH_LEN - 1);
+        root_node.depth = 0;
+        CycleNode *root_ctx = cycle_arena_alloc(sb.st_dev, sb.st_ino, nullptr);
+        root_node.ctx = root_ctx;
+        if (!mpmc_enqueue(lf, &root_node)) {
+            fprintf(stderr, "Failed to enqueue initial directory\n");
+            return false;
+        }
+        atomic_fetch_add_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
+        //------------------------------------------------------------
+        // INITIALIZE THREADS
+        //------------------------------------------------------------
+        lf->threads = calloc(lf->nthreads, sizeof(pthread_t));
+        if (!lf->threads) {
+            fprintf(stderr, "Out of memory allocating threads\n");
+            return false;
+        }
+        for (unsigned int i = 0; i < lf->nthreads; i++) {
+            rc = pthread_create(
+                &lf->threads[i],
+                NULL,
+                worker,
+                lf);
+            if (rc != 0) {
+                fprintf(stderr, "Error: Unable to create thread %d\n", rc);
+                lf->q->shut_down = 1;
+                termination_status = TS_ERROR;
+                return false;
+            }
+        }
+        //------------------------------------------------------------
+        // END THREADS
+        //------------------------------------------------------------
+        for (unsigned int i = 0; i < lf->nthreads; i++)
+            pthread_join(lf->threads[i], NULL);
+        rc = pthread_mutex_destroy(&lf->output_mutex);
+        if (rc != 0)
+            perror("Mutex destroy failed");
+        if (lf->flags & LF_REGEX)
+            regfree(&lf->compiled_re);
+        if (lf->flags & LF_EXC_REGEX)
+            regfree(&lf->compiled_ere);
+        return true;
+    } else {
+        fprintf(stderr,
+                "Warning: Base path '%s' is not a directory. No "
+                "files will be found.\n",
+                lf->base_path);
+        termination_status = TS_ERROR;
+        return false;
+    }
+    if (reti)
+        return false;
+    return true;
+}
+// ----------------------------------------------------------------------
+// CYCLE_ARENA_INIT
+// ----------------------------------------------------------------------
+void cycle_arena_init(void) {
+    g_cycle_arena.capacity = ARENA_MAX_NODES;
+    size_t total_bytes = g_cycle_arena.capacity * sizeof(CycleNode);
+
+    // Reserve virtual space. The OS marks it as yours but allocates NO physical RAM yet. MAP_ANONYMOUS guarantees the memory block is zero-initialized automatically.
+    g_cycle_arena.nodes = mmap(NULL, total_bytes,
+                               PROT_READ | PROT_WRITE,
+                               MAP_ANONYMOUS | MAP_PRIVATE,
+                               -1, 0);
+
+    if (g_cycle_arena.nodes == MAP_FAILED) {
+        perror("mmap failed to reserve tracking arena memory");
+        exit(EXIT_FAILURE);
+    }
+
+    atomic_init(&g_cycle_arena.index, 0);
+}
+// ----------------------------------------------------------------------
+// CYCLE_ARENA_DESTROY
+// ----------------------------------------------------------------------
+void cycle_arena_destroy(void) {
+    if (g_cycle_arena.nodes != NULL && g_cycle_arena.nodes != MAP_FAILED) {
+        size_t total_bytes = g_cycle_arena.capacity * sizeof(CycleNode);
+        munmap(g_cycle_arena.nodes, total_bytes);
+    }
+}
+// ----------------------------------------------------------------------
+// CYCLE_ARENA_ALLOC
+// ----------------------------------------------------------------------
+static CycleNode *cycle_arena_alloc(dev_t dev, ino_t ino, CycleNode *parent) {
+    size_t idx = atomic_fetch_add_explicit(&g_cycle_arena.index, 1, memory_order_relaxed);
+    // Bounds check to ensure we don't breach our massive virtual limit
+    if (idx >= g_cycle_arena.capacity) {
+        return NULL;
+    }
+    // As soon as this thread hits an unmapped block of memory, the OS transparently provisions a 4KB hardware page of physical RAM for it on the fly.
+    CycleNode *node = &g_cycle_arena.nodes[idx];
+    node->dev = dev;
+    node->ino = ino;
+    node->parent = parent;
+    return node;
+}
+// ----------------------------------------------------------------------
+// BUILD_FULL_PATH
+// ----------------------------------------------------------------------
+/** @brief Build a full file path by concatenating a directory path and a file
+ * name.
     @param dst A pointer to the destination buffer where the full path will be stored.
     @param dst_size The size of the destination buffer.
     @param dir_path The directory path to be concatenated.
@@ -850,6 +914,9 @@ bool build_full_path(char *dst, size_t dst_size, const char *dir_path,
         *out_len = full_len;
     return true;
 }
+// ----------------------------------------------------------------------
+// FLUSH_OUTPUT_BUFFER
+// ----------------------------------------------------------------------
 /** @brief Flush the output buffer to stdout in a thread-safe manner.
     @param lf A pointer to the LfContext struct containing the output mutex.
     @param output A pointer to the OutputBuffer struct containing the data to be flushed.
@@ -863,6 +930,9 @@ void flush_output_buffer(LfContext *lf, OutputBuffer *output) {
     pthread_mutex_unlock(&lf->output_mutex);
     output->len = 0;
 }
+// ----------------------------------------------------------------------
+// APPEND_OUTPUT_BUFFER
+// ----------------------------------------------------------------------
 /** @brief Append a path to the output buffer, flushing if necessary.
     @param lf A pointer to the LfContext struct containing the output mutex.
     @param output A pointer to the OutputBuffer struct where the path will be appended.
@@ -1002,7 +1072,7 @@ QueuePayload *mpmc_dequeue(LfContext *lf) {
 void *worker(void *arg) {
     LfContext *lf = (LfContext *)arg;
     // current_node is a pointer to the current task being processed, while child_node is a local variable used to hold the next task to be enqueued. The worker thread continuously dequeues tasks from the queue and processes them using the finder function. If the finder function returns NULL, indicating that there are no more tasks to process, the active task count is decremented. If the active task count reaches zero, the shut_down flag is set to true, signaling other threads to terminate.
-    QueuePayload *current_node = nullptr;
+    QueuePayload *current_node = calloc(1, sizeof(QueuePayload));
     QueuePayload *child_node = calloc(1, sizeof(QueuePayload));
     if (child_node == nullptr) {
         fprintf(stderr, "Out of memory allocating child_node\n");
@@ -1020,6 +1090,7 @@ void *worker(void *arg) {
             break;
     }
     free(child_node);
+    free(current_node);
     return NULL;
 }
 // ----------------------------------------------------------------------
@@ -1037,10 +1108,11 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
     char dir_buf[DIR_BUF_SIZE];
     struct stat sb = {};
     struct linux_dirent64 *entry;
-    dev_t link_dev;
-    ino_t link_ino;
+    dev_t actual_dev, effective_dev;
+    ino_t actual_ino, effective_ino;
     unsigned char actual_type;
     unsigned char effective_type;
+    CycleNode *child_ctx;
     char full_path[MAX_PATH_LEN] = {'\0'};
     int rc;
     int dir_fd = open(current_node->path, O_RDONLY | O_DIRECTORY);
@@ -1055,7 +1127,14 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
         //--------------------------------------------------------------------
         // READ DIRECTORY
         //--------------------------------------------------------------------
-        // Read the directory entries and process each one. We use SYS_getdents to iterate over the entries in the directory. For each entry, we construct the full path and use fstatat to get the metadata of the entry. If the entry is a symbolic link, we check if the user has chosen to follow links and get the metadata of the target it points to. We then determine the effective type of the entry and apply the specified filters (e.g., hidden files, max depth) to decide whether to process it further or enqueue it for searching.
+        // Read the directory entries and process each one. We use SYS_getdents
+        // to iterate over the entries in the directory. For each entry, we
+        // construct the full path and use fstatat to get the metadata of the
+        // entry. If the entry is a symbolic link, we check if the user has
+        // chosen to follow links and get the metadata of the target it points
+        // to. We then determine the effective type of the entry and apply the
+        // specified filters (e.g., hidden files, max depth) to decide whether
+        // to process it further or enqueue it for searching.
         nread = syscall(SYS_getdents64, dir_fd, dir_buf, DIR_BUF_SIZE);
         if (nread == -1) {
             atomic_fetch_add(&lf->error_count, 1);
@@ -1074,8 +1153,9 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
             //--------------------------------------------------------------------
             // Get link's metadata We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata of the symbolic link itself, rather than the target it points to. This allows us to determine if the entry is a symbolic link and handle it according to the user's options (e.g., whether to follow links or not). If fstatat fails, we log the error (if debugging is enabled) and continue to the next entry without processing this one further.
             full_path[0] = '\0';
-            effective_type = entry->d_type;
-            if (effective_type == DT_DIR) {
+            actual_type = entry->d_type;
+            effective_type = actual_type;
+            if (actual_type == DT_DIR) {
                 if (entry->d_name[0] == '.') {
                     if (entry->d_name[1] == '\0')
                         continue;
@@ -1084,8 +1164,8 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                 }
             }
             if (((lf->follow_links || lf->report_badlinks) &&
-                 (effective_type == DT_LNK || effective_type == DT_DIR)) ||
-                effective_type == DT_UNKNOWN) {
+                 (actual_type == DT_LNK || actual_type == DT_DIR)) ||
+                actual_type == DT_UNKNOWN) {
                 //--------------------------------------------------------------------
                 // GET ADVANCED METADATA
                 //--------------------------------------------------------------------
@@ -1098,13 +1178,14 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                         err_out(lf, "LSTAT_FAIL,%s,%s\n", full_path,
                                 strerror(errno));
                     }
-                    // == continue;
                 } else {
-                    child_node->ino = sb.st_ino;
-                    child_node->dev = sb.st_dev;
-                    effective_type = (sb.st_mode & S_IFMT) >> 12;
+                    actual_ino = sb.st_ino;
+                    actual_dev = sb.st_dev;
+                    actual_type = (sb.st_mode & S_IFMT) >> 12;
+                    effective_dev = actual_dev;
+                    effective_ino = actual_ino;
+                    effective_type = actual_type;
                 }
-                actual_type = effective_type;
                 if (S_ISLNK(sb.st_mode)) {
                     // Determine the real type of the entry. If the entry is a symbolic link, we set actual_type to DT_LNK and then attempt to get the metadata of the target it points to using fstatat without AT_SYMLINK_NOFOLLOW. This allows us to determine the effective type of the entry based on the target's metadata, which is important for deciding how to process it (e.g., whether it's a directory that we should enqueue for further searching). If fstatat fails when trying to get the target's metadata, we log the error (if debugging is enabled) but continue processing the entry based on its symbolic link metadata.
                     if (lf->follow_links) {
@@ -1121,10 +1202,9 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                                 ssnprintf(tmp_str, MAXLEN - 1, "FSTATAT_FAIL,%s/%s\n",
                                           entry->d_name, strerror(errno));
                             }
-                            // == continue;
                         } else {
-                            link_ino = sb.st_ino;
-                            link_dev = sb.st_dev;
+                            effective_ino = sb.st_ino;
+                            effective_dev = sb.st_dev;
                             effective_type = (sb.st_mode & S_IFMT) >> 12;
                         }
                     } else {
@@ -1137,6 +1217,8 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                 // PROCESS DIRECTORY ENTRY - CREATE CHILD_NODE
                 //--------------------------------------------------------------------
                 // We build the full path for the child directory and check if it exceeds the maximum path length. If it does, we log an error and continue to the next entry. If the child directory is within the allowed depth, we create a new QueuePayload for it, copying the current history of dev/inode pairs for cycle detection. We then attempt to enqueue the child directory for further processing. If the queue is full, we handle it by running the finder function inline recursively.
+                child_ctx = cycle_arena_alloc(effective_dev, effective_ino, current_node->ctx);
+                child_node->ctx = child_ctx;
                 if (!build_full_path(child_node->path,
                                      sizeof(child_node->path),
                                      current_node->path,
@@ -1149,9 +1231,17 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                     }
                     continue;
                 }
-                child_node->parent = current_node;
                 bool cycle_found = false;
-                // Determine the effective type of the entry. We use the st_mode field from the stat struct to determine the file type by applying the S_IFMT mask and shifting it to get a value that corresponds to the DT_* constants. If the entry is a symbolic link and the user has chosen not to follow links, we treat it as a directory for the purpose of deciding whether to enqueue it for further searching. This allows us to handle symbolic links that point to directories in a way that respects the user's options while still allowing for traversal of linked directories if desired.
+                // Determine the effective type of the entry. We use the st_mode
+                // field from the stat struct to determine the file type by
+                // applying the S_IFMT mask and shifting it to get a value that
+                // corresponds to the DT_* constants. If the entry is a symbolic
+                // link and the user has chosen not to follow links, we treat it
+                // as a directory for the purpose of deciding whether to enqueue
+                // it for further searching. This allows us to handle symbolic
+                // links that point to directories in a way that respects the
+                // user's options while still allowing for traversal of linked
+                // directories if desired.
                 if (lf->follow_links && actual_type == DT_LNK) {
                     // -------------------------------------------------------
                     // CYCLE_DETECTION
@@ -1163,16 +1253,28 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                         if (len != -1)
                             target_path[len] = '\0';
                     }
+                    child_ctx = cycle_arena_alloc(effective_dev, effective_ino, current_node->ctx);
+                    if (child_ctx == nullptr) {
+                        atomic_fetch_add(&lf->error_count, 1);
+                        if (lf->report_errors) {
+                            err_out(lf, "CYCLE_ARENA_ALLOC_FAIL,%s\n", current_node->path);
+                        }
+                        continue;
+                    }
+                    child_node->ctx = child_ctx;
                     if (lf->report_trace) {
                         err_out(lf, "---CYCLE_DETECTION---\n");
-                        err_out(lf, "child_node:   %12p, %8lu/%8lu, %12p, %s\n", child_node, child_node->dev, child_node->ino, child_node->parent, child_node->path);
-                        err_out(lf, "link: %8lu/%8lu, %s\n", link_dev, link_ino, target_path);
+                        err_out(lf, "ctx:   %12p, %8lu/%8lu, %s\n", child_ctx, child_ctx->dev, child_ctx->ino, child_node->path);
+                        err_out(lf, "effective: %8lu/%8lu, %s\n", effective_dev, effective_ino, target_path);
                     }
-                    QueuePayload *parent = current_node;
+                    // is_link_cycle(effective_dev, effective_ino,
+                    // current_node->ctx);
+                    CycleNode *parent = current_node->ctx;
                     while (parent != nullptr) {
-                        if (lf->report_trace)
-                            err_out(lf, "parent:       %12p, %8lu/%8lu, %12p, %s\n", parent, parent->dev, parent->ino, parent->parent, parent->path);
-                        if (link_dev == parent->dev && link_ino == parent->ino) {
+                        if (lf->report_trace) {
+                            err_out(lf, "ctx:       %12p, %8lu/%8lu, %12p, %s\n", parent, parent->dev, parent->ino);
+                        }
+                        if (effective_dev == parent->dev && effective_ino == parent->ino) {
                             cycle_found = true;
                             break;
                         }
@@ -1180,10 +1282,8 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                     }
                     if (cycle_found) {
                         if (lf->report_badlinks) {
-                            err_out(lf, "CYCLER,%lu/%lu,%s,%lu/%lu,%s\n", child_node->dev, child_node->ino, child_node->path,
-                                    link_dev, link_ino, target_path);
-                        } else {
-                            err_out(lf, "CYCLER,%lu,%s\n", child_node->ino, child_node->path);
+                            err_out(lf, "CYCLER,%lu/%lu,%s,%lu/%lu,%s\n", child_ctx->dev, child_ctx->ino, child_node->path,
+                                    effective_dev, effective_ino, target_path);
                         }
                         atomic_fetch_add(&lf->error_count, 1);
                         child_node->depth = current_node->depth + 1;
@@ -1259,6 +1359,19 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
     close(dir_fd);
     flush_output_buffer(lf, &output);
     return NULL;
+}
+// ----------------------------------------------------------------------
+// IS_LINK_CYCLE
+// ----------------------------------------------------------------------
+bool is_link_cycle(dev_t dev, ino_t ino, CycleNode *parent) {
+    const CycleNode *current = parent;
+    while (current != NULL) {
+        if (current->ino == ino && current->dev == dev) {
+            return true; // We hit a cycle!
+        }
+        current = current->parent; // Safe to dereference: addresses never change
+    }
+    return false;
 }
 // ----------------------------------------------------------------------
 // SCAN_FILE
@@ -1358,6 +1471,7 @@ int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
 }
 int err_out(LfContext *lf, const char *format, ...) {
 
+    pthread_mutex_lock(&lf->output_mutex);
     va_list args;
     va_start(args, format);
     if (lf->error_file_spec[0] == '\0') {
@@ -1379,7 +1493,6 @@ int err_out(LfContext *lf, const char *format, ...) {
             setvbuf(lf->err_fd, NULL, _IOLBF, 0); //  line buffering
         }
     }
-    pthread_mutex_lock(&lf->output_mutex);
     int result = vfprintf(lf->err_fd, format, args);
     pthread_mutex_unlock(&lf->output_mutex);
 
