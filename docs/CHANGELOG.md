@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-26T16:17:21-05:00* - FEATURE UPDATE: Refactored lf cycle detection to support a virtually unlimited number of directories, using a virtual memory arena. Tested with Valgrind, which reported no memory leaks are possible, and -fsanitize=thread. And, it's scorchingly fast. The cycle detection algorithm is now O(n) in time and O(n) in space, where n is the number of directories. This is a significant improvement over the previous implementation, which was O(n^2) in time and O(n^2) in space. 10x faster than find, and even faster than fd, and that's not because of missing features. lf has a rich set of features. See lf.md for details. 
+
+*2026-09-25T14:43:38-05:00* - Update CHANGELOG.md 
+
 *2026-09-25T14:42:51-05:00* - EXPERIMENTAL: working through issues with thread contention 
 
 *2026-09-25T08:02:01-05:00* - Update CHANGELOG.md 
