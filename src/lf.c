@@ -191,7 +191,7 @@ bool init_lf(LfContext *lf, int, char **);
 int sort_lf_output(LfContext *lf, int, char **);
 MPMCQueue *mpmc_queue_init();
 bool mpmc_enqueue(LfContext *, const QueuePayload *child_node);
-QueuePayload *mpmc_dequeue(LfContext *);
+bool mpmc_dequeue(LfContext *lf, QueuePayload *output_node);
 void *worker(void *arg);
 void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node);
 int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf, const unsigned char,
@@ -1020,7 +1020,6 @@ bool mpmc_enqueue(LfContext *lf, const QueuePayload *child_node) {
 #endif
     }
     memcpy(&lf->q->nodes[pos & QUEUE_MASK], child_node, sizeof(QueuePayload));
-
     atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + 1, memory_order_release);
     return true;
 }
@@ -1033,12 +1032,11 @@ bool mpmc_enqueue(LfContext *lf, const QueuePayload *child_node) {
     @return true if a task was successfully dequeued, false if the queue is empty or shut down.
     @details This function attempts to dequeue a task from the MPMCQueue. It uses atomic operations to ensure thread-safe access to the queue's dequeue position and sequence numbers. If the queue is empty, it yields the processor to reduce contention. If the queue has been shut down, it returns false, allowing for graceful termination of worker threads.
    */
-QueuePayload *mpmc_dequeue(LfContext *lf) {
-    QueuePayload *current_node;
+bool mpmc_dequeue(LfContext *lf, QueuePayload *out_node) {
     size_t pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
     while (true) {
         if (atomic_load_explicit(&lf->q->shut_down, memory_order_relaxed))
-            return nullptr;
+            return false;
         size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)(pos + 1);
         if (diff == 0) { // Full queue, ready to dequeue
@@ -1047,9 +1045,11 @@ QueuePayload *mpmc_dequeue(LfContext *lf) {
                 break;
             }
         } else if (diff < 0) { // Queue is temporarily empty
-            if (atomic_load_explicit(&lf->q->active_tasks, memory_order_relaxed) == 0) {
-                atomic_store_explicit(&lf->q->shut_down, 1, memory_order_release);
-                return nullptr;
+            if (atomic_load_explicit(&lf->q->active_tasks,
+                                     memory_order_relaxed) == 0) {
+                atomic_store_explicit(&lf->q->shut_down, 1,
+                                      memory_order_release);
+                return false;
             }
             sched_yield();
             pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
@@ -1057,9 +1057,13 @@ QueuePayload *mpmc_dequeue(LfContext *lf) {
             pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
         }
     }
-    current_node = &lf->q->nodes[pos & QUEUE_MASK];
+    // memcpy(output_node, &lf->q->nodes[pos & QUEUE_MASK],
+    // sizeof(QueuePayload));
+    if (out_node)
+        *out_node = lf->q->nodes[pos & QUEUE_MASK];
+    // current_node = &lf->q->nodes[pos & QUEUE_MASK];
     atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + QUEUE_CAPACITY, memory_order_release);
-    return current_node;
+    return true;
 }
 // ----------------------------------------------------------------------
 // WORKER
@@ -1079,8 +1083,8 @@ void *worker(void *arg) {
         return NULL;
     }
     while (true) {
-        current_node = mpmc_dequeue(lf);
-        if (current_node != nullptr) {
+        if (mpmc_dequeue(lf, current_node) == true) {
+            memset(child_node, 0, sizeof(QueuePayload));
             if (finder(lf, current_node, child_node) == NULL) {
                 if (atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_acq_rel) == 1) {
                     atomic_store_explicit(&lf->q->shut_down, 1, memory_order_release);
