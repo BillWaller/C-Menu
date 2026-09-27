@@ -50,6 +50,38 @@ fd found 517551 files
 lf found 517551 files
 ```
 
+## Under the Hood
+
+### Fair Benchmarking
+
+Please note that the -I option was used in the fd benchmark. The -I option tells fd to ignore hidden files and directories. That's a handy feature to be sure, but it carries roughly a 30% performance penalty and it is activated by default. When lf gets an ignore files feature, we will run benchmarks with the feature activated. I suspect the algorithm fd is using is quite sophisticated, so it will not be easy to match their performance. As you know, fd is written in Rust, and it has a reputation as a very fast language. However, I attribute much of that speed to the fact that Rust is selective about who can write Rust code, and the language itself is conducive to well-written code. In other words, I think Rust has attracted some of the brightest programmers in the world, and they have written some very fast code.
+
+### Why Not Rust?
+
+I considered writing C-Menu in Rust. I studied the Rust book, and went through the Rustlings exercises more than once. I have written a few Rust programs and ported some C-Menu programs to Rust. The language is perfectly capable. It was C-Menu's design criteria that led me to choose C. In the end, accessibility and resource economy with Rust were problematic. Rust isn't available on many platforms, it has a steep learning curve, and it is resource-intensive. The executables combined with the required libraries are generally much larger than a similar applications written in C.
+
+### Why C?
+
+lf and other C-Menu programs are written in C. It is fast, small, portable, and easy to read and understand. Only assembly language outperforms well-written and optimized C. After all, C is the beating heart of Unix, Linux, and most other operating systems.
+
+### Quality Controll
+
+With the rapid pace of feature additions in the last few months, it was
+inevitable that there would be bugs. We expected that, and we have been working hard to find and fix them. As we move toward release 1.0, we are focusing on quality control and performance. We are putting the final touches on C-Menu, and responsibly using the available tools like perf, strace, sanitize, and valgrind to ensure that the code is fast, correct, and free of memory leaks. The following is a sample of the valgrind output for lf. It shows that there are no memory leaks, and that all heap blocks were freed.
+
+Valgrind output for lf:
+
+```
+==38577== 
+==38577== HEAP SUMMARY:
+==38577==     in use at exit: 0 bytes in 0 blocks
+==38577==   total heap usage: 52 allocs, 52 frees, 4,737,309 bytes allocated
+==38577== 
+==38577== All heap blocks were freed -- no leaks are possible
+==38577== 
+==38577== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+```
+
 ## Uniform Abstraction Layer User Interface
 
 C-Menu has fully integrated the new Uniform Abstraction Layer (UAL) for UI
