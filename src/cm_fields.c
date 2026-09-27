@@ -38,7 +38,7 @@ bool f_erase_remainder = true;
     @param flen The length of the field
     @return The key pressed to exit the field (UIKEY_ENTER, UIKEY_F09, etc.)
  */
-int cf_accept(UiSurface *sfc, uint w, char *accept_s, uint flin, uint fcol, uint flen) {
+int cf_accept(UiSurface *sfc, ss_t w, char *accept_s, uint flin, uint fcol, uint flen) {
     bool f_insert = false;
     int in_key = 0;
     char *s, *d;
@@ -56,7 +56,7 @@ int cf_accept(UiSurface *sfc, uint w, char *accept_s, uint flin, uint fcol, uint
             ui_wclrtoeol(sfc, w);
             ui_cursor_move(sfc, w, flin, x);
             ui_render();
-            in_key = ui_get_event(sfc, WIN, NULL, &event, -1);
+            in_key = ui_get_event(sfc, w, NULL, &event, -1);
         }
         ui_curs_set(0);
         switch (in_key) {
