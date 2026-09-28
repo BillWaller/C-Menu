@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-28T10:46:48-05:00* - FIXES: One of the previous commits resulted in a call to def_prog_mode(), which had not yet been defined for notcurses. Also began work on internationalization of the UI, but this is not yet complete. 
+
+*2026-09-27T12:54:02-05:00* - Update CHANGELOG.md 
+
 *2026-09-27T12:48:00-05:00* - FIX: get_cmd_arg in view_engine.c: Symptom: enter '/' on the command line to invoke the search command, then pressing F9 (or some other combination of keystrokes) would produce undefined results. Cause: cm_accept_field was replacing the specified window, in this case CMDLN, with WIN. Resolution: pass the specified window to get_event. 
 
 *2026-09-26T22:53:17-05:00* - Update CHANGELOG.md 
