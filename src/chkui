@@ -57,6 +57,15 @@ else
         MK_SWITCH=2
     fi
 fi
+if [ ! -f compile_commands.json ]; then
+    echo compile_commands.json not found - clangd code completion and navigation not possible
+    echo "Run:
+    echo "mkdir -p build"
+    echo "cd build"
+    echo "cmake .. -D CMAKE_EXPORT_COMPILE_COMMANDS=ON to generate compile_commands.json"
+    echo "cp compile_commands.json .."
+    exit 1
+fi
 grep NOTCURSES compile_commands.json >/dev/null 2>&1
 if [ "$?" = "0" ]; then
     echo compile_commands.json - NOTCURSES
