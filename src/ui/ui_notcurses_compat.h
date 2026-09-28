@@ -1,5 +1,4 @@
-#ifndef UI_NOTCURSES_COMPAT_H
-#define UI_NOTCURSES_COMPAT_H 1
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,5 +30,4 @@ struct ncplane *ui_notcurses_surface_get_plane(const UiSurface *s, ss_t w);
 
 #ifdef __cplusplus
 }
-#endif
 #endif

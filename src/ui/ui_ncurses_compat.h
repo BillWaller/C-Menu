@@ -1,5 +1,4 @@
-#ifndef UI_NCURSES_COMPAT_H
-#define UI_NCURSES_COMPAT_H 1
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,5 +40,4 @@ PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, ss_t w);
 
 #ifdef __cplusplus
 }
-#endif
 #endif

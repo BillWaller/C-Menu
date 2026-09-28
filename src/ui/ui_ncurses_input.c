@@ -98,12 +98,12 @@ static UiKey translate_key(int ch) {
 /* -------------------------------------------------------------------------
    Event retrieval
    ------------------------------------------------------------------------- */
-
-/** @brief Wait for an input event on @p target (or stdscr if NULL).
-   @param ui         UI runtime context (unused — event comes from the window).
-   @param target     Surface to read from, or NULL for stdscr.
-   @param ev         Output UiEvent structure.
-   @param timeout_ms Milliseconds to wait; -1 = block indefinitely.
+/** @brief Read input events
+   @param s          Surface - may contain multiple widgets (planes/panels)
+   @param w          Widget index (A surface may contain multilple widgets)
+   @param chyron     A zoned group of Actions or Commands
+   @param ev         Event data structure
+   @param timeout_ms Timeout in milliseconds (0 for no wait, -1 for infinite wait).
    @return 0 on success, -1 if @p ev is NULL.
 */
 int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeout_ms) {

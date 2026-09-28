@@ -1,9 +1,6 @@
-#ifndef VERSION_H
-#define VERSION_H
+#pragma once
 
 #define CM_VERSION_MAJOR @PROJECT_VERSION_MAJOR @
 #define CM_VERSION_MINOR @PROJECT_VERSION_MINOR @
 #define CM_VERSION_PATCH @PROJECT_VERSION_PATCH @
 #define CM_VERSION "C-Menu-0.2.9"
-
-#endif

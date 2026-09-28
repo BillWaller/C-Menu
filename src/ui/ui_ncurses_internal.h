@@ -1,5 +1,4 @@
-#ifndef UI_NCURSES_INTERNAL_H
-#define UI_NCURSES_INTERNAL_H 1
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -143,5 +142,4 @@ extern "C" {
 
 #ifdef __cplusplus
 }
-#endif
 #endif

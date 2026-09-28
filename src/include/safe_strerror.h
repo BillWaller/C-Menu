@@ -1,6 +1,5 @@
-#ifndef SAFE_STRERROR_H
-#define SAFE_STRERROR_H
 
+#pragma once
 // 1. Force feature test macros before any standard headers are pulled in
 #if defined(__linux__) || defined(__gnu_linux__)
 #ifndef _GNU_SOURCE
@@ -8,7 +7,6 @@
 #endif
 #endif
 
-#include <errno.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -50,5 +48,3 @@ static inline char *safe_strerror(int errnum, char *buf, size_t buflen) {
     return strerror(errnum);
 #endif
 }
-
-#endif // SAFE_STRERROR_H

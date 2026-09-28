@@ -823,6 +823,9 @@ int ui_setscrreg(UiSurface *s, ss_t w, uint top, uint bottom) {
     wsetscrreg(s->mwin[w], top, bottom);
     return 0;
 }
+void ui_def_prog_mode() {
+    def_prog_mode();
+}
 // -------------------------------------------------------------------------
 // Cursor Control
 // -------------------------------------------------------------------------

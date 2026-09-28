@@ -7,18 +7,13 @@
  *  @date 2026-02-09
  */
 
-#ifndef _MENU_H
-#define _MENU_H 1
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <cm.h>
-
-#ifndef _COMMON_H
-typedef struct Init Init;
-#endif
 
 #define MAX_MENU_LINES 256 /** Maximum number of menu lines in a menu */
 
@@ -237,5 +232,4 @@ extern unsigned int get_command_type(char *);
 extern void free_menu_line(Line *);
 #ifdef __cplusplus
 }
-#endif
 #endif

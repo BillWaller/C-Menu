@@ -1,5 +1,4 @@
-#ifndef UI_BACKEND_H
-#define UI_BACKEND_H 1
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -928,6 +927,7 @@ int ui_perror(char *emsg_str);
 FileType file_type(const char *filename);
 int utf8_decode(const unsigned char *s, uint32_t *codepoint);
 void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx);
+void ui_def_prog_mode();
 // ---------------------------------------------------------------
 // NOTCURSES Specific
 // ---------------------------------------------------------------
@@ -1107,5 +1107,4 @@ static inline void ui_logrec(const UiLogLevel level, const char *file, const cha
 
 #ifdef __cplusplus
 }
-#endif
 #endif

@@ -7,8 +7,7 @@
     @date 2026-02-09
  */
 
-#ifndef _COMMON_H
-#define _COMMON_H 1
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -252,5 +251,4 @@ extern void destroy_view_win(Init *);
 extern void destroy_line_table(View *);
 #ifdef __cplusplus
 }
-#endif
 #endif

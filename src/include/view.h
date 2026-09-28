@@ -7,8 +7,7 @@
     @date 2026-02-09
  */
 
-#ifndef _VIEW_H
-#define _VIEW_H 1
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,12 +26,8 @@ extern "C" {
 #include <notcurses/notcurses.h>
 #endif
 
-#include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>
-#ifndef _COMMON_H
-typedef struct Init Init;
-#endif
 #define COLOR_LEN 8
 #define NPOS 256
 #define NMARKS 256
@@ -215,5 +210,4 @@ extern char err_msg[MAXLEN];
 extern int view_accept_cmd(View *);
 #ifdef __cplusplus
 }
-#endif
 #endif

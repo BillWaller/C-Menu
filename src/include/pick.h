@@ -7,8 +7,7 @@
     @date 2026-02-09
  */
 
-#ifndef _PICK_H
-#define _PICK_H 1
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,10 +19,6 @@ extern "C" {
 
 #define OBJ_MAXLEN 80
 #define OBJ_MAXCNT 4096
-
-#ifndef _COMMON_H
-typedef struct Init Init;
-#endif
 
 /** @struct Pick
    @brief Pick data structure */
@@ -108,5 +103,4 @@ extern int output_objects(Pick *);
 extern int mpick(int, char **, int, int, int, int, char *, int);
 #ifdef __cplusplus
 }
-#endif
 #endif

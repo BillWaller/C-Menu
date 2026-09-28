@@ -7,18 +7,13 @@
  *  @date 2026-02-09
  */
 
-#ifndef _FORM_H
-#define _FORM_H 1
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <cm.h>
-
-#ifndef _COMMON_H
-typedef struct Init Init;
-#endif
 
 #define FIELD_MAXLEN 1024
 #define FIELD_MAXCNT 100
@@ -390,5 +385,4 @@ extern void form_display_chyron(Form *);
 extern void display_field(UiCell *, uint, uint);
 #ifdef __cplusplus
 }
-#endif
 #endif

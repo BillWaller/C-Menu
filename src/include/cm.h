@@ -6,8 +6,7 @@
  *  billxwaller@gmail.com
  *  @date 2026-02-09
  */
-#ifndef _CM_H
-#define _CM_H 1
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -490,5 +489,4 @@ char *strerror__r(int errnum, char *buf, size_t buflen);
 
 #ifdef __cplusplus
 }
-#endif
 #endif

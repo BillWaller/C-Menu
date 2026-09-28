@@ -1,87 +1,187 @@
-#include <inttypes.h>
-#include <locale.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <wchar.h>
+/* hello.c -- print a greeting message and exit.
 
-typedef struct {
-    union {
-        uint32_t u32;
-        wchar_t u16[2];
-        uint8_t u8[4];
-        char c[4];
-    };
-    uint8_t backstop;
-    uint8_t width; // 5 -  5   (8 bits of EGC column width)
-} GCluster;
+   Copyright (C) 1992, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+   2005, 2006, 2007 Free Software Foundation, Inc.
 
-int main() {
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software Foundation,
+   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+
+#include "system.h"
+#include <config.h>
+
+/* String containing name the program is called with.  */
+const char *program_name;
+
+static const struct option longopts[] =
+    {
+        {"greeting", required_argument, NULL, 'g'},
+        {"help", no_argument, NULL, 'h'},
+        {"next-generation", no_argument, NULL, 'n'},
+        {"traditional", no_argument, NULL, 't'},
+        {"version", no_argument, NULL, 'v'},
+        {NULL, 0, NULL, 0}};
+
+static void print_help(void);
+static void print_version(void);
+
+int main(int argc, char *argv[]) {
+    int optc;
+    int t = 0, n = 0, lose = 0;
+    const char *greeting = NULL;
+
+    program_name = argv[0];
+
+    /* Set locale via LC_ALL.  */
     setlocale(LC_ALL, "");
-    GCluster g0, g1, g2, g3;
 
-    g0.u32 = L'┤';
-    g1.u32 = L'├';
-    g2.u32 = 0x2524;
-    g3.u32 = 0x251c;
+#if ENABLE_NLS
+    /* Set the text message domain.  */
+    bindtextdomain(PACKAGE, LOCALEDIR);
+    textdomain(PACKAGE);
+#endif
 
-    printf("%08x %08x %08x %08x\n", g0.u32, g1.u32, g2.u32, g3.u32);
-    //   00002524 0000251c 00002524 0000251c
-    printf("%s %s %s %s\n", g0.c, g1.c, g2.c, g3.c);
-    //              $% %  $% %
+    /* Even exiting has subtleties.  The /dev/full device on GNU/Linux
+       can be used for testing whether writes are checked properly.  For
+       instance, hello >/dev/full should exit unsuccessfully.  On exit,
+       if any writes failed, change the exit status.  This is
+       implemented in the Gnulib module "closeout".  */
+    atexit(close_stdout);
 
-    // Here, we are assigning the wchar_t values directly to the u16 array
-    wchar_t c0 = L'┤';
-    wchar_t c1 = L'├';
-    g2.u16[0] = c0;
-    g3.u16[0] = c1;
-    printf("%08x %08x %08x %08x\n", g0.u32, g1.u32, g2.u32, g3.u32);
-    // 00002524 0000251c 00002524 0000251c
-    //
-    // We can probably use these values with Notcurses. They are not UTF-8
-    // encoded, but they are valid Unicode codepoints. The documentation seems
-    // to indicate that this encoding will work with ncplane_putwegc().
-    //
-    // We did that and then used ncplane_at_yx_cell() to fetch the values from
-    // the plane. We got 0xa494e2 and 0x9c94e2. Those are the correct multibyte
-    // UTF-8 encodings for our characters. So we need to use those values
-    // instead of the wchar_t values with the non-wide-character functions of
-    // Notcurses.
-    //
-    // We used strcpy to copy the wchar_t values into the char arrays. Low and
-    // behold, we got the correct multibyte UTF-8 encodings in the char arrays.
-    strcpy(g2.c, "┤"); // -> 0xa494e2
-    strcpy(g3.c, "├"); // -> 0x9c94e2
-    printf("%08x %08x %08x %08x\n", g0.u32, g1.u32, g2.u32, g3.u32);
-    printf("%s %s %s %s\n", g0.c, g1.c, g2.c, g3.c);
-    //      $%      %       ┤        ├
-    g0.u32 = L'┤';
-    strcpy(g2.c, "┤"); // -> 0xa494e2
-    printf("%x %x %s\n", g0.u32, g2.u32, g2.c);
-    //              2524 a494e2 ┤
-    g1.u32 = L'├';
-    strcpy(g3.c, "├"); // -> 0x9c94e2
-    printf("%x %x %s\n", g1.u32, g3.u32, g3.c);
-    //              251c 9c94e2 ├
-    //   00002524 0000251c 00a494e2 009c94e2
-    //
-    // Wee doggies! Would you look at that? Just like magic, we have the correct
-    // UTF-8 encoded values in the char arrays. Can we use these with Notcurses?
-    // Well, yes, we can use the char arrays with Notcurses, but we cannot use
-    // the wchar_t values. The wchar_t values are not UTF-8 encoded. They are just
-    // Unicode codepoints. But, we don't really care, so long as we have a way
-    // to get the results we want, either from Unicode codepoints or the character
-    // glyphs. I wonder if iconv can convert the wchar_t values to UTF-8 encoded
-    // char arrays. We can try that next.
-    //
-    printf("\n\nFrom Ode to a Mouse\n");
-    printf("\nBut Mousie, thou art no thy-lane,\n");
-    printf("In proving foresight may be vain:\n");
-    printf("The best laid schemes o’ Mice an’ Men\n");
-    printf("        Gang aft agley,\n");
-    printf("An’ lea’e us nought but grief an’ pain,\n");
-    printf("        For promis’d joy!\n\n");
-    printf("         by Robert Burns\n\n");
+    while ((optc = getopt_long(argc, argv, "g:hntv", longopts, NULL)) != -1)
+        switch (optc) {
+        /* One goal here is having --help and --version exit immediately,
+           per GNU coding standards.  */
+        case 'v':
+            print_version();
+            exit(EXIT_SUCCESS);
+            break;
+        case 'g':
+            greeting = optarg;
+            break;
+        case 'h':
+            print_help();
+            exit(EXIT_SUCCESS);
+            break;
+        case 'n':
+            n = 1;
+            break;
+        case 't':
+            t = 1;
+            break;
+        default:
+            lose = 1;
+            break;
+        }
 
-    return 0;
+    if (lose || optind < argc) {
+        /* Print error message and exit.  */
+        if (optind < argc)
+            fprintf(stderr, _("%s: extra operand: %s\n"),
+                    program_name, argv[optind]);
+        fprintf(stderr, _("Try `%s --help' for more information.\n"),
+                program_name);
+        exit(EXIT_FAILURE);
+    }
+
+    /* Print greeting message and exit. */
+    if (t)
+        printf(_("hello, world\n"));
+
+    else if (n)
+        /* TRANSLATORS: Use box drawing characters or other fancy stuff
+           if your encoding (e.g., UTF-8) allows it.  If done so add the
+           following note, please:
+
+           [Note: For best viewing results use a UTF-8 locale, please.]
+        */
+        printf(_("\
++---------------+\n\
+| Hello, world! |\n\
++---------------+\n\
+"));
+
+    else {
+        if (!greeting)
+            greeting = _("Hello, world!");
+        puts(greeting);
+    }
+
+    exit(EXIT_SUCCESS);
+}
+
+/* Print help info.  This long message is split into
+   several pieces to help translators be able to align different
+   blocks and identify the various pieces.  */
+
+static void
+print_help(void) {
+    /* TRANSLATORS: --help output 1 (synopsis)
+       no-wrap */
+    printf(_("\
+Usage: %s [OPTION]...\n"),
+           program_name);
+
+    /* TRANSLATORS: --help output 2 (brief description)
+       no-wrap */
+    fputs(_("\
+Print a friendly, customizable greeting.\n"),
+          stdout);
+
+    puts("");
+    /* TRANSLATORS: --help output 3: options 1/2
+       no-wrap */
+    fputs(_("\
+  -h, --help          display this help and exit\n\
+  -v, --version       display version information and exit\n"),
+          stdout);
+
+    puts("");
+    /* TRANSLATORS: --help output 4: options 2/2
+       no-wrap */
+    fputs(_("\
+  -t, --traditional       use traditional greeting format\n\
+  -n, --next-generation   use next-generation greeting format\n\
+  -g, --greeting=TEXT     use TEXT as the greeting message\n"),
+          stdout);
+
+    printf("\n");
+    /* TRANSLATORS: --help output 5 (end)
+       TRANSLATORS: the placeholder indicates the bug-reporting address
+       for this application.  Please add _another line_ with the
+       address for translation bugs.
+       no-wrap */
+    printf(_("\
+Report bugs to <%s>.\n"),
+           PACKAGE_BUGREPORT);
+}
+
+/* Print version and copyright information.  */
+
+static void
+print_version(void) {
+    printf("hello (GNU %s) %s\n", PACKAGE, VERSION);
+    /* xgettext: no-wrap */
+    puts("");
+
+    /* It is important to separate the year from the rest of the message,
+       as done here, to avoid having to retranslate the message when a new
+       year comes around.  */
+    printf(_("\
+Copyright (C) %s Free Software Foundation, Inc.\n\
+License GPLv3+: GNU GPL version 3 or later\
+<http://gnu.org/licenses/gpl.html>\n\
+This is free software: you are free to change and redistribute it.\n\
+There is NO WARRANTY, to the extent permitted by law.\n"),
+           "2007");
 }
