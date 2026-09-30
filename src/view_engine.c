@@ -94,11 +94,11 @@
             ans = false;                                         \
     }
 
-#define _ui_perror(msg)                                                     \
-    {                                                                       \
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2); \
-        strnz__cpy(em1, msg, MAXLEN - 1);                                   \
-        ui_display_error(em0, em1, nullptr, nullptr);                       \
+#define _ui_perror(msg)                                                        \
+    {                                                                          \
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 2); \
+        strnz__cpy(em1, msg, MAXLEN - 1);                                      \
+        ui_display_error(em0, em1, nullptr, nullptr);                          \
     }
 
 #define _Refresh(view)     \
@@ -253,9 +253,9 @@ int view_cmd_processor(Init *init) {
             break;
         case Ctrl('L'): /**<  Ctrl('L') or UIKEY_RESIZE - Handle terminal resize */
         case UIKEY_RESIZE:
-            ui_log(INFO, "UIKEY_RESIZE received");
+            ui_log(INFO, _("Resize key received"));
             ui_get_screen_size(&view->lines, &view->cols);
-            ui_log(INFO, "UIKEY_RESIZE lines=%d, cols=%d", view->lines, view->cols);
+            ui_log(INFO, _("Resize: lines=%d, cols=%d"), view->lines, view->cols);
             if (view->f_full_screen)
                 view_full_screen_resize(init);
             else
@@ -358,7 +358,7 @@ int view_cmd_processor(Init *init) {
             break;
         /**  '+', Set Startup Command */
         case '+':
-            if (get_cmd_arg(view, "Startup Command:") == 0)
+            if (get_cmd_arg(view, _("Startup Command:")) == 0)
                 strnz__cpy(view->cmd, view->cmd_arg, MAXLEN - 1);
             break;
         /**  '-', Change View Settings */
@@ -374,7 +374,7 @@ int view_cmd_processor(Init *init) {
             /**   -w   wrap long lines */
             /**   -h   display help */
             case 'i':
-                display_prompt(view, "Ignore Case in search (Y or N)->");
+                display_prompt(view, _("Ignore Case in search (Y or N)->"));
                 confirm();
                 if (ans)
                     view->f_ignore_case = true;
@@ -383,7 +383,7 @@ int view_cmd_processor(Init *init) {
                 break;
             /**   -n   line numbers */
             case 'n':
-                display_prompt(view, "Line Numbering (Y or N)->");
+                display_prompt(view, _("Line Numbering (Y or N)->"));
                 confirm();
                 if (view->f_ln == ans)
                     break;
@@ -394,13 +394,13 @@ int view_cmd_processor(Init *init) {
             /**  -s  Squeeze Multiple Blank Lines */
             case 's':
                 display_prompt(
-                    view, "view->f_squeeze Multiple Blank lines (Y or N)->");
+                    view, _("view->f_squeeze Multiple Blank lines (Y or N)->"));
                 confirm();
                 view->f_squeeze = ans;
                 break;
             case 'w':
                 display_prompt(
-                    view, "Line Wrapping (Y or N)->");
+                    view, _("Line Wrapping (Y or N)->"));
                 if ((c = get_cmd_char(view, &n_cmd)) == 'y' || c == 'Y')
                     ans = true;
                 else if (c == 'n' || c == 'N')
@@ -414,7 +414,7 @@ int view_cmd_processor(Init *init) {
             /**  -t  n Set Tab Stop Columns */
             case 't':
                 sprintf(tmp_str,
-                        "Tabstop Colums Currently %d:", view->tab_stop);
+                        _("Tabstop Colums Currently %d:"), view->tab_stop);
                 i = 0;
                 if (get_cmd_arg(view, tmp_str) == 0)
                     i = atoi(view->cmd_arg);
@@ -422,7 +422,7 @@ int view_cmd_processor(Init *init) {
                     view->tab_stop = i;
                     view->f_redisplay_page = true;
                 } else
-                    ui_perror("Tab stops not changed");
+                    ui_perror(_("Tab stops not changed"));
                 break;
             /**  -h  Display Help */
             case UIKEY_F01:
@@ -440,11 +440,11 @@ int view_cmd_processor(Init *init) {
         /**  'n' - Repeat Previous Search */
         case 'n':
             if (view->f_search_complete) {
-                ui_perror("Search complete, no more matches");
+                ui_perror(_("Search complete, no more matches"));
                 break;
             }
             if (prev_search_cmd == 0) {
-                ui_perror("No previouis search");
+                ui_perror(_("No previouis search"));
                 break;
             }
             if (prev_search_cmd == '/') {
@@ -456,14 +456,14 @@ int view_cmd_processor(Init *init) {
             }
             rc = search(view, prev_search_cmd, prev_regex_pattern);
             if (rc == false) {
-                ui_perror("No matches found");
+                ui_perror(_("No matches found"));
                 break;
             }
             break;
         /**  '/' or '?' - Search Forward fromk top of page */
         case '/':
             view->f_search_complete = false;
-            strnz__cpy(tmp_str, " Forward:", MAXLEN - 1);
+            strnz__cpy(tmp_str, _(" Forward:"), MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
             if (c == UIKEY_F09 || c == '\033')
@@ -475,7 +475,7 @@ int view_cmd_processor(Init *init) {
                 view->srch_curr_pos = view->page_top_pos;
                 rc = search(view, search_cmd, view->cmd_arg);
                 if (rc == false) {
-                    ui_perror("No matches found");
+                    ui_perror(_("No matches found"));
                     break;
                 }
                 prev_search_cmd = search_cmd;
@@ -485,7 +485,7 @@ int view_cmd_processor(Init *init) {
         /**  '?' - Search Backward */
         case '?':
             view->f_search_complete = false;
-            strnz__cpy(tmp_str, " Backward:", MAXLEN - 1);
+            strnz__cpy(tmp_str, _(" Backward:"), MAXLEN - 1);
             search_cmd = c;
             c = get_cmd_arg(view, tmp_str);
             if (c == UIKEY_F09 || c == '\033')
@@ -497,7 +497,7 @@ int view_cmd_processor(Init *init) {
                 view->srch_curr_pos = view->page_bot_pos;
                 rc = search(view, search_cmd, view->cmd_arg);
                 if (rc == false) {
-                    ui_perror("No matches found");
+                    ui_perror(_("No matches found"));
                     break;
                 }
                 prev_search_cmd = search_cmd;
@@ -506,7 +506,7 @@ int view_cmd_processor(Init *init) {
             break;
         /**  'o' - Open a File */
         case 'o':
-            if (get_cmd_arg(view, "File name:") == 0) {
+            if (get_cmd_arg(view, _("File name:")) == 0) {
                 strtok(view->cmd_arg, " ");
                 view->next_file_spec_ptr = strdup(view->cmd_arg);
                 view->f_redisplay_page = true;
@@ -531,26 +531,26 @@ int view_cmd_processor(Init *init) {
             break;
         /**  'm' - Set a Mark at the Current Position */
         case 'm':
-            display_prompt(view, "Mark label (A-Z)->");
+            display_prompt(view, _("Mark label (A-Z)->"));
             c = get_cmd_char(view, &n_cmd);
             if (c == '@' || c == UIKEY_F09 || c == '\033')
                 if (c >= 'A' && c <= 'Z')
                     c += ' ';
             if (c < 'a' || c > 'z')
-                ui_perror("Not (a-z)");
+                ui_perror(_("Not (a-z)"));
             else
                 view->mark_tbl[c - 'a'] = view->page_top_pos;
             break;
         /**  'M' - Go to a Mark */
         case 'M':
-            display_prompt(view, "Goto mark (A-Z)->");
+            display_prompt(view, _("Goto mark (A-Z)->"));
             c = get_cmd_char(view, &n_cmd);
             if (c == '@' || c == UIKEY_F09 || c == '\033')
                 break;
             if (c >= 'A' && c <= 'Z')
                 c += ' ';
             if (c < 'a' || c > 'z')
-                ui_perror("Not (A-Z)");
+                ui_perror(_("Not (A-Z)"));
             else
                 go_to_mark(view, c);
             break;
@@ -559,7 +559,7 @@ int view_cmd_processor(Init *init) {
             if (n_cmd <= 0)
                 n_cmd = 1;
             if (view->curr_argc + n_cmd >= view->argc) {
-                ui_perror("no more files");
+                ui_perror(_("no more files"));
                 view->curr_argc = view->argc - 1;
             } else {
                 view->curr_argc++;
@@ -580,12 +580,12 @@ int view_cmd_processor(Init *init) {
             break;
         /**  Ctrl('Z') - Send File to Print Queue with Notation */
         case Ctrl('Z'):
-            get_cmd_arg(view, "Enter Notation:");
+            get_cmd_arg(view, _("Enter Notation:"));
             strnz__cpy(tmp_str, "/tmp/view-XXXXXX", MAXLEN - 1);
             tfd = mkstemp(tmp_str);
             strnz__cpy(view->tmp_file_name_ptr, tmp_str, MAXLEN - 1);
             if (tfd == -1) {
-                ui_perror("Unable to create temporary file");
+                ui_perror(_("Unable to create temporary file"));
                 break;
             }
             strnz__cpy(shell_cmd_spec, "echo ", MAXLEN - 5);
@@ -618,7 +618,7 @@ int view_cmd_processor(Init *init) {
             if (n_cmd <= 0)
                 n_cmd = 1;
             if (view->curr_argc - n_cmd < 0) {
-                ui_perror("No previous file");
+                ui_perror(_("No previous file"));
                 view->curr_argc = 0;
             } else {
                 view->curr_argc--;
@@ -646,11 +646,11 @@ int view_cmd_processor(Init *init) {
                     strnz__cpy(init->editor, e, MAXLEN);
             }
             strnz__cpy(em0,
-                       "View doesn't support editing current buffer directly",
+                       _("View doesn't support editing current buffer directly"),
                        MAXLEN - 1);
-            strnz__cpy(em1, "Would you like to write the buffer to a file?",
+            strnz__cpy(em1, _("Would you like to write the buffer to a file?"),
                        MAXLEN - 1);
-            strnz__cpy(em2, "Enter Y for yes or any other key to cancel.",
+            strnz__cpy(em2, _("Enter Y for yes or any other key to cancel."),
                        MAXLEN - 1);
             rc = ui_display_error(em0, em1, em2, nullptr);
             if (rc != 'y' && rc != 'Y')
@@ -662,9 +662,9 @@ int view_cmd_processor(Init *init) {
             prev_file_pos = view->page_top_pos;
             bytes_written = write_view_buffer(init, view->f_strip_ansi);
             if (bytes_written == 0) {
-                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
+                ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__,
                           __LINE__ - 2);
-                strnz__cpy(em1, "0 bytes written", MAXLEN - 1);
+                strnz__cpy(em1, _("0 bytes written"), MAXLEN - 1);
                 strerror__r(errno, em1, MAXLEN - 1);
                 ui_display_error(em0, em1, nullptr, nullptr);
                 break;
@@ -689,9 +689,9 @@ int view_cmd_processor(Init *init) {
             // prev_file_pos = view->page_top_pos;
             bytes_written = write_view_buffer(init, view->f_strip_ansi);
             if (bytes_written == 0) {
-                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
+                ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__,
                           __LINE__ - 2);
-                strnz__cpy(em1, "0 bytes written", MAXLEN - 1);
+                strnz__cpy(em1, _("0 bytes written"), MAXLEN - 1);
                 strerror__r(errno, em1, MAXLEN - 1);
                 ui_display_error(em0, em1, nullptr, nullptr);
                 break;
@@ -703,7 +703,7 @@ int view_cmd_processor(Init *init) {
             break;
         /** 'V' - Display Version Information */
         case 'V':
-            ssnprintf(em0, MAXLEN - 1, "C-Menu Version: %s", CM_VERSION);
+            ssnprintf(em0, MAXLEN - 1, _("C-Menu Version: %s"), CM_VERSION);
             ui_display_error(em0, em1, nullptr, nullptr);
             break;
         default:
@@ -769,7 +769,7 @@ int get_cmd_char(View *view, off_t *n) {
             c = UIKEY_F09;
             return c;
         case UIKEY_F12:
-            ssnprintf(view->prompt_str, MAXLEN - 1, "set break at line: %d and restart gdb", __LINE__);
+            ssnprintf(view->prompt_str, MAXLEN - 1, _("set break at line: %d and restart gdb"), __LINE__);
             get_cmd_arg(view, view->prompt_str);
             break;
         case '\b':
@@ -922,7 +922,7 @@ void build_prompt(View *view) {
         strnz__cpy(view->prompt_str, view->file_name, prompt_maxlen);
     // ----------------< Columns >----------------
     if (view->pmincol > 0) {
-        sprintf(tmp_str, "Col %d of %d", view->pmincol, view->maxcol);
+        sprintf(tmp_str, _("Col %d of %d"), view->pmincol, view->maxcol);
         if (view->prompt_str[0] != '\0')
             strnz__cat(view->prompt_str, "|", prompt_maxlen);
         strnz__cat(view->prompt_str, tmp_str, prompt_maxlen);
@@ -933,7 +933,7 @@ void build_prompt(View *view) {
         if (prompt_l > (view->cols - 4) / 2)
             return;
         if (view->argc > 0) {
-            sprintf(tmp_str, "File %d of %d", view->curr_argc + 1, view->argc);
+            sprintf(tmp_str, _("File %d of %d"), view->curr_argc + 1, view->argc);
             if (view->prompt_str[0] != '\0') {
                 strnz__cat(view->prompt_str, "|", prompt_maxlen);
                 strnz__cat(view->prompt_str, tmp_str, prompt_maxlen);
@@ -950,14 +950,14 @@ void build_prompt(View *view) {
     view->page_bot_pos = view->ln_tbl[view->page_bot_ln_no + 1];
     if (view->page_bot_pos == NULL_POSITION)
         view->page_bot_pos = view->file_size;
-    sprintf(tmp_str, "Pos %zd-%zd", view->page_top_pos, view->page_bot_pos);
+    sprintf(tmp_str, _("Pos %zd-%zd"), view->page_top_pos, view->page_bot_pos);
     if (view->prompt_str[0] != '\0') {
         strnz__cat(view->prompt_str, "|", prompt_maxlen);
         strnz__cat(view->prompt_str, tmp_str, prompt_maxlen);
     }
     if (!view->f_is_pipe) {
         if (view->file_size > 0) {
-            sprintf(tmp_str, " of %zd", view->file_size);
+            sprintf(tmp_str, _(" of %zd"), view->file_size);
             strnz__cat(view->prompt_str, tmp_str, prompt_maxlen);
         }
     }
@@ -968,10 +968,10 @@ void build_prompt(View *view) {
     if (view->f_eod) {
         if (view->prompt_str[0] != '\0')
             strnz__cat(view->prompt_str, " ", prompt_maxlen);
-        strnz__cat(view->prompt_str, "(End)", prompt_maxlen);
+        strnz__cat(view->prompt_str, _("(End)"), prompt_maxlen);
         if (view->curr_argc + 1 < view->argc) {
             base_name(tmp_str, view->argv[view->curr_argc + 1]);
-            strnz__cpy(view->prompt_str, " Next File: ", prompt_maxlen);
+            strnz__cpy(view->prompt_str, _(" Next File: "), prompt_maxlen);
             strnz__cat(view->prompt_str, tmp_str, prompt_maxlen);
         }
     }
@@ -989,9 +989,9 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
     size_t l;
     char tmp_line_s[PAD_COLS];
     if (!f_strip_ansi) {
-        strnz__cpy(em0, "Would you like to strip ansi escape sequences?",
+        strnz__cpy(em0, _("Would you like to strip ansi escape sequences?"),
                    MAXLEN - 1);
-        strnz__cpy(em1, "Enter Y for yes or any other key to cancel.",
+        strnz__cpy(em1, _("Enter Y for yes or any other key to cancel."),
                    MAXLEN - 1);
         rc = ui_answer_yn(nullptr, em0, em1, nullptr);
         if (rc == 'y' || rc == 'Y')
@@ -1003,8 +1003,8 @@ int write_view_buffer(Init *init, bool f_strip_ansi) {
     /** write the buffer */
     view->out_fd = open(view->out_spec, O_CREAT | O_TRUNC | O_WRONLY, 0644);
     if (view->out_fd == -1) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
-        strnz__cpy(em1, "fwrite ", MAXLEN - 1);
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 2);
+        strnz__cpy(em1, _("fwrite "), MAXLEN - 1);
         strnz__cat(em1, view->out_spec, MAXLEN - 1);
         strerror__r(errno, em2, MAXLEN - 1);
         ui_display_error(em0, em1, em2, nullptr);
@@ -1075,7 +1075,7 @@ void go_to_mark(View *view, uint c) {
     else
         view->file_pos = view->mark_tbl[c - 'a'];
     if (view->file_pos == NULL_POSITION)
-        ui_perror("Mark not set");
+        ui_perror(_("Mark not set"));
     else
         go_to_position(view, view->file_pos);
 }
@@ -1128,7 +1128,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         REG_FLAGS = REG_EXTENDED;
     reti = regcomp(&compiled_regex, regex_pattern, REG_FLAGS);
     if (reti) {
-        ui_perror("Invalid pattern");
+        ui_perror(_("Invalid pattern"));
         return false;
     }
     bool rc = false;
@@ -1190,7 +1190,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
         if (reti) {
             char err_str[MAXLEN];
             regerror(reti, &compiled_regex, err_str, sizeof(err_str));
-            strnz__cpy(tmp_str, "Regex match failed: ", MAXLEN - 1);
+            strnz__cpy(tmp_str, _("Regex match failed: "), MAXLEN - 1);
             strnz__cat(tmp_str, err_str, MAXLEN - 1);
             ui_perror(tmp_str);
             rc = false; /* Set status */
@@ -1246,7 +1246,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
             if (reti) {
                 char msgbuf[100];
                 regerror(reti, &compiled_regex, msgbuf, sizeof(msgbuf));
-                sprintf(tmp_str, "Regex match failed: %s", msgbuf);
+                sprintf(tmp_str, _("Regex match failed: %s"), msgbuf);
                 ui_perror(tmp_str);
                 rc = false; /* Set status */
                 goto cleanup;
@@ -1890,7 +1890,7 @@ void go_to_eof(View *view) {
 */
 void go_to_percent(View *view, uint percent) {
     if (view->file_size < 0) {
-        ui_perror("Cannot determine file length");
+        ui_perror(_("Cannot determine file length"));
         return;
     }
     view->file_pos = (percent * view->file_size) / 100;
@@ -1915,7 +1915,7 @@ void go_to_percent(View *view, uint percent) {
  */
 int go_to_line(View *view, off_t line_idx) {
     if (line_idx < 0 || line_idx > view->ln_tbl_size - 1) {
-        ui_perror("Line number out of bounds");
+        ui_perror(_("Line number out of bounds"));
         return EOF;
     }
     view->ln_no = line_idx;
@@ -1978,7 +1978,7 @@ void initialize_line_table(View *view) {
     view->ln_tbl_size = LINE_TBL_INCR;
     view->ln_tbl = (off_t *)calloc(view->ln_tbl_size, sizeof(off_t));
     if (view->ln_tbl == nullptr) {
-        ui_perror("Memory allocation failed");
+        ui_perror(_("Memory allocation failed"));
         exit(EXIT_FAILURE);
     }
     view->ln_max_pos = 0;
@@ -2023,7 +2023,7 @@ void increment_ln(View *view) {
         view->ln_tbl =
             (off_t *)realloc(view->ln_tbl, view->ln_tbl_size * sizeof(off_t));
         if (view->ln_tbl == nullptr) {
-            ui_perror("Memory allocation failed");
+            ui_perror(_("Memory allocation failed"));
             exit(EXIT_FAILURE);
         }
     }
@@ -2113,7 +2113,7 @@ int pad_refresh(View *view) {
                   view->smaxrow,
                   view->smaxcol);
     if (rc == ERR) {
-        ssnprintf(em0, MAXLEN - 1, "%s:%d prefresh(view->sfc->mwin[WIN2], pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n",
+        ssnprintf(em0, MAXLEN - 1, _("%s:%d prefresh(view->sfc->mwin[WIN2], pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n"),
                   __FILE__, __LINE__ - 1, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
         ui_perror(em0);
     }
@@ -2696,8 +2696,8 @@ bool enter_file_spec(Init *init, char *file_spec) {
     strnz__cat(tmp_dir, "/tmp", MAXLEN - 1);
     expand_tilde(tmp_dir, MAXLEN - 1);
     if (!mk_dir(tmp_dir)) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
-        strnz__cpy(em1, "Unable to ", MAXLEN - 1);
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 2);
+        strnz__cpy(em1, _("Unable to "), MAXLEN - 1);
         strnz__cat(em1, "mkdir", MAXLEN - 1);
         strnz__cat(em1, tmp_dir, MAXLEN - 1);
         strerror__r(errno, em2, MAXLEN - 1);
@@ -2709,8 +2709,8 @@ bool enter_file_spec(Init *init, char *file_spec) {
         strnz__cat(tmp_spec, "/tmp_XXXXXX", MAXLEN - 1);
         view->in_fd = mkstemp(tmp_spec);
         if (view->in_fd == -1) {
-            ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
-            strnz__cpy(em1, "unable to ", MAXLEN - 1);
+            ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 2);
+            strnz__cpy(em1, _("unable to "), MAXLEN - 1);
             strnz__cat(em1, "mkstemp ", MAXLEN - 1);
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
             strerror__r(errno, em2, MAXLEN - 1);
@@ -2720,7 +2720,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
         /** call form to get file_name
             write the name to a temporary file */
 
-        strnz__cpy(earg_str, "form -d file_name.f -o ", MAXLEN - 1);
+        strnz__cpy(earg_str, _("form -d file_name.f -o "), MAXLEN - 1);
         strnz__cat(earg_str, tmp_spec, MAXLEN - 1);
         eargc = str_to_args(eargv, earg_str, MAX_ARGS);
         rc = popup_form(init, eargc, eargv, view->begy + view->lines - 7, 4);
@@ -2731,8 +2731,8 @@ bool enter_file_spec(Init *init, char *file_spec) {
         close(view->in_fd);
         tmp_fp = fopen(tmp_spec, "r");
         if (tmp_fp == nullptr) {
-            ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
-            strnz__cpy(em1, "unable to ", MAXLEN - 1);
+            ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 2);
+            strnz__cpy(em1, _("unable to "), MAXLEN - 1);
             strnz__cat(em1, "fopen ", MAXLEN - 1);
             strnz__cat(em1, tmp_spec, MAXLEN - 1);
             strerror__r(errno, em2, MAXLEN - 1);
@@ -2745,9 +2745,9 @@ bool enter_file_spec(Init *init, char *file_spec) {
         unlink(tmp_spec);
         if (!verify_spec_arg(file_spec, tmp_str, "~/menuapp/tmp", ".",
                              S_WCOK | S_QUIET)) {
-            ssnprintf(em0, MAXLEN - 1, "Unable to open %s for writing",
+            ssnprintf(em0, MAXLEN - 1, _("Unable to open %s for writing"),
                       tmp_str);
-            strnz__cpy(em1, "Try again? y (yes) or n (no) ", MAXLEN - 1);
+            strnz__cpy(em1, _("Try again? y (yes) or n (no) "), MAXLEN - 1);
             rc = ui_display_error(em0, em1, nullptr, nullptr);
             if (rc == 'y' || rc == 'Y')
                 continue;

@@ -42,10 +42,10 @@ static char doc[] = "whence locate files in path";
 static char args_doc[] = "";
 
 static struct argp_option options[] = {
-    {"all", 'a', 0, 0, "list all matches", 0},
+    {_("all"), 'a', 0, 0, _("list all matches"), 0},
     {"setuid", 's', 0, 0, "setuid only", 0},
-    {"executable", 'x', 0, 0, "executable only", 0},
-    {"verbose", 'v', 0, 0, "verbose messages", 0},
+    {"executable", 'x', 0, 0, _("executable only"), 0},
+    {"verbose", 'v', 0, 0, _("verbose messages"), 0},
     {}};
 
 struct wh_opts {
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
     argp_parse(&argp, argc, argv, 0, 0, &wh_opts);
     path_p = getenv("PATH");
     if (path_p == nullptr)
-        ABEND(argv[0], 0, "PATH environment variable not set");
+        ABEND(argv[0], 0, _("PATH environment variable not set"));
     if (wh_opts.flags & WH_VERBOSE)
         printf("%s\n", path_p);
     while (i < wh_opts.argc) {
@@ -158,7 +158,7 @@ int whence(char *file_spec_p, int flags) {
         }
         found++;
         if (flags & WH_VERBOSE)
-            printf("found  %s\n", try_spec);
+            printf(_("found  %s\n"), try_spec);
         else {
             printf("%s\n", try_spec);
             if (!(flags & WH_ALL))
@@ -264,7 +264,7 @@ int file_spec_parts(char *file_spec, char *file_path, char *file_name) {
    It prints the program name, return code, and error message to the standard
    error stream, and then exits with the specified return code. */
 void ABEND(char *pgmid, int rc, char *err_msg) {
-    fprintf(stderr, "%s; error %d; %s\n", pgmid, rc, err_msg);
+    fprintf(stderr, _("%s; error %d; %s\n"), pgmid, rc, err_msg);
     exit(EXIT_FAILURE);
 }
 

@@ -12,7 +12,6 @@
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
 #endif
-#include "cm.h"
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -25,6 +24,18 @@
 #include <syslog.h>
 #include <termios.h>
 #include <unistd.h>
+
+#ifdef __USE_GNU_GETTEXT
+#include <libintl.h>
+#define _(String) gettext(String)
+#define gettext_noop(String) String
+#define N_(String) gettext_noop(String)
+#else
+#define _(String) (String)
+#define N_(String) String
+#define textdomain(Domain)
+#define bindtextdomain(Package, Directory)
+#endif
 
 #define HOST "localhost"
 #ifndef MAXLEN
@@ -94,8 +105,8 @@ int main(int argc, char **argv) {
     }
     retval = pam_start("rsh-auth", username, &conv, &pamh);
     if (retval != PAM_SUCCESS) {
-        syslog(LOG_ERR, "PAM start failed: %s", pam_strerror(pamh, retval));
-        fprintf(stderr, "PAM start failed: %s\n", pam_strerror(pamh, retval));
+        syslog(LOG_ERR, _("PAM start failed: %s"), pam_strerror(pamh, retval));
+        fprintf(stderr, _("PAM start failed: %s\n"), pam_strerror(pamh, retval));
         return 1;
     }
 
@@ -110,17 +121,17 @@ int main(int argc, char **argv) {
     //
     retval = pam_authenticate(pamh, 0);
     if (retval == PAM_SUCCESS) {
-        syslog(LOG_AUTH, "Authentication succeeded for user '%s': %s", username, pam_strerror(pamh, retval));
+        syslog(LOG_AUTH, _("Authentication succeeded for user '%s': %s"), username, pam_strerror(pamh, retval));
     } else {
-        syslog(LOG_AUTH, "Authentication failed for user '%s': %s", username, pam_strerror(pamh, retval));
-        fprintf(stderr, "Failure: Authentication failed: %s\n", pam_strerror(pamh, retval));
+        syslog(LOG_AUTH, _("Authentication failed for user '%s': %s"), username, pam_strerror(pamh, retval));
+        fprintf(stderr, _("Failure: Authentication failed: %s\n"), pam_strerror(pamh, retval));
     }
 
     // It's a wrap
     pam_end(pamh, retval);
 
     if (retval != PAM_SUCCESS) {
-        fprintf(stderr, "PAM authentication failed: %s\n", pam_strerror(pamh, retval));
+        fprintf(stderr, _("PAM authentication failed: %s\n"), pam_strerror(pamh, retval));
         exit(EXIT_FAILURE);
     }
 
@@ -134,7 +145,7 @@ int main(int argc, char **argv) {
             if (strcmp(argv[i], "-i") == 0) {
                 cargv[c++] = strdup("-i");
             } else if (strcmp(argv[i], "-D1") == 0 && ssh_login) {
-                fprintf(stderr, "SSH authentication succeeded\n");
+                fprintf(stderr, _("SSH authentication succeeded\n"));
             } else {
                 cargv[c++] = strdup(argv[i]);
             }
@@ -144,12 +155,12 @@ int main(int argc, char **argv) {
     pid = fork();
     switch (pid) {
     case -1:
-        ABEND(EXIT_FAILURE, "fork() fatal error");
+        ABEND(EXIT_FAILURE, _("fork() fatal error"));
         break;
     case 0: // Child
         if (argv[0] && strstr(argv[0], "rsh")) {
             if (setuid(0) || setgid(0))
-                ABEND(EXIT_FAILURE, "setuid(0) fatal error");
+                ABEND(EXIT_FAILURE, _("setuid(0) fatal error"));
             struct rlimit rl;
             getrlimit(RLIMIT_FSIZE, &rl);
             rl.rlim_cur = RLIM_INFINITY;
@@ -157,7 +168,7 @@ int main(int argc, char **argv) {
             setrlimit(RLIMIT_FSIZE, &rl);
         }
         execvp(exec_cmd, cargv);
-        ABEND(EXIT_FAILURE, "execvp() fatal error");
+        ABEND(EXIT_FAILURE, _("execvp() fatal error"));
         break;
     default: // Parent
         waitpid(pid, &status, 0);
@@ -167,13 +178,13 @@ int main(int argc, char **argv) {
         if (WIFEXITED(status)) {
             rc = WEXITSTATUS(status);
             if (rc != 0)
-                ABEND(rc, "Child process exited");
+                ABEND(rc, _("Child process exited"));
         } else {
             if (WIFSIGNALED(status)) {
                 rc = WTERMSIG(status);
-                ABEND(rc, "Child process terminated by signal");
+                ABEND(rc, _("Child process terminated by signal"));
             } else
-                ABEND(EXIT_FAILURE, "Child process terminated abnormally");
+                ABEND(EXIT_FAILURE, _("Child process terminated abnormally"));
         }
 #endif
         break;

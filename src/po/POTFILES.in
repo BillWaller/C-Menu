@@ -1,0 +1,26 @@
+# List of source files containing translatable strings.
+
+# Package source files
+menu.c
+menu_engine.c
+form_engine.c
+pick_engine.c
+view_engine.c
+init_view.c
+rsh.c
+lf.c
+futil.c
+scriou.c
+sig.c
+exec.c
+ui/ui_ncurses.c
+ui/ui_ncurses_input.c
+ui/ui_ncurses_draw.c
+ui/ui_notcurses.c
+ui/ui_notcurses_input.c
+ui/ui_notcurses_draw.c
+ui_visual.c
+ui_hello.c
+stripansi.c
+iloan.c
+amort.c

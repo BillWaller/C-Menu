@@ -141,7 +141,7 @@ int fork_exec(char **argv) {
     if (pid < 0) {
         sig_prog_mode();
         ui_keypad(stdsfc, WIN, true);
-        ssnprintf(tmp_str, sizeof(tmp_str), "fork failed: %s, errno: %d",
+        ssnprintf(tmp_str, sizeof(tmp_str), _("fork failed: %s, errno: %d"),
                   argv[0], errno);
         ui_perror(tmp_str);
         return (-1);
@@ -149,19 +149,19 @@ int fork_exec(char **argv) {
         restore_shell_tioctl();
         sig_dfl_mode();
         execvp(argv[0], argv);
-        fprintf(stderr, "execvp failed: %s, errno: %d\n", argv[0], errno);
+        fprintf(stderr, _("execvp failed: %s, errno: %d\n"), argv[0], errno);
         exit(EXIT_FAILURE);
     }
     waitpid(pid, &status, 0);
     if (WIFEXITED(status)) {
         rc = WEXITSTATUS(status);
     } else if (WIFSIGNALED(status)) {
-        ssnprintf(tmp_str, sizeof(tmp_str), "Child process terminated by signal: %d",
+        ssnprintf(tmp_str, sizeof(tmp_str), _("Child process terminated by signal: %d"),
                   WTERMSIG(status));
         ui_perror(tmp_str);
         rc = -1;
     } else {
-        ssnprintf(tmp_str, sizeof(tmp_str), "Child process terminated abnormally");
+        ssnprintf(tmp_str, sizeof(tmp_str), _("Child process terminated abnormally"));
         ui_perror(tmp_str);
         rc = -1;
     }
@@ -191,12 +191,12 @@ int fork_detach_execvp(char **eargv) {
     sig_dfl_mode();
 
     if (pid < 0) {
-        fprintf(stderr, "First fork failed: %s\n", strerror(errno));
+        fprintf(stderr, _("First fork failed: %s\n"), strerror(errno));
         exit(EXIT_FAILURE);
     }
     if (pid == 0) {
         if (setsid() < 0) {
-            fprintf(stderr, "Set session ID failed: %s\n", strerror(errno));
+            fprintf(stderr, _("Set session ID failed: %s\n"), strerror(errno));
             exit(EXIT_FAILURE);
         }
         close(STDIN_FILENO);
@@ -215,7 +215,7 @@ int fork_detach_execvp(char **eargv) {
         for (long fd = 3; fd < max_fd; fd++)
             close(fd);
         execvp(eargv[0], eargv);
-        perror("execvp failed");
+        perror(_("execvp failed"));
         exit(EXIT_FAILURE);
     }
     restore_program_tioctl();

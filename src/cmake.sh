@@ -4,6 +4,9 @@
 
 # Using CMake
 
+if [ ! -d build ]; then
+    mkdir -p build
+fi
 cd build
 
 # To build C-Menu with the NCurses library:

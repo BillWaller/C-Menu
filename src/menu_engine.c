@@ -39,7 +39,7 @@ unsigned int menu_engine(Init *init) {
     char tmp_str[MAXLEN];
     Menu *menu = init->menu;
     if (menu == nullptr) {
-        ui_perror("menu_engine: menu is nullptr");
+        ui_perror(_("menu_engine: menu is nullptr"));
         return (1);
     }
     menu->lines = 0;

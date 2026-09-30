@@ -79,19 +79,19 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     if (pick->provider_cmd[0] != '\0') {
         s_argc = str_to_args(s_argv, pick->provider_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
-            ui_perror("pipe(pipe_fd) failed in init_pick");
+            ui_perror(_("pipe(pipe_fd) failed in init_pick"));
             return (1);
         }
 
         if ((pid = fork()) == -1) {
-            ui_perror("fork() failed in init_pick");
+            ui_perror(_("fork() failed in init_pick"));
             return (1);
         }
         if (pid == 0) {
             /** Prevent child process from writing to terminal */
             int dev_null = open("/dev/null", O_WRONLY);
             if (dev_null == -1) {
-                ui_perror("open(/dev/null) failed in init_pick child process");
+                ui_perror(_("open(/dev/null) failed in init_pick child process"));
                 exit(EXIT_FAILURE);
             }
             dup2(dev_null, STDERR_FILENO);
@@ -103,7 +103,7 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
             /** STDOUT attached to write end of pipe, so close pipe fd */
             close(pipe_fd[P_WRITE]);
             execvp(s_argv[0], s_argv);
-            strnz__cpy(tmp_str, "Can't exec pick start cmd: ", MAXLEN - 1);
+            strnz__cpy(tmp_str, _("Can't exec pick start cmd: "), MAXLEN - 1);
             strnz__cat(tmp_str, s_argv[0], MAXLEN - 1);
             ui_perror(tmp_str);
             exit(EXIT_FAILURE);
@@ -126,19 +126,19 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     if (!pick->f_in_pipe) {
         /** No provider_cmd specified, so read pick input from file or stdin */
         if (lstat(pick->in_spec, &sb) == -1) {
-            strnz__cpy(tmp_str, "Can\'t stat pick input file: ", MAXLEN - 1);
+            strnz__cpy(tmp_str, _("Can\'t stat pick input file: "), MAXLEN - 1);
             strnz__cat(tmp_str, pick->in_spec, MAXLEN - 1);
             ui_perror(tmp_str);
             return (1);
         }
         if (sb.st_size == 0) {
-            strnz__cpy(tmp_str, "Pick input file empty: ", MAXLEN - 1);
+            strnz__cpy(tmp_str, _("Pick input file empty: "), MAXLEN - 1);
             strnz__cat(tmp_str, pick->in_spec, MAXLEN - 1);
             ui_perror(tmp_str);
             return (1);
         }
         if ((pick->in_fp = fopen(pick->in_spec, "rb")) == nullptr) {
-            strnz__cpy(tmp_str, "Can't open pick input file: ", MAXLEN - 1);
+            strnz__cpy(tmp_str, _("Can't open pick input file: "), MAXLEN - 1);
             strnz__cat(tmp_str, pick->in_spec, MAXLEN - 1);
             ui_perror(tmp_str);
             return (1);
@@ -146,7 +146,7 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     }
     /*------------------------------------------------------------*/
     if (pick->in_fp == nullptr) {
-        ui_perror("No pick input available");
+        ui_perror(_("No pick input available"));
         return (1);
     }
     /*------------------------------------------------------------*/
@@ -159,13 +159,13 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
     close(pipe_fd[P_READ]);
     stdio_fdnames(stdio_names_str, "pick_engine.c 160");
     if (pick->m_cnt == 0) {
-        ui_perror("No pick objects available");
+        ui_perror(_("No pick objects available"));
         return (1);
     }
 
     // Open Pick Window so we can build chyron
     if (open_pick_win(init)) {
-        ui_perror("Failed to open pick window");
+        ui_perror(_("Failed to open pick window"));
         exit(EXIT_FAILURE);
     }
     init->view = nullptr;
@@ -325,20 +325,20 @@ int open_pick_win(Init *init) {
     pick->x = 1;
 
     pick->chyron = ui_new_chyron(pick->surface, WIN2);
-    ui_set_chyron_key(pick->chyron, 1, "F1 Help", UIKEY_F01);
-    ui_set_chyron_key(pick->chyron, 2, "F9 Cancel",
+    ui_set_chyron_key(pick->chyron, 1, _("F1 Help"), UIKEY_F01);
+    ui_set_chyron_key(pick->chyron, 2, _("F9 Cancel"),
                       UIKEY_F09);
-    ui_set_chyron_key(pick->chyron, 3, "F10 Accept",
+    ui_set_chyron_key(pick->chyron, 3, _("F10 Accept"),
                       UIKEY_F10);
-    ui_set_chyron_key(pick->chyron, 4, "F11 View",
+    ui_set_chyron_key(pick->chyron, 4, _("F11 View"),
                       UIKEY_F11);
-    ui_set_chyron_key(pick->chyron, 5, "<q> Quit View",
+    ui_set_chyron_key(pick->chyron, 5, _("<q> Quit View"),
                       'q');
-    ui_set_chyron_key(pick->chyron, 6, "<Sp> Process", ' ');
-    ui_set_chyron_key(pick->chyron, 7, "<Sp> Edit", ' ');
-    ui_set_chyron_key(pick->chyron, 9, "<Tab> Search",
+    ui_set_chyron_key(pick->chyron, 6, _("<Sp> Process"), ' ');
+    ui_set_chyron_key(pick->chyron, 7, _("<Sp> Edit"), ' ');
+    ui_set_chyron_key(pick->chyron, 9, _("<Tab> Search"),
                       '\t');
-    ui_set_chyron_key(pick->chyron, 10, "<Tab> Select",
+    ui_set_chyron_key(pick->chyron, 10, _("<Tab> Select"),
                       '\t');
     ui_set_chyron_key(pick->chyron, 11, "PgUp",
                       UIKEY_PPAGE);
@@ -380,7 +380,7 @@ int pick_engine(Init *init) {
                     f_processed = true;
                 }
                 if (f_processed) {
-                    ui_mvwaddstr(pick->surface, WIN2, 0, 0, "Selection Processed");
+                    ui_mvwaddstr(pick->surface, WIN2, 0, 0, _("Selection Processed"));
                     ui_wclrtoeol(pick->surface, WIN2);
                 }
             }
@@ -639,7 +639,7 @@ int output_objects(Pick *pick) {
     int m;
     if ((pick->out_fp = fopen(pick->out_spec, "w")) == nullptr) {
         m = MAXLEN - 30;
-        strnz__cpy(tmp_str, "Can't open pick output file: ", m);
+        strnz__cpy(tmp_str, _("Can't open pick output file: "), m);
         m -= strlen(pick->in_spec);
         strnz__cat(tmp_str, pick->out_spec, m);
     }
@@ -760,7 +760,7 @@ int exec_objects(Init *init) {
                         free(eargv[i]);
                     i++;
                 }
-                ui_perror("rep_substring() failed in exec_objects");
+                ui_perror(_("rep_substring() failed in exec_objects"));
                 return 1;
             }
             strnz__cpy(title, out_s, MAXLEN - 1);
@@ -809,13 +809,14 @@ int exec_objects(Init *init) {
                     free(eargv[i]);
                 i++;
             }
-            ui_perror("fork() failed in exec_objects");
+            ui_perror(_("fork() failed in exec_objects"));
             return (1);
         } else if (pid == 0) {
             /** Prevent child process from writing to terminal */
             // int dev_null = open("/dev/null", O_WRONLY);
             // if (dev_null == -1) {
-            //     ui_perror("open(/dev/null) failed in init_pick child process");
+            //     ui_perror(_("open(/dev/null) failed in init_pick child
+            //     process"));
             //     exit(EXIT_FAILURE);
             // }
             // dup2(dev_null, STDERR_FILENO);
@@ -858,7 +859,7 @@ void display_pick_help(Init *init) {
     init->cols = 76;
     init->begy = pick->begy + 1;
     init->begx = pick->begx + 1;
-    strnz__cpy(init->title, "Pick Help", MAXLEN - 1);
+    strnz__cpy(init->title, _("Pick Help"), MAXLEN - 1);
     popup_view(init, eargc, eargv, init->lines, init->cols, init->begy,
                init->begx);
     destroy_argv(eargc, eargv);
@@ -923,7 +924,7 @@ int picker(Init *init, char *field) {
                 pick->y = pick->tbl_line + pick->y_offset;
 
                 /** box display_pick_page_info */
-                ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
+                ssnprintf(tmp_str, MAXLEN - 1, _("Line %d, Page %d/%d"),
                           pick->tbl_line + 1, pick->tbl_page + 1,
                           pick->tbl_pages);
                 ui_border_ysplit_text(pick->surface, tmp_str, pick->separator_line);
@@ -1212,7 +1213,7 @@ int picker(Init *init, char *field) {
                         ptr = prev_ptr;
                     } else {
                         display_pick_page(pick);
-                        ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
+                        ssnprintf(tmp_str, MAXLEN - 1, _("Line %d, Page %d/%d"),
                                   pick->tbl_line + 1, pick->tbl_page + 1,
                                   pick->tbl_pages);
                         strnz__cat(tmp_str, "     ", MAXLEN - 1);
@@ -1373,7 +1374,7 @@ int picker(Init *init, char *field) {
                 if (ptr == accept_s) {
                     match_objects(pick, accept_s);
                     display_pick_page(pick);
-                    ssnprintf(tmp_str, MAXLEN - 1, "Line %d, Page %d/%d",
+                    ssnprintf(tmp_str, MAXLEN - 1, _("Line %d, Page %d/%d"),
                               pick->tbl_line + 1, pick->tbl_page + 1,
                               pick->tbl_pages);
                     strnz__cat(tmp_str, "     ", MAXLEN - 1);
@@ -1542,11 +1543,11 @@ void new_view_file(Init *init, char *file) {
         }
         ui_display_image(ui->nc, &ui_mm, file, -1, -1, 35, 0);
         if (ui_mm.sfc == nullptr) {
-            ui_log(ERROR, "ui_display_image() failed in new_view_file");
+            ui_log(ERROR, _("ui_display_image() failed in new_view_file"));
             return;
         }
         if (ui_mm.ncv == nullptr) {
-            ui_log(ERROR, "ui_display_image() failed in new_view_file");
+            ui_log(ERROR, _("ui_display_image() failed in new_view_file"));
             return;
         }
 #endif
@@ -1562,11 +1563,11 @@ void new_view_file(Init *init, char *file) {
         }
         ui_display_image(ui->nc, &ui_mm, file, -1, -1, 35, 0);
         if (ui_mm.sfc == nullptr) {
-            ui_log(ERROR, "ui_display_image() failed in new_view_file");
+            ui_log(ERROR, _("ui_display_image() failed in new_view_file"));
             return;
         }
         if (ui_mm.ncv == nullptr) {
-            ui_log(ERROR, "ui_display_image() failed in new_view_file");
+            ui_log(ERROR, _("ui_display_image() failed in new_view_file"));
             return;
         }
 #endif
@@ -1585,7 +1586,7 @@ void new_view_file(Init *init, char *file) {
             munmap(view->buf, view->file_size);
             view->buf = nullptr;
         }
-        strnz__cpy(view->provider_cmd, "tree-sitter highlight ", MAXLEN - 1);
+        strnz__cpy(view->provider_cmd, _("tree-sitter highlight "), MAXLEN - 1);
         strnz__cat(view->provider_cmd, file, MAXLEN - 1);
         strnz__cpy(view->title, file, MAXLEN - 1);
         if (view_init_input(init, file) == 0) {

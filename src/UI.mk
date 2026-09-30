@@ -1,1 +1,1 @@
-UI?="-DNOTCURSES_UI"
+UI?="-DUAL_UI"

@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -29,3 +33,7 @@ typedef struct {
 // Context dispatchers inside the main loop
 void cmenu_trigger_f1_help(cmenu_ui_backend_t *ui, cmenu_help_id_t id);
 void cmenu_trigger_hover_help(cmenu_ui_backend_t *ui, cmenu_help_id_t id);
+
+#ifdef __cplusplus
+}
+#endif

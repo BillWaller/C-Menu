@@ -114,10 +114,7 @@ struct linux_dirent64 {
 struct tm tm_info;
 const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";
-const char doc[] = "lf list files\vIf specified, DIRECTORY is the top-level "
-                   "directory to search. REGULAR_EXPRESSION is a properly "
-                   "formatted regular expression for which matching files "
-                   "will be listed.";
+const char doc[] = _("lf list files\vIf specified, DIRECTORY is the top-level\n directory to search. REGULAR_EXPRESSION is a properly\nformatted regular expression for which matching files\nwill be listed.");
 bool is_hidden(const char *);
 bool is_dirsys(const char *);
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
@@ -208,31 +205,30 @@ bool is_link_cycle(dev_t dev, ino_t ino, CycleNode *parent);
 // ---------------------------------------------------------------
 
 static struct argp_option options[] = {
-    {"after", 'a', "time", 0, "Last Modified after YYYY-MM-DDTHH:MM:SS", 0},
-    {"before", 'b', "time", 0, "Last Modified before YYYY-MM-DDTHH:MM:SS", 0},
-    {"max_depth", 'd', "number", 0, "Depth into directory tree", 0},
-    {"error_file_spec", 'E', "file_spec", 0, "Error message output file", 0},
-    {"ere", 'e', "regex", 0, "Exclude regular expression", 0},
-    {"ignore_case", 'i', 0, 0, "Search ignore case", 0},
-    {"include_perms", 'p', "sgrwx", 0,
-     "x-execute, w-write, r-read, s-setuid, g-setgid", 0},
-    {"re", 'r', "regex", 0, "Regular expression to search for", 0},
-    {"include_types", 't', "pcdbflsu", 0,
-     "p-pipe, c-character_dev, d-directory, b-block_dev, f-regular_file, l-link, s-socket, u-unknown",
+    {_("after"), 'a', _("time"), 0, _("Last Modified after YYYY-MM-DDTHH:MM:SS"), 0},
+    {_("before"), 'b', _("time"), 0, _("Last Modified before YYYY-MM-DDTHH:MM:SS"), 0},
+    {_("max_depth"), 'd', _("number"), 0, _("Depth into directory tree"), 0},
+    {_("error_file_spec"), 'E', _("file_spec"), 0, _("Error message output file"), 0},
+    {_("ere"), 'e', _("regex"), 0, _("Exclude regular expression"), 0},
+    {_("ignore_case"), 'i', 0, 0, _("Search ignore case"), 0},
+    {_("include_perms"), 'p', _("sgrwx"), 0,
+     _("x-execute, w-write, r-read, s-setuid, g-setgid"), 0},
+    {_("re"), 'r', _("regex"), 0, _("Regular expression to search for"), 0},
+    {_("include_types"), 't', _("pcdbflsu"), 0,
+     _("p-pipe, c-character_dev, d-directory, b-block_dev, f-regular_file, l-link, s-socket, u-unknown"),
      0},
-    {"file_size_min", 's', "size", 0,
-     "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes", 0},
-    {"user", 'u', "user name", 0, "User Name of file owner ", 0},
-    {"debug", 'D', "123456789", 0,
-     "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, "
-     "8-only_errors, 9-report_error_count",
+    {_("file_size_min"), 's', _("size"), 0,
+     _("No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes"), 0},
+    {_("user"), 'u', _("user name"), 0, _("User Name of file owner "), 0},
+    {_("debug"), 'D', "123456789", 0,
+     _("1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, 8-only_errors, 9-report_error_count"),
      0},
-    {"include_hidden", 'H', "o", OPTION_ARG_OPTIONAL, "Include hidden files (o=hidden only)", 0},
-    {"follow_links", 'L', 0, 0, "Follow symbolic links", 0},
-    {"sort_reverse", 'R', 0, 0, "Sort in Reverse order", 0},
-    {"sort", 'S', 0, 0, "Sort in Ascending order", 0},
-    {"nthreads", 'T', "threads", 0, "Number of nthreads", 0},
-    {"count", 'c', "s", OPTION_ARG_OPTIONAL, "Count (s only report count)", 0},
+    {_("include_hidden"), 'H', "o", OPTION_ARG_OPTIONAL, _("Include hidden files (o=hidden only)"), 0},
+    {_("follow_links"), 'L', 0, 0, _("Follow symbolic links"), 0},
+    {_("sort_reverse"), 'R', 0, 0, _("Sort in Reverse order"), 0},
+    {_("sort"), 'S', 0, 0, _("Sort in Ascending order"), 0},
+    {_("nthreads"), 'T', "threads", 0, _("Number of nthreads"), 0},
+    {_("count"), 'c', "s", OPTION_ARG_OPTIONAL, _("Count (s only report count)"), 0},
     {0}};
 
 /** @brief Parse a single option.  */
@@ -245,14 +241,14 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'a':
         parse_local_timestamp(arg, &lf->after);
         if (lf->after && lf->before && lf->before < lf->after) {
-            fprintf(stderr, "-b time must be greater than -a time.\n");
+            fprintf(stderr, _("-b time must be greater than -a time.\n"));
             lf->after = 0;
         }
         break;
     case 'b':
         parse_local_timestamp(arg, &lf->before);
         if (lf->after && lf->before && lf->before < lf->after) {
-            fprintf(stderr, "-b time must be greater than -a time.\n");
+            fprintf(stderr, _("-b time must be greater than -a time.\n"));
             lf->before = 0;
         }
         break;
@@ -424,7 +420,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             lf->user_id = (uintmax_t)pwd->pw_uid;
             lf->flags |= LF_USER;
         } else {
-            fprintf(stderr, "User '%s' not found.\n", arg);
+            fprintf(stderr, _("User '%s' not found.\n"), arg);
             exit(EXIT_FAILURE);
         }
         break;
@@ -464,7 +460,7 @@ int main(int argc, char **argv) {
     lf->count = false;
     lf->count_silently = false;
     lf->report_badlinks = false;
-    lf->sbuffer = "10%";
+    lf->sbuffer = _("4G");
     lf->error_file_spec[0] = '\0';
     lf->error_file_open = false;
 
@@ -481,7 +477,7 @@ int main(int argc, char **argv) {
         } else {
             fprintf(
                 stderr,
-                "lf: arg1: '%s' is neither a directory nor a valid regex.\n",
+                _("lf: arg1: '%s' is neither a directory nor a valid regex.\n"),
                 lfargs[0]);
             exit(EXIT_FAILURE);
         }
@@ -498,8 +494,7 @@ int main(int argc, char **argv) {
             lf->flags |= LF_REGEX;
         } else {
             fprintf(stderr,
-                    "lf: '%s' is neither a directory nor a valid regular "
-                    "expression.\n",
+                    _("lf: '%s' is neither a directory nor a valid regular expression.\n"),
                     lfargs[1]);
             exit(EXIT_FAILURE);
         }
@@ -526,11 +521,11 @@ int main(int argc, char **argv) {
 
     if (lf->count) {
         size_t count = atomic_load(&lf->file_count);
-        fprintf(stderr, "Files: %zu\n", count);
+        fprintf(stderr, _("Files: %zu\n"), count);
     }
     atomic_load(&lf->error_count);
     if (lf->report_error_count && lf->error_count > 0) {
-        fprintf(stderr, "Errors: %zu\n", lf->error_count);
+        fprintf(stderr, _("Errors: %zu\n"), lf->error_count);
         termination_status |= TS_ERROR;
     }
     free(lf->q);
@@ -575,7 +570,7 @@ int sort_lf_output(LfContext *lf, int argc, char **argv) {
         dup2(fds[0], STDIN_FILENO); // Clone child's read pipe to STDIN_FILENO
         close(fds[0]);              // Close the original read end of the pipe
         execvp(eargv[0], eargv);    // Execute the sort command
-        fprintf(stderr, "Failed to execute sort: %s\n", strerror(errno));
+        fprintf(stderr, _("Failed to execute sort: %s\n"), strerror(errno));
         return TS_ERROR;
     }
     // fclose(stdout);
@@ -623,76 +618,78 @@ void debug_out(LfContext *lf, int argc, char **argv) {
         }
         fprintf(stderr, "\n\n");
         fprintf(stderr, "%s\n\n", CM_VERSION);
-        fprintf(stderr, "lf debug      %s\n",
-                lf->debug ? "true" : "     false");
-        fprintf(stderr, "  1-config      %s\n",
-                lf->report_config ? "true" : "|    false");
-        fprintf(stderr, "  2-info        %s\n",
-                lf->report_info ? "true" : "|    false");
-        fprintf(stderr, "  3-warnings    %s\n",
-                lf->report_warnings ? "true" : "|    false");
-        fprintf(stderr, "  4-errors      %s\n",
-                lf->report_errors ? "true" : "|    false");
-        fprintf(stderr, "  5-badlinks    %s\n",
-                lf->report_trace ? "true" : "|    false");
-        fprintf(stderr, "  6-trace       %s\n",
-                lf->report_trace ? "true" : "|    false");
-        fprintf(stderr, "  8-only_errors %s\n",
-                lf->only_errors ? "true" : "|    false");
+        fprintf(stderr, _("lf debug      %s\n"),
+                lf->debug ? _("true") : _("     false"));
+        fprintf(stderr, _("  1-config      %s\n"),
+                lf->report_config ? _("true") : _("|    false"));
+        fprintf(stderr, _("  2-info        %s\n"),
+                lf->report_info ? _("true") : _("|    false"));
+        fprintf(stderr, _("  3-warnings    %s\n"),
+                lf->report_warnings ? _("true") : _("|    false"));
+        fprintf(stderr, _("  4-errors      %s\n"),
+                lf->report_errors ? _("true") : _("|    false"));
+        fprintf(stderr, _("  5-badlinks    %s\n"),
+                lf->report_errors ? _("true") : _("|    false"));
+        fprintf(stderr, _("  6-trace       %s\n"),
+                lf->report_errors ? _("true") : _("|    false"));
+        fprintf(stderr, _("  8-only_errors %s\n"),
+                lf->report_errors ? _("true") : _("|    false"));
         fprintf(stderr, "\n");
-        fprintf(stderr, "Count files: %s\n", lf->count ? "true" : "false");
-        fprintf(stderr, "Count only: %s\n", lf->count_silently ? "true" : "false");
+        fprintf(stderr, _("Count files: %s\n"),
+                lf->report_errors ? _("true") : _("|    false"));
+        fprintf(stderr, _("Count only: %s\n"),
+                lf->report_errors ? _("true") : _("|    false"));
         fprintf(stderr, "\n");
-        fprintf(stderr, "Search directory: %s\n\n", lf->base_path);
+        fprintf(stderr, _("Search directory: %s\n\n"), lf->base_path);
         if (lf->max_depth == 0)
-            fprintf(stderr, "Max depth 0 (unlimited)\n\n");
+            fprintf(stderr, _("Max depth 0 (unlimited)\n\n"));
         else
-            fprintf(stderr, "Max depth %d\n\n", lf->max_depth);
-        fprintf(stderr, "Using %d threads\n\n", lf->nthreads);
-        fprintf(stderr, "File types preceeded by an asterisk (\"*\") will be included:\n\n");
-        fprintf(stderr, "  LF type        DT type\n");
-        print_file_type(lf->include_types, LF_FIFO, DT_FIFO, "FIFO    p-named pipe");
-        print_file_type(lf->include_types, LF_CHR, DT_CHR, "CHR     c-character device");
-        print_file_type(lf->include_types, LF_DIR, DT_DIR, "DIR     d-directory");
-        print_file_type(lf->include_types, LF_BLK, DT_BLK, "BLK     b-block device");
-        print_file_type(lf->include_types, LF_REG, DT_REG, "REG     f-regular file");
-        print_file_type(lf->include_types, LF_LNK, DT_LNK, "LINK    l-symbolic link");
-        print_file_type(lf->include_types, LF_SOCK, DT_SOCK, "SOCK    s-socket");
-        print_file_type(lf->include_types, LF_UNKNOWN, DT_UNKNOWN, "UNKNOWN u-unknown");
+            fprintf(stderr, _("Max depth %d\n\n"), lf->max_depth);
+        fprintf(stderr, _("Using %d threads\n\n"), lf->nthreads);
+        fprintf(stderr, _("File types preceeded by an asterisk (\"*\") will be included:\n\n"));
+        fprintf(stderr, _("  LF type        DT type\n"));
+        print_file_type(lf->include_types, LF_FIFO, DT_FIFO, _("FIFO    p-named pipe"));
+        print_file_type(lf->include_types, LF_CHR, DT_CHR, _("CHR     c-character device"));
+        print_file_type(lf->include_types, LF_DIR, DT_DIR, _("DIR     d-directory"));
+        print_file_type(lf->include_types, LF_BLK, DT_BLK, _("BLK     b-block device"));
+        print_file_type(lf->include_types, LF_REG, DT_REG, _("REG     f-regular file"));
+        print_file_type(lf->include_types, LF_LNK, DT_LNK, _("LINK    l-symbolic link"));
+        print_file_type(lf->include_types, LF_SOCK, DT_SOCK, _("SOCK    s-socket"));
+        print_file_type(lf->include_types, LF_UNKNOWN, DT_UNKNOWN, _("UNKNOWN u-unknown"));
         fprintf(stderr, "\n");
         fprintf(stderr, "f->include_types  = %08b\n", lf->include_types);
         fprintf(stderr, "f->suppress_types = %08b\n", lf->suppress_types);
         fprintf(stderr, "\n");
         if (lf->flags & LF_USER)
-            fprintf(stderr, "User: %s (%ju)\n", lf->user_name, lf->user_id);
+            fprintf(stderr, _("User: %s (%ju)\n"), lf->user_name, lf->user_id);
         if (lf->include_perms) {
             if (lf->include_perms & LF_IXUSR)
-                fprintf(stderr, "    %08b Execute\n", LF_IXUSR);
+                fprintf(stderr, _("    %08b Execute\n"), LF_IXUSR);
             if (lf->include_perms & LF_IWUSR)
-                fprintf(stderr, "    %08b Write\n", LF_IWUSR);
+                fprintf(stderr, _("    %08b Write\n"), LF_IWUSR);
             if (lf->include_perms & LF_IRUSR)
-                fprintf(stderr, "    %08b Read\n", LF_IRUSR);
+                fprintf(stderr, _("    %08b Read\n"), LF_IRUSR);
             if (lf->include_perms & LF_ISUID)
-                fprintf(stderr, "    %08b SETUID\n", LF_ISUID);
+                fprintf(stderr, _("    %08b SETUID\n"), LF_ISUID);
             if (lf->include_perms & LF_ISGID)
-                fprintf(stderr, "    %08b SETGID\n", LF_ISGID);
+                fprintf(stderr, _("    %08b SETGID\n"), LF_ISGID);
         }
         fprintf(stderr, "\n");
         if (lf->flags & LF_REGEX)
-            fprintf(stderr, "Include regex: %s\n\n", lf->re);
+            fprintf(stderr, _("Include regex: %s\n\n"), lf->re);
         if (lf->flags & LF_EXC_REGEX)
-            fprintf(stderr, "Exclude regex: %s\n\n", lf->ere);
+            fprintf(stderr, _("Exclude regex: %s\n\n"), lf->ere);
 
         if (lf->after) {
             char buf[32];
             format_local_timestamp(lf->after, buf, sizeof(buf));
-            fprintf(stderr, "Modified after: %s\n\n", buf);
+            fprintf(stderr, _("Modified after: %s\n\n"), buf);
         }
 
         if (lf->before) {
             char buf[32];
             format_local_timestamp(lf->before, buf, sizeof(buf));
-            fprintf(stderr, "Modified before: %s\n\n", buf);
+            fprintf(stderr, _("Modified before: %s\n\n"), buf);
         }
 
         if (lf->file_size_min) {
@@ -705,20 +702,20 @@ void debug_out(LfContext *lf, int argc, char **argv) {
             }
             char buffer[32];
             ssnprintf(buffer, 32, "%ld %s", size, units[i]);
-            fprintf(stderr, "Minimum file size: %s\n\n", buffer);
+            fprintf(stderr, _("Minimum file size: %s\n\n"), buffer);
         }
         if (lf->max_depth)
-            fprintf(stderr, "Max depth: %d\n\n", lf->max_depth);
+            fprintf(stderr, _("Max depth: %d\n\n"), lf->max_depth);
         if (lf->ignore_case)
-            fprintf(stderr, "Ignore case in regex matching.\n\n");
+            fprintf(stderr, _("Ignore case in regex matching.\n\n"));
         if (lf->include_hidden)
-            fprintf(stderr, "Include hidden files.\n\n");
+            fprintf(stderr, _("Include hidden files.\n\n"));
         if (lf->follow_links)
-            fprintf(stderr, "Follow symbolic links.\n\n");
+            fprintf(stderr, _("Follow symbolic links.\n\n"));
         if (lf->sort)
-            fprintf(stderr, "Sort output in ascending order.\n\n");
+            fprintf(stderr, _("Sort output in ascending order.\n\n"));
         if (lf->sort_reverse)
-            fprintf(stderr, "Sort output in reverse order.\n\n");
+            fprintf(stderr, _("Sort output in reverse order.\n\n"));
     }
     return;
 }
@@ -752,7 +749,7 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
     if (lf->flags & LF_REGEX) {
         reti = regcomp(&lf->compiled_re, lf->re, lf->reg_flags);
         if (reti) {
-            fprintf(stderr, "lf: '%s' Invalid pattern\n", lf->re);
+            fprintf(stderr, _("lf: '%s' Invalid pattern\n"), lf->re);
             regfree(&lf->compiled_re);
             return false;
         }
@@ -760,7 +757,7 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
     if (lf->flags & LF_EXC_REGEX) {
         reti = regcomp(&lf->compiled_ere, lf->ere, lf->reg_flags);
         if (reti) {
-            fprintf(stderr, "lf: '%s' Invalid exclude pattern\n", lf->ere);
+            fprintf(stderr, _("lf: '%s' Invalid exclude pattern\n"), lf->ere);
             regfree(&lf->compiled_ere);
             return false;
         }
@@ -773,7 +770,7 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
     struct stat sb;
     rc = pthread_mutex_init(&lf->output_mutex, NULL);
     if (rc != 0)
-        perror("Mutex initialization failed");
+        perror(_("Mutex initialization failed"));
     rc = stat(lf->base_path, &sb);
     if (rc != 0)
         return false;
@@ -786,7 +783,7 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
         CycleNode *root_ctx = cycle_arena_alloc(sb.st_dev, sb.st_ino, nullptr);
         root_node.ctx = root_ctx;
         if (!mpmc_enqueue(lf, &root_node)) {
-            fprintf(stderr, "Failed to enqueue initial directory\n");
+            fprintf(stderr, _("Failed to enqueue initial directory\n"));
             return false;
         }
         atomic_fetch_add_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
@@ -795,7 +792,7 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
         //------------------------------------------------------------
         lf->threads = calloc(lf->nthreads, sizeof(pthread_t));
         if (!lf->threads) {
-            fprintf(stderr, "Out of memory allocating threads\n");
+            fprintf(stderr, _("Out of memory allocating threads\n"));
             return false;
         }
         for (unsigned int i = 0; i < lf->nthreads; i++) {
@@ -805,7 +802,7 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
                 worker,
                 lf);
             if (rc != 0) {
-                fprintf(stderr, "Error: Unable to create thread %d\n", rc);
+                fprintf(stderr, _("Error: Unable to create thread %d\n"), rc);
                 lf->q->shut_down = 1;
                 termination_status = TS_ERROR;
                 return false;
@@ -818,7 +815,7 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
             pthread_join(lf->threads[i], NULL);
         rc = pthread_mutex_destroy(&lf->output_mutex);
         if (rc != 0)
-            perror("Mutex destroy failed");
+            perror(_("Mutex destroy failed"));
         if (lf->flags & LF_REGEX)
             regfree(&lf->compiled_re);
         if (lf->flags & LF_EXC_REGEX)
@@ -826,8 +823,8 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
         return true;
     } else {
         fprintf(stderr,
-                "Warning: Base path '%s' is not a directory. No "
-                "files will be found.\n",
+                _("Warning: Base path '%s' is not a directory. No "
+                  "files will be found.\n"),
                 lf->base_path);
         termination_status = TS_ERROR;
         return false;
@@ -850,7 +847,7 @@ void cycle_arena_init(void) {
                                -1, 0);
 
     if (g_cycle_arena.nodes == MAP_FAILED) {
-        perror("mmap failed to reserve tracking arena memory");
+        perror(_("mmap failed to reserve tracking arena memory"));
         exit(EXIT_FAILURE);
     }
 
@@ -1079,7 +1076,7 @@ void *worker(void *arg) {
     QueuePayload *current_node = calloc(1, sizeof(QueuePayload));
     QueuePayload *child_node = calloc(1, sizeof(QueuePayload));
     if (child_node == nullptr) {
-        fprintf(stderr, "Out of memory allocating child_node\n");
+        fprintf(stderr, _("Out of memory allocating child_node\n"));
         return NULL;
     }
     while (true) {
@@ -1122,7 +1119,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
     int dir_fd = open(current_node->path, O_RDONLY | O_DIRECTORY);
     if (dir_fd == -1) {
         if (lf->report_errors) {
-            err_out(lf, "OPEN_FAIL,%s,%s\n", current_node->path, strerror(errno));
+            err_out(lf, _("OPEN_FAIL,%s,%s\n"), current_node->path, strerror(errno));
         }
         flush_output_buffer(lf, &output);
         return NULL;
@@ -1143,7 +1140,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
         if (nread == -1) {
             atomic_fetch_add(&lf->error_count, 1);
             if (lf->report_errors) {
-                err_out(lf, "READDIR_FAIL,%s,%s\n", current_node->path, strerror(errno));
+                err_out(lf, _("READDIR_FAIL,%s,%s\n"), current_node->path, strerror(errno));
             }
             break;
         }
@@ -1179,7 +1176,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                 if (rc == -1) {
                     atomic_fetch_add(&lf->error_count, 1);
                     if (lf->report_badlinks) {
-                        err_out(lf, "LSTAT_FAIL,%s,%s\n", full_path,
+                        err_out(lf, _("LSTAT_FAIL,%s,%s\n"), full_path,
                                 strerror(errno));
                     }
                 } else {
@@ -1201,9 +1198,9 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                         if (rc == -1) {
                             atomic_fetch_add(&lf->error_count, 1);
                             if (lf->report_errors) {
-                                err_out(lf, "STAT_FAIL,%s,%s\n", entry->d_name,
+                                err_out(lf, _("STAT_FAIL,%s,%s\n"), entry->d_name,
                                         strerror(errno));
-                                ssnprintf(tmp_str, MAXLEN - 1, "FSTATAT_FAIL,%s/%s\n",
+                                ssnprintf(tmp_str, MAXLEN - 1, _("FSTATAT_FAIL,%s/%s\n"),
                                           entry->d_name, strerror(errno));
                             }
                         } else {
@@ -1230,7 +1227,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                                      &child_node->path_len)) {
                     atomic_fetch_add(&lf->error_count, 1);
                     if (lf->report_errors) {
-                        err_out(lf, "PATH_TOO_LONG,%s/%s\n",
+                        err_out(lf, _("PATH_TOO_LONG,%s/%s\n"),
                                 child_node->path, entry->d_name);
                     }
                     continue;
@@ -1261,15 +1258,15 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                     if (child_ctx == nullptr) {
                         atomic_fetch_add(&lf->error_count, 1);
                         if (lf->report_errors) {
-                            err_out(lf, "CYCLE_ARENA_ALLOC_FAIL,%s\n", current_node->path);
+                            err_out(lf, _("CYCLE_ARENA_ALLOC_FAIL,%s\n"), current_node->path);
                         }
                         continue;
                     }
                     child_node->ctx = child_ctx;
                     if (lf->report_trace) {
-                        err_out(lf, "---CYCLE_DETECTION---\n");
+                        err_out(lf, _("---CYCLE_DETECTION---\n"));
                         err_out(lf, "ctx:   %12p, %8lu/%8lu, %s\n", child_ctx, child_ctx->dev, child_ctx->ino, child_node->path);
-                        err_out(lf, "effective: %8lu/%8lu, %s\n", effective_dev, effective_ino, target_path);
+                        err_out(lf, _("effective: %8lu/%8lu, %s\n"), effective_dev, effective_ino, target_path);
                     }
                     // is_link_cycle(effective_dev, effective_ino,
                     // current_node->ctx);
@@ -1286,7 +1283,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                     }
                     if (cycle_found) {
                         if (lf->report_badlinks) {
-                            err_out(lf, "CYCLER,%lu/%lu,%s,%lu/%lu,%s\n", child_ctx->dev, child_ctx->ino, child_node->path,
+                            err_out(lf, _("CYCLER,%lu/%lu,%s,%lu/%lu,%s\n"), child_ctx->dev, child_ctx->ino, child_node->path,
                                     effective_dev, effective_ino, target_path);
                         }
                         atomic_fetch_add(&lf->error_count, 1);
@@ -1309,7 +1306,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                         if (local_node == nullptr) {
                             atomic_fetch_add(&lf->error_count, 1);
                             if (lf->report_errors) {
-                                err_out(lf, "MEM_ALLOC_FAIL,%s\n", strerror(errno));
+                                err_out(lf, _("MEM_ALLOC_FAIL,%s\n"), strerror(errno));
                             }
                             continue;
                         }
@@ -1349,7 +1346,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                                          &path_len)) {
                         atomic_fetch_add(&lf->error_count, 1);
                         if (lf->report_errors) {
-                            err_out(lf, "PATH_TOO_LONG,%s/%s\n",
+                            err_out(lf, _("PATH_TOO_LONG,%s/%s\n"),
                                     current_node->path, entry->d_name);
                         }
                         continue;
@@ -1489,7 +1486,7 @@ int err_out(LfContext *lf, const char *format, ...) {
             lf->err_fd = fopen(lf->error_file_spec, "a");
             if (lf->err_fd == nullptr) {
                 lf->err_fd = stderr;
-                fprintf(stderr, "Failed to open error file %s: %s\n",
+                fprintf(stderr, _("Failed to open error file %s: %s\n"),
                         lf->error_file_spec, strerror(errno));
                 return TS_ERROR;
             }
