@@ -14,8 +14,19 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-char month[12][4] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+#ifdef __USE_GNU_GETTEXT
+#include <libintl.h>
+#define _(String) gettext(String)
+#define gettext_noop(String) String
+#define N_(String) gettext_noop(String)
+#else
+#define _(String) (String)
+#define N_(String) String
+#define textdomain(Domain)
+#define bindtextdomain(Package, Directory)
+#endif
+char month[12][4] = {_("Jan"), _("Feb"), _("Mar"), _("Apr"), _("May"), _("Jun"),
+                     _("Jul"), _("Aug"), _("Sep"), _("Oct"), _("Nov"), _("Dec")};
 typedef struct {
     double pv;
     double pmt;
@@ -30,39 +41,38 @@ void print_totals(Amort *);
 int main(int argc, char **argv) {
     setlocale(LC_NUMERIC, "");
     if (argc > 1 &&
-        ((strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) ||
+        ((strcmp(argv[1], _("--help")) == 0 || strcmp(argv[1], "-h") == 0) ||
          argc < 5)) {
-        printf("Usage: amort [present_value][number_of_payments]"
-               "[interest_rate][payment_amount][yyyy-mm-dd]\n\n");
+        printf(_("Usage: amort [present_value][number_of_payments] [interest_rate][payment_amount][yyyy-mm-dd]\n\n"));
         exit(EXIT_SUCCESS);
     }
     struct tm tm;
     Amort *amort = malloc(sizeof(Amort));
-    sscanf(argv[1], "%lf", &amort->pv);
-    sscanf(argv[2], "%lf", &amort->n);
-    sscanf(argv[3], "%lf", &amort->i);
-    sscanf(argv[4], "%lf", &amort->pmt);
+    sscanf(argv[1], _("%lf"), &amort->pv);
+    sscanf(argv[2], _("%lf"), &amort->n);
+    sscanf(argv[3], _("%lf"), &amort->i);
+    sscanf(argv[4], _("%lf"), &amort->pmt);
     if (amort->pv == 0 || amort->n == 0 || amort->i == 0 || amort->pmt == 0 ||
         argv[5][0] == '\0') {
-        fprintf(stderr, "Error: All arguments must be non-zero.\n");
+        fprintf(stderr, _("Error: All arguments must be non-zero.\n"));
         exit(EXIT_FAILURE);
     }
     amort->interest = amort->pv * amort->i / 1200;
     if (amort->interest > amort->pmt) {
-        fprintf(stderr, "Error: Payment amount less than interest\n");
+        fprintf(stderr, _("Error: Payment amount less than interest\n"));
         exit(EXIT_FAILURE);
     }
     memset(&tm, 0, sizeof(tm));
-    if (strptime(argv[5], "%Y-%m-%d", &tm) == NULL)
-        if (strptime(argv[5], "%Y%m%d", &tm) == NULL)
-            printf("Error: Invalid date format. Use yyyy-mm-dd or yyyymmdd.\n"),
+    if (strptime(argv[5], _("%Y-%m-%d"), &tm) == NULL)
+        if (strptime(argv[5], _("%Y%m%d"), &tm) == NULL)
+            printf(_("Error: Invalid date format. Use yyyy-mm-dd or yyyymmdd.\n")),
                 exit(EXIT_FAILURE);
     amort->year_total_interest = 0;
 
     printf("First Payment: %04d-%02d-%02d\n\n", tm.tm_year + 1900,
            tm.tm_mon + 1, tm.tm_mday);
-    printf(" Per  Mth Year    Balance     Payment   Principal  Interest\n");
-    printf("----  --- ---- ------------ ---------- ---------- ----------\n");
+    printf(_(" Per  Mth Year    Balance     Payment   Principal  Interest\n"));
+    printf(_("----  --- ---- ------------ ---------- ---------- ----------\n"));
     int m = 0;
     for (int x = 0; x < amort->n; x++) {
         if (amort->pv <= 0)
@@ -88,11 +98,9 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
 }
 void print_totals(Amort *amort) {
-    printf("                                                  "
-           "----------\n");
-    printf("                                                  %'10.2f\n",
+    printf(_("                                                  ----------\n"));
+    printf(_("                                                  %'10.2f\n"),
            amort->year_total_interest);
-    printf("                                                  "
-           "==========\n\n");
+    printf(_("                                                             ==========\n\n"));
     amort->year_total_interest = 0;
 }

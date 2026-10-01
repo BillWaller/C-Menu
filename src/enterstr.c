@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     char emsg[128];
 
     if (argc < 2)
-        strcpy(emsg, "input:");
+        strcpy(emsg, _("input:"));
     else
         strcpy(emsg, argv[1]);
     capture_shell_tioctl();

@@ -15,6 +15,18 @@
 #include <termios.h>
 #include <unistd.h>
 
+#ifdef __USE_GNU_GETTEXT
+#include <libintl.h>
+#define _(String) gettext(String)
+#define gettext_noop(String) String
+#define N_(String) gettext_noop(String)
+#else
+#define _(String) (String)
+#define N_(String) String
+#define textdomain(Domain)
+#define bindtextdomain(Package, Directory)
+#endif
+
 /** @example
     @code
     key=$(enterchr "Are you sure?: ")
@@ -42,7 +54,7 @@ int main(int argc, char **argv) {
     char emsg[128];
 
     if (argc < 2)
-        strcpy(emsg, "Press any key");
+        strcpy(emsg, _("Press any key"));
     else
         strcpy(emsg, argv[1]);
     capture_shell_tioctl();

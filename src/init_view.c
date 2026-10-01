@@ -49,25 +49,25 @@ int init_view_full_screen(Init *init) {
     view->f_full_screen = true;
     // -------------------> 1. WIN <-------------------
     view_calc_full_screen_dimensions(init);
-    ui_log(INFO, "lines=%d, cols=%d", view->lines, view->cols);
+    ui_log(INFO, _("lines=%d, cols=%d"), view->lines, view->cols);
     view->sfc = ui_surface_new(WIN, NULL, 0, view->lines, view->cols, 0, 0);
     if (!view->sfc) {
-        ssnprintf(em0, MAXLEN - 1, "newwin(LINES, COLS, 0, 0) failed in init_view_full_screen");
+        ssnprintf(em0, MAXLEN - 1, _("newwin(LINES, COLS, 0, 0) failed in init_view_full_screen"));
         ui_log(INFO, "%s", em0);
         exit(EXIT_FAILURE);
         return -1;
     }
-    ui_log(INFO, "created view->sfc");
+    ui_log(INFO, _("created view->sfc"));
     ui_bkgd(view->sfc, WIN, &cell_nt);
     // -------------------> 2. LNNO <-------------------
     if (view->f_ln) {
         ui_surface_addwin(view->sfc, LNNO, WIN, view->scroll_lines, view->ln_win_cols, 0, 0);
         if (view->sfc->lnno == nullptr) {
-            ssnprintf(em0, MAXLEN - 1, "ui_sfc_addwin(LNNO, LINES - 1, COLS, 0, 0) failed in init_view_full_screen");
+            ssnprintf(em0, MAXLEN - 1, _("ui_sfc_addwin(LNNO, LINES - 1, COLS, 0, 0) failed in init_view_full_screen"));
             ui_log(INFO, "%s", em0);
             exit(EXIT_FAILURE);
         }
-        ui_log(INFO, "created view->sfc->lnno");
+        ui_log(INFO, _("created view->sfc->lnno"));
         ui_bkgd(view->sfc, LNNO, &cell_ln);
         ui_bkgdset(view->sfc, LNNO, &cell_ln);
         ui_scrollok(view->sfc, LNNO, true);
@@ -76,11 +76,11 @@ int init_view_full_screen(Init *init) {
     // -------------------> 3. CMDLN <-------------------
     ui_surface_addwin(view->sfc, CMDLN, WIN, 1, view->cols, view->scroll_lines, 0);
     if (view->sfc->cmdln == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "ui_sfc_addwin(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen");
+        ssnprintf(em0, MAXLEN - 1, _("ui_sfc_addwin(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen"));
         ui_log(INFO, "%s", em0);
         exit(EXIT_FAILURE);
     }
-    ui_log(INFO, "created view->sfc->cmdln");
+    ui_log(INFO, _("created view->sfc->cmdln"));
     ui_bkgd(view->sfc, CMDLN, &cell_nt);
     ui_keypad(view->sfc, CMDLN, true);
     ui_idlok(view->sfc, CMDLN, false);
@@ -89,9 +89,9 @@ int init_view_full_screen(Init *init) {
     // -------------------> 4. PAD <-------------------
 
     ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols);
-    ui_log(INFO, "created view->sfc->mplane[PAD]");
+    ui_log(INFO, _("created view->sfc->mplane[PAD]"));
     if (view->sfc->pad == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "ui_sfc_addpan(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen");
+        ssnprintf(em0, MAXLEN - 1, _("ui_sfc_addpan(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen"));
         ui_log(INFO, "%s", em0);
         exit(EXIT_FAILURE);
     }
@@ -111,7 +111,7 @@ int init_view_full_screen(Init *init) {
 void view_full_screen_resize(Init *init) {
     ui_erase();
     view_calc_full_screen_dimensions(init);
-    ui_log(INFO, "view_full_screen_resize: lines=%d, cols=%d, ln_win_lines=%d, ln_win_cols=%d, scroll_lines=%d", init->view->lines, init->view->cols, init->view->ln_win_lines, init->view->ln_win_cols, init->view->scroll_lines);
+    ui_log(INFO, _("view_full_screen_resize: lines=%d, cols=%d, ln_win_lines=%d, ln_win_cols=%d, scroll_lines=%d"), init->view->lines, init->view->cols, init->view->ln_win_lines, init->view->ln_win_cols, init->view->scroll_lines);
     View *view = init->view;
     ui_surface_destroy(view->sfc);
     ui_render();
@@ -136,7 +136,7 @@ void view_calc_full_screen_dimensions(Init *init) {
     char file[MAXLEN];
     ssnprintf(
         em0, MAXLEN - 1,
-        "%s:%d view->lines=%d, view->cols=%d, view->maxrows=%d, view->maxcols=%d",
+        _("%s:%d view->lines=%d, view->cols=%d, view->maxrows=%d, view->maxcols=%d"),
         __FILE__, __LINE__,
         view->lines, view->cols, view->smaxrow, view->smaxcol);
     write_cmenu_log(em0);
@@ -222,7 +222,7 @@ void view_calc_boxwin_dimensions(Init *init) {
     ui_get_screen_size(&scr_lines, &scr_cols);
 #ifdef DEBUG_RESIZE
     ssnprintf(em0, MAXLEN - 1,
-              "%s:%d=%d calc lines=%d, cols=%d, begy=%d, begx=%d",
+              _("%s:%d=%d calc lines=%d, cols=%d, begy=%d, begx=%d"),
               __FILE__, __LINE__, 526, view->lines, view->cols, view->begy, view->begx);
     write_cmenu_log(em0);
 #endif
@@ -264,23 +264,23 @@ void view_calc_boxwin_dimensions(Init *init) {
     view->page_bot_ln_no = view->ln_no;
 #ifdef DEBUG_RESIZE
     ssnprintf(em0, MAXLEN - 1,
-              "%s:%d calc BOX lines=%d, cols=%d, begy=%d, begx=%d",
+              _("%s:%d calc BOX lines=%d, cols=%d, begy=%d, begx=%d"),
               __FILE__, __LINE__, view->lines + 2, view->cols + 2, view->begy, view->begx);
     write_cmenu_log(em0);
     ssnprintf(em0, MAXLEN - 1,
-              "%s:%d calc WIN lines=%d, cols=%d, begy=%d, begx=%d",
+              _("%s:%d calc WIN lines=%d, cols=%d, begy=%d, begx=%d"),
               __FILE__, __LINE__, view->lines, view->cols, 1, 1);
     write_cmenu_log(em0);
     ssnprintf(em0, MAXLEN - 1,
-              "%s:%d calc CMDLN lines=%d, cols=%d, begy=%d, begx=%d",
+              _("%s:%d calc CMDLN lines=%d, cols=%d, begy=%d, begx=%d"),
               __FILE__, __LINE__, 1, view->cols, view->lines - 1, 1);
     write_cmenu_log(em0);
     ssnprintf(em0, MAXLEN - 1,
-              "%s:%d calc LNNO lines=%d, cols=%d, begy=%d, begx=%d",
+              _("%s:%d calc LNNO lines=%d, cols=%d, begy=%d, begx=%d"),
               __FILE__, __LINE__, view->lines - 1, view->ln_win_cols, 0, 0);
     write_cmenu_log(em0);
     ssnprintf(em0, MAXLEN - 1,
-              "%s:%d calc PAD lines=%d, cols=%d, begy=%d, begx=%d",
+              _("%s:%d calc PAD lines=%d, cols=%d, begy=%d, begx=%d"),
               __FILE__, __LINE__, view->lines - 1, view->cols - view->ln_win_cols, 0, view->ln_win_cols);
     write_cmenu_log(em0);
 
@@ -307,25 +307,25 @@ int view_init_input(Init *init, char *file_name) {
     View *view = init->view;
     view->f_in_pipe = false;
     if (strcmp(file_name, "-") == 0) {
-        file_name = "/dev/stdin";
+        file_name = _("/dev/stdin");
         view->f_in_pipe = true;
     }
     if (view->provider_cmd[0] != '\0') {
         s_argc = str_to_args(s_argv, view->provider_cmd, MAXARGS - 1);
         if (pipe(pipe_fd) == -1) {
-            ui_perror("pipe(pipe_fd) failed in init_view");
+            ui_perror(_("pipe(pipe_fd) failed in init_view"));
             return -1;
         }
         // endwin();
         if ((pid = fork()) == -1) {
-            ui_perror("fork() failed in init_view");
+            ui_perror(_("fork() failed in init_view"));
             return -1;
         }
         if (pid == 0) { // Child
             /** Prevent child process from writing to terminal */
-            int dev_null = open("/dev/null", O_WRONLY);
+            int dev_null = open(_("/dev/null"), O_WRONLY);
             if (dev_null == -1) {
-                ui_perror("open(/dev/null) failed in init_pick child process");
+                ui_perror(_("open(/dev/null) failed in init_pick child process"));
                 exit(EXIT_FAILURE);
             }
             dup2(dev_null, STDERR_FILENO);
@@ -334,7 +334,7 @@ int view_init_input(Init *init, char *file_name) {
             dup2(pipe_fd[P_WRITE], STDOUT_FILENO);
             close(pipe_fd[P_WRITE]);
             execvp(s_argv[0], s_argv);
-            strnz__cpy(tmp_str, "Can't exec view start cmd: ", MAXLEN - 1);
+            strnz__cpy(tmp_str, _("Can't exec view start cmd: "), MAXLEN - 1);
             strnz__cat(tmp_str, s_argv[0], MAXLEN - 1);
             ui_perror(tmp_str);
             exit(EXIT_FAILURE);
@@ -355,18 +355,18 @@ int view_init_input(Init *init, char *file_name) {
             expand_tilde(file_name, MAXLEN - 1);
             view->in_fd = open(file_name, O_RDONLY);
             if (view->in_fd == -1) {
-                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
+                ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__,
                           __LINE__ - 3);
-                ssnprintf(em1, MAXLEN - 1, "open %s", file_name);
+                ssnprintf(em1, MAXLEN - 1, _("open %s"), file_name);
                 strerror__r(errno, em2, MAXLEN);
                 ui_display_error(em0, em1, em2,
                                  nullptr);
                 return -1;
             }
             if (fstat(view->in_fd, &sb) == -1) {
-                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
+                ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__,
                           __LINE__ - 1);
-                ssnprintf(em1, MAXLEN - 1, "fstat %s", file_name);
+                ssnprintf(em1, MAXLEN - 1, _("fstat %s"), file_name);
                 strerror__r(errno, em2, MAXLEN);
                 ui_display_error(em0, em1, em2, nullptr);
                 close(view->in_fd);
@@ -375,9 +375,9 @@ int view_init_input(Init *init, char *file_name) {
             view->file_size = sb.st_size;
             if (view->file_size == 0) {
                 close(view->in_fd);
-                ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__,
+                ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__,
                           __LINE__ - 1);
-                ssnprintf(em1, MAXLEN - 1, "file %s is empty", file_name);
+                ssnprintf(em1, MAXLEN - 1, _("file %s is empty"), file_name);
                 strerror__r(errno, em2, MAXLEN);
                 ui_display_error(em0, em1, em2, nullptr);
                 return -1;
@@ -389,11 +389,11 @@ int view_init_input(Init *init, char *file_name) {
     }
     if (view->f_in_pipe) {
         errno = 0;
-        view->tmp_fd = memfd_create("view_input", MFD_CLOEXEC);
+        view->tmp_fd = memfd_create(_("view_input"), MFD_CLOEXEC);
         if (view->in_fd < 0 || errno != 0) {
             ssnprintf(em0, MAXLEN - 1, "memfd_create failed\n");
             ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
-            ssnprintf(em2, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
+            ssnprintf(em2, MAXLEN - 1, _("%s, line: %d, errno: %d"), __FILE__,
                       __LINE__ - 4, errno);
             ui_display_error(em0, em1, em2, nullptr);
             exit(EXIT_FAILURE);
@@ -403,14 +403,14 @@ int view_init_input(Init *init, char *file_name) {
         ssize_t bytes_written = 0;
         while ((bytes_read = read(view->in_fd, buf, sizeof(buf))) > 0) {
             if ((bytes_written = write(view->tmp_fd, buf, bytes_read)) != bytes_read) {
-                ui_abend(-1, "unable to write view->tmp_fd");
+                ui_abend(-1, _("unable to write view->tmp_fd"));
                 exit(EXIT_FAILURE);
             }
         }
         if (fstat(view->tmp_fd, &sb) == -1) {
             ssnprintf(em0, MAXLEN - 1, "fstat(view->in_fd) failed\n");
             ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
-            ssnprintf(em2, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
+            ssnprintf(em2, MAXLEN - 1, _("%s, line: %d, errno: %d"), __FILE__,
                       __LINE__ - 4, errno);
             ui_display_error(em0, em1, em2, nullptr);
             exit(EXIT_FAILURE);
@@ -418,7 +418,7 @@ int view_init_input(Init *init, char *file_name) {
         view->file_size = sb.st_size;
         if (view->file_size == 0) {
             close(view->tmp_fd);
-            strnz__cpy(tmp_str, "no standard input", MAXLEN - 1);
+            strnz__cpy(tmp_str, _("no standard input"), MAXLEN - 1);
             ui_abend(-1, tmp_str);
             exit(EXIT_FAILURE);
         }
@@ -428,15 +428,15 @@ int view_init_input(Init *init, char *file_name) {
     view->buf =
         mmap(nullptr, view->file_size, PROT_READ, MAP_PRIVATE, view->in_fd, 0);
     if (view->buf == MAP_FAILED) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 2);
-        ssnprintf(em1, MAXLEN - 1, "mmap %s", file_name);
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 2);
+        ssnprintf(em1, MAXLEN - 1, _("mmap %s"), file_name);
         strerror__r(errno, em2, MAXLEN);
         ui_display_error(em0, em1, em2, nullptr);
         close(view->in_fd);
         return -1;
     }
     close(view->in_fd);
-    stdio_fdnames(stdio_names_str, "init_view.c 422");
+    stdio_fdnames(stdio_names_str, _("init_view.c 422"));
     view->file_size = sb.st_size;
     view->prev_file_pos = NULL_POSITION;
     view->buf_curr_ptr = view->buf;

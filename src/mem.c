@@ -61,14 +61,14 @@ Init *new_init(int argc, char **argv) {
     int i = 0;
     Init *init = calloc(1, sizeof(Init));
     if (init == nullptr) {
-        ui_abend(-1, "calloc init failed");
+        ui_abend(-1, _("calloc init failed"));
         return nullptr;
     }
     init->argv = calloc(MAXARGS + 1, sizeof(char *));
     if (init->argv == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d, errno: %d"), __FILE__,
                   __LINE__ - 4, errno);
-        ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
+        ssnprintf(em1, MAXLEN - 1, _("%s"), strerror(errno));
         ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
                   (MAXARGS + 1), sizeof(char *));
         ui_display_error(em0, em1, em2, nullptr);
@@ -126,13 +126,13 @@ Init *destroy_init(Init *init) {
 Menu *new_menu(Init *init, int argc, char **argv, uint begy, uint begx) {
     init->menu = (Menu *)calloc(1, sizeof(Menu));
     if (!init->menu) {
-        ui_abend(-1, "calloc menu failed");
+        ui_abend(-1, _("calloc menu failed"));
         return nullptr;
     }
     init->menu_cnt++;
     menu = init->menu;
     if (!init_menu_files(init, argc, argv)) {
-        ui_abend(-1, "init_menu_files failed");
+        ui_abend(-1, _("init_menu_files failed"));
         return nullptr;
     }
     menu->begy = begy;
@@ -178,32 +178,32 @@ Menu *destroy_menu(Init *init) {
 Pick *new_pick(Init *init, int argc, char **argv, uint begy, uint begx) {
     init->pick = (Pick *)calloc(1, sizeof(Pick));
     if (!init->pick) {
-        ui_perror("calloc pick failed");
+        ui_perror(_("calloc pick failed"));
         return nullptr;
     }
     init->pick_cnt++;
     pick = init->pick;
     if (!init_pick_files(init, argc, argv)) {
-        ui_abend(-1, "init_pick_files failed");
+        ui_abend(-1, _("init_pick_files failed"));
         return nullptr;
     }
     pick->m_object = calloc(OBJ_MAXCNT + 1, sizeof(char *));
     if (pick->m_object == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
         ssnprintf(em1, MAXLEN - 1,
                   "calloc pick->m_object = calloc(%d, %d) failed\n",
                   OBJ_MAXCNT + 1, sizeof(char *));
         ui_display_error(em0, em1, nullptr, nullptr);
-        ui_abend(-1, "User terminated program");
+        ui_abend(-1, _("User terminated program"));
     }
     pick->d_object = calloc(OBJ_MAXCNT + 1, sizeof(char *));
     if (pick->d_object == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
         ssnprintf(em1, MAXLEN - 1,
                   "calloc pick->d_object = calloc(%d, %d) failed\n",
                   OBJ_MAXCNT + 1, sizeof(char *));
         ui_display_error(em0, em1, nullptr, nullptr);
-        ui_abend(-1, "User terminated program");
+        ui_abend(-1, _("User terminated program"));
     }
     pick->begy = begy;
     pick->begx = begx;
@@ -244,13 +244,13 @@ Pick *destroy_pick(Init *init) {
 Form *new_form(Init *init, int argc, char **argv, uint begy, uint begx) {
     init->form = (Form *)calloc(1, sizeof(Form));
     if (!init->form) {
-        ui_abend(-1, "calloc form failed");
+        ui_abend(-1, _("calloc form failed"));
         return nullptr;
     }
     init->form_cnt++;
     form = init->form;
     if (!init_form_files(init, argc, argv)) {
-        ui_abend(-1, "init_form_files failed");
+        ui_abend(-1, _("init_form_files failed"));
         return nullptr;
     }
     strnz__cpy(form->brackets, init->brackets, 3);
@@ -293,13 +293,13 @@ View *new_view(Init *init) {
     init->view = (View *)calloc(1, sizeof(View));
     if (!init->view) {
         free(init->view);
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d, errno: %d"), __FILE__,
                   __LINE__ - 1, errno);
-        ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
+        ssnprintf(em1, MAXLEN - 1, _("%s"), strerror(errno));
         ssnprintf(em2, MAXLEN - 1, "init->view = calloc(%d) failed\n",
                   sizeof(View));
         ui_display_error(em0, em1, em2, nullptr);
-        ui_abend(-1, "calloc init->view failed");
+        ui_abend(-1, _("calloc init->view failed"));
         return nullptr;
     }
     view = init->view;
@@ -308,13 +308,13 @@ View *new_view(Init *init) {
         view->argv = calloc(view->argc + 1, sizeof(char *));
         if (view->argv == nullptr) {
             free(view->argv);
-            ssnprintf(em0, MAXLEN - 1, "%s, line: %d, errno: %d", __FILE__,
+            ssnprintf(em0, MAXLEN - 1, _("%s, line: %d, errno: %d"), __FILE__,
                       __LINE__ - 1, errno);
-            ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));
+            ssnprintf(em1, MAXLEN - 1, _("%s"), strerror(errno));
             ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
                       view->argc, sizeof(char *));
             ui_display_error(em0, em1, em2, nullptr);
-            ui_abend(-1, "User terminated program");
+            ui_abend(-1, _("User terminated program"));
             return nullptr;
         }
         int s = 0;
@@ -324,7 +324,7 @@ View *new_view(Init *init) {
         view->argv[d] = nullptr;
     }
     if (!init_view_files(init)) {
-        ui_abend(-1, "init_view_files failed");
+        ui_abend(-1, _("init_view_files failed"));
         return nullptr;
     }
     return view;
@@ -351,7 +351,7 @@ View *destroy_view(Init *init) {
     @param spec - menu->spec, form->spec, etc.
     @param org_spec - init->._spec | argv[optind]
     @param dir - init->._. directory
-    @param alt_dir - literal, "~/menuapp/data", etc.
+    @param alt_dir - literal, _("~/menuapp/data"), etc.
     @param mode - R_OK, W_OK, X_OK, WC_OK, S_QUIET
     @details mode is a bitwise OR of the following flags:
               S_QUIET - suppress error messages
@@ -403,7 +403,7 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
 
         } else {
             if (!f_dir && dir[0]) {
-                if (strcmp(dir, "$PATH") == 0) {
+                if (strcmp(dir, _("$PATH")) == 0) {
                     strnz__cpy(try_spec, file_name, MAXLEN - 1);
                     f_spec = locate_file_in_path(try_spec, file_name);
                 } else {
@@ -423,7 +423,7 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
                 }
             }
             if (!f_spec && alt_dir && alt_dir[0] != '\0') {
-                if (strcmp(alt_dir, "$PATH") == 0) {
+                if (strcmp(alt_dir, _("$PATH")) == 0) {
                     strnz__cpy(try_spec, file_name, MAXLEN - 1);
                     f_spec = locate_file_in_path(try_spec, file_name);
                 } else {
@@ -486,22 +486,22 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     if (optind < argc && !init->f_mapp_spec) {
         menu->f_mapp_spec =
             verify_spec_arg(menu->mapp_spec, argv[optind], init->mapp_msrc,
-                            "~/menuapp/msrc", R_OK);
+                            _("~/menuapp/msrc"), R_OK);
         if (menu->f_mapp_spec)
             optind++;
     }
     if (optind < argc && !menu->f_help_spec) {
         menu->f_help_spec =
             verify_spec_arg(menu->help_spec, argv[optind], init->mapp_help,
-                            "~/menuapp/help", R_OK);
+                            _("~/menuapp/help"), R_OK);
         if (menu->f_help_spec)
             optind++;
     }
     if (!menu->f_mapp_spec) {
         menu->f_mapp_spec = verify_spec_arg(
-            menu->mapp_spec, "~/menuapp/msrc/main.m", nullptr, nullptr, R_OK);
+            menu->mapp_spec, _("~/menuapp/msrc/main.m"), nullptr, nullptr, R_OK);
         if (!menu->f_mapp_spec) {
-            strnz__cpy(tmp_str, "menu cannot read description file ",
+            strnz__cpy(tmp_str, _("menu cannot read description file "),
                        MAXLEN - 1);
             strnz__cat(tmp_str, menu->mapp_spec, MAXLEN - 1);
             ui_abend(-1, tmp_str);
@@ -509,10 +509,10 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     }
     if (!menu->f_help_spec) {
         menu->f_help_spec =
-            verify_spec_arg(menu->help_spec, "~/menuapp/help/menu.help",
+            verify_spec_arg(menu->help_spec, _("~/menuapp/help/menu.help"),
                             nullptr, nullptr, R_OK);
         if (!menu->f_help_spec) {
-            strnz__cpy(tmp_str, "menu cannot read help file ", MAXLEN - 1);
+            strnz__cpy(tmp_str, _("menu cannot read help file "), MAXLEN - 1);
             strnz__cat(tmp_str, menu->help_spec, MAXLEN - 1);
             ui_abend(-1, tmp_str);
         }
@@ -532,40 +532,40 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
     int optind = 1;
     pick->f_in_spec = verify_spec_arg(pick->in_spec, init->in_spec,
-                                      init->mapp_data, "~/menuapp/data", R_OK);
+                                      init->mapp_data, _("~/menuapp/data"), R_OK);
     pick->f_out_spec =
         verify_spec_arg(pick->out_spec, init->out_spec, init->mapp_data,
-                        "~/menuapp/data", W_OK | S_QUIET);
+                        _("~/menuapp/data"), W_OK | S_QUIET);
     if (init->provider_cmd[0] != '\0') {
         pick->f_provider_cmd =
             verify_spec_arg(pick->provider_cmd, init->provider_cmd,
-                            "~/menuapp/bin", "$PATH", X_OK | S_QUIET);
+                            _("~/menuapp/bin"), _("$PATH"), X_OK | S_QUIET);
     }
     if (init->cmd[0] != '\0') {
-        pick->f_cmd = verify_spec_arg(pick->cmd, init->cmd, "~/menuapp/bin",
-                                      "$PATH", X_OK | S_QUIET);
+        pick->f_cmd = verify_spec_arg(pick->cmd, init->cmd, _("~/menuapp/bin"),
+                                      _("$PATH"), X_OK | S_QUIET);
     }
     if (init->receiver_cmd[0] != '\0') {
         pick->f_receiver_cmd =
             verify_spec_arg(pick->receiver_cmd, init->receiver_cmd,
-                            "~/menuapp/bin", "$PATH", X_OK | S_QUIET);
+                            _("~/menuapp/bin"), _("$PATH"), X_OK | S_QUIET);
     }
     if (init->title[0])
         strnz__cpy(pick->title, init->title, MAXLEN - 1);
     pick->f_help_spec =
         verify_spec_arg(pick->help_spec, init->help_spec, init->mapp_help,
-                        "~/menuapp/help", R_OK);
+                        _("~/menuapp/help"), R_OK);
     if (optind < argc && !pick->f_in_spec) {
         pick->f_in_spec =
             verify_spec_arg(pick->in_spec, argv[optind], init->mapp_data,
-                            "~/menuapp/data", R_OK);
+                            _("~/menuapp/data"), R_OK);
         if (pick->f_in_spec)
             optind++;
     }
     if (optind < argc && !pick->f_out_spec) {
         pick->f_out_spec =
             verify_spec_arg(pick->out_spec, argv[optind], init->mapp_data,
-                            "~/menuapp/data", W_OK | S_QUIET);
+                            _("~/menuapp/data"), W_OK | S_QUIET);
         if (pick->f_out_spec)
             optind++;
     }
@@ -573,7 +573,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
         if (argv[optind][0] != '\0') {
             pick->f_provider_cmd =
                 verify_spec_arg(pick->provider_cmd, argv[optind],
-                                "~/menuapp/bin", nullptr, X_OK | S_QUIET);
+                                _("~/menuapp/bin"), nullptr, X_OK | S_QUIET);
             if (!pick->f_provider_cmd) {
                 base_name(tmp_str, argv[optind]);
                 pick->f_provider_cmd =
@@ -585,7 +585,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     if (optind < argc && !pick->f_cmd) {
         if (argv[optind][0] != '\0') {
             pick->f_cmd =
-                verify_spec_arg(pick->cmd, argv[optind], "~/menuapp/bin",
+                verify_spec_arg(pick->cmd, argv[optind], _("~/menuapp/bin"),
                                 nullptr, X_OK | S_QUIET);
             if (!pick->f_cmd) {
                 base_name(tmp_str, argv[optind]);
@@ -598,7 +598,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
         if (argv[optind][0] != '\0') {
             pick->f_receiver_cmd =
                 verify_spec_arg(pick->receiver_cmd, argv[optind],
-                                "~/menuapp/bin", nullptr, X_OK | S_QUIET);
+                                _("~/menuapp/bin"), nullptr, X_OK | S_QUIET);
             if (!pick->f_receiver_cmd) {
                 base_name(tmp_str, argv[optind]);
                 pick->f_receiver_cmd =
@@ -610,7 +610,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     if (optind < argc && !pick->f_help_spec) {
         pick->f_help_spec =
             verify_spec_arg(pick->help_spec, argv[optind], init->mapp_help,
-                            "~/menuapp/help", R_OK);
+                            _("~/menuapp/help"), R_OK);
         if (pick->f_help_spec)
             optind++;
     }
@@ -636,47 +636,47 @@ bool init_form_files(Init *init, int argc, char **argv) {
     int optind = 0;
     form->f_mapp_spec =
         verify_spec_arg(form->mapp_spec, init->mapp_spec, init->mapp_msrc,
-                        "~/menuapp/msrc", R_OK);
+                        _("~/menuapp/msrc"), R_OK);
     form->f_in_spec = verify_spec_arg(form->in_spec, init->in_spec,
-                                      init->mapp_data, "~/menuapp/data", R_OK);
+                                      init->mapp_data, _("~/menuapp/data"), R_OK);
     form->f_out_spec =
         verify_spec_arg(form->out_spec, init->out_spec, init->mapp_data,
-                        "~/menuapp/data", W_OK | S_QUIET);
+                        _("~/menuapp/data"), W_OK | S_QUIET);
     if (init->provider_cmd[0] != '\0') {
         form->f_provider_cmd =
             verify_spec_arg(form->provider_cmd, init->provider_cmd,
-                            "~/menuapp/bin", "$PATH", X_OK | S_QUIET);
+                            _("~/menuapp/bin"), _("$PATH"), X_OK | S_QUIET);
     }
     if (init->cmd[0] != '\0') {
-        form->f_cmd = verify_spec_arg(form->cmd, init->cmd, "~/menuapp/bin",
-                                      "$PATH", X_OK | S_QUIET);
+        form->f_cmd = verify_spec_arg(form->cmd, init->cmd, _("~/menuapp/bin"),
+                                      _("$PATH"), X_OK | S_QUIET);
     }
     if (init->receiver_cmd[0] != '\0') {
         form->f_receiver_cmd =
             verify_spec_arg(form->receiver_cmd, init->receiver_cmd,
-                            "~/menuapp/bin", "$PATH", X_OK | S_QUIET);
+                            _("~/menuapp/bin"), _("$PATH"), X_OK | S_QUIET);
     }
     form->f_help_spec =
         verify_spec_arg(form->help_spec, init->help_spec, init->mapp_help,
-                        "~/menuapp/help", R_OK);
+                        _("~/menuapp/help"), R_OK);
     if (optind < argc && !form->f_mapp_spec) {
         form->f_mapp_spec =
             verify_spec_arg(form->mapp_spec, argv[optind], init->mapp_msrc,
-                            "~/menuapp/msrc", R_OK);
+                            _("~/menuapp/msrc"), R_OK);
         if (form->f_mapp_spec)
             optind++;
     }
     if (optind < argc && !form->f_in_spec) {
         form->f_in_spec =
             verify_spec_arg(form->in_spec, argv[optind], init->mapp_data,
-                            "~/menuapp/data", R_OK);
+                            _("~/menuapp/data"), R_OK);
         if (form->f_in_spec)
             optind++;
     }
     if (optind < argc && !form->f_out_spec) {
         form->f_out_spec =
             verify_spec_arg(form->out_spec, argv[optind], init->mapp_data,
-                            "~/menuapp/data", W_OK | S_QUIET);
+                            _("~/menuapp/data"), W_OK | S_QUIET);
         if (form->f_out_spec)
             optind++;
     }
@@ -684,7 +684,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
         if (argv[optind][0] != '\0') {
             form->f_provider_cmd =
                 verify_spec_arg(form->provider_cmd, argv[optind],
-                                "~/menuapp/bin", nullptr, X_OK | S_QUIET);
+                                _("~/menuapp/bin"), nullptr, X_OK | S_QUIET);
             if (!form->f_provider_cmd) {
                 base_name(tmp_str, argv[optind]);
                 form->f_provider_cmd =
@@ -696,7 +696,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
     if (optind < argc && !form->f_cmd) {
         if (argv[optind][0] != '\0') {
             form->f_cmd =
-                verify_spec_arg(form->cmd, argv[optind], "~/menuapp/bin",
+                verify_spec_arg(form->cmd, argv[optind], _("~/menuapp/bin"),
                                 nullptr, X_OK | S_QUIET);
             if (!form->f_cmd) {
                 base_name(tmp_str, argv[optind]);
@@ -709,7 +709,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
         if (argv[optind][0] != '\0') {
             form->f_receiver_cmd =
                 verify_spec_arg(form->receiver_cmd, argv[optind],
-                                "~/menuapp/bin", nullptr, X_OK | S_QUIET);
+                                _("~/menuapp/bin"), nullptr, X_OK | S_QUIET);
             if (!form->f_receiver_cmd) {
                 base_name(tmp_str, argv[optind]);
                 form->f_receiver_cmd =
@@ -721,7 +721,7 @@ bool init_form_files(Init *init, int argc, char **argv) {
     if (optind < argc && !form->f_help_spec) {
         form->f_help_spec =
             verify_spec_arg(form->help_spec, init->help_spec, init->mapp_help,
-                            "~/menuapp/help", R_OK);
+                            _("~/menuapp/help"), R_OK);
         if (form->f_help_spec)
             optind++;
     }
@@ -757,16 +757,16 @@ bool init_view_files(Init *init) {
     view->f_ln = init->f_ln;
     view->wrap = init->wrap;
     view->h_shift = init->h_shift;
-    e = getenv("VIEW_HELP_FILE");
+    e = getenv(_("VIEW_HELP_FILE"));
     if (e && e[0] != '\0') {
         strnz__cpy(view->help_spec, e, MAXLEN - 1);
     }
     view->f_help_spec =
         verify_spec_arg(view->help_spec, view->help_spec, init->mapp_help,
-                        "~/menuapp/help", R_OK);
+                        _("~/menuapp/help"), R_OK);
     if (!view->f_help_spec) {
         strnz__cpy(view->help_spec, init->mapp_home, MAXLEN - 1);
-        strnz__cat(view->help_spec, "/help/", MAXLEN - 1);
+        strnz__cat(view->help_spec, _("/help/"), MAXLEN - 1);
         strnz__cat(view->help_spec, VIEW_HELP_FILE, MAXLEN - 1);
     }
     strnz__cpy(view->provider_cmd, init->provider_cmd, MAXLEN - 1);
@@ -789,7 +789,7 @@ bool init_view_files(Init *init) {
                     view->argv[0][0] != '\0') {
                     strnz__cpy(view->title, view->argv[0], MAXLEN - 1);
                 } else
-                    strnz__cpy(view->title, "C-Menu View", MAXLEN - 1);
+                    strnz__cpy(view->title, _("C-Menu View"), MAXLEN - 1);
             }
         }
     }

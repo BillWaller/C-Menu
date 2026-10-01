@@ -114,7 +114,7 @@ struct linux_dirent64 {
 struct tm tm_info;
 const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";
-const char doc[] = _("lf list files\vIf specified, DIRECTORY is the top-level\n directory to search. REGULAR_EXPRESSION is a properly\nformatted regular expression for which matching files\nwill be listed.");
+const char doc[] = _("lf list files\nIf specified, DIRECTORY is the top-level\n directory to search. REGULAR_EXPRESSION is a properly\nformatted regular expression for which matching files\nwill be listed.");
 bool is_hidden(const char *);
 bool is_dirsys(const char *);
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
@@ -1109,8 +1109,8 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
     char dir_buf[DIR_BUF_SIZE];
     struct stat sb = {};
     struct linux_dirent64 *entry;
-    dev_t actual_dev, effective_dev;
-    ino_t actual_ino, effective_ino;
+    dev_t actual_dev = 0, effective_dev = 0;
+    ino_t actual_ino = 0, effective_ino = 0;
     unsigned char actual_type;
     unsigned char effective_type;
     CycleNode *child_ctx;

@@ -1,0 +1,1160 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the CMenu package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: CMenu v0.2.9\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-30 15:53-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: menu.c:55
+#, c-format
+msgid "Cannot set exit function"
+msgstr ""
+
+#: menu_engine.c:42
+msgid "menu_engine: menu is nullptr"
+msgstr ""
+
+#: form_engine.c:70
+msgid "Error: No form specification file given"
+msgstr ""
+
+#: form_engine.c:74
+msgid " not found"
+msgstr ""
+
+#: form_engine.c:126
+msgid "FORM: form data structure is nullptr"
+msgstr ""
+
+#: form_engine.c:134 pick_engine.c:328
+msgid "F1 Help"
+msgstr ""
+
+#: form_engine.c:135
+msgid "F2 Process"
+msgstr ""
+
+#: form_engine.c:136
+msgid "F3 Calculate"
+msgstr ""
+
+#: form_engine.c:137
+msgid "F4 Query"
+msgstr ""
+
+#: form_engine.c:138
+msgid "F5 Edit"
+msgstr ""
+
+#: form_engine.c:139 pick_engine.c:329
+msgid "F9 Cancel"
+msgstr ""
+
+#: form_engine.c:140 pick_engine.c:331
+msgid "F10 Accept"
+msgstr ""
+
+#: form_engine.c:200
+msgid "Form Help"
+msgstr ""
+
+#: form_engine.c:382
+msgid "pipe(pipe_fd) failed in init_form"
+msgstr ""
+
+#: form_engine.c:387
+msgid "fork() failed in init_form"
+msgstr ""
+
+#: form_engine.c:394 pick_engine.c:94
+msgid "open(/dev/null) failed in init_pick child process"
+msgstr ""
+
+#: form_engine.c:404 form_engine.c:854 form_engine.c:1108 form_engine.c:1121
+#: form_engine.c:1128 view_engine.c:99 view_engine.c:665 view_engine.c:692
+#: view_engine.c:1006 view_engine.c:2699 view_engine.c:2712 view_engine.c:2734
+#, c-format
+msgid "%s, line: %d"
+msgstr ""
+
+#: form_engine.c:554
+msgid "ui_tracked_sfc_box failed: "
+msgstr ""
+
+#: form_engine.c:676 form_engine.c:737
+#, c-format
+msgid "FORM: calloc failed for fields"
+msgstr ""
+
+#: form_engine.c:683 form_engine.c:800
+#, c-format
+msgid "FORM: calloc failed for text"
+msgstr ""
+
+#: form_engine.c:723
+msgid "FORM: receiver_cmd delimiter"
+msgstr ""
+
+#: form_engine.c:731
+msgid "FORM: help_spec delimiter"
+msgstr ""
+
+#: form_engine.c:742 form_engine.c:805
+msgid "FORM: line number delimiter"
+msgstr ""
+
+#: form_engine.c:748 form_engine.c:811
+msgid "FORM: invalid line number"
+msgstr ""
+
+#: form_engine.c:753 form_engine.c:816
+msgid "FORM: column number delimiter"
+msgstr ""
+
+#: form_engine.c:759 form_engine.c:822
+msgid "FORM: invalid column number"
+msgstr ""
+
+#: form_engine.c:764
+msgid "FORM: length delimiter"
+msgstr ""
+
+#: form_engine.c:769 form_engine.c:832
+msgid "FORM: invalid length"
+msgstr ""
+
+#: form_engine.c:774
+msgid "FORM: validation code delimiter"
+msgstr ""
+
+#: form_engine.c:788
+msgid "FORM: invalid format code"
+msgstr ""
+
+#: form_engine.c:826
+msgid "FORM: text delimiter"
+msgstr ""
+
+#: form_engine.c:848
+msgid "invalid directive"
+msgstr ""
+
+#: form_engine.c:855
+msgid "Error in description file:"
+msgstr ""
+
+#: form_engine.c:882
+msgid "File is empty"
+msgstr ""
+
+#: form_engine.c:884
+msgid "File does not exist"
+msgstr ""
+
+#: form_engine.c:885
+msgid "Fields will be blank or zero"
+msgstr ""
+
+#: form_engine.c:1018
+msgid "rep_substring() failed in form_exec_objects"
+msgstr ""
+
+#: form_engine.c:1062
+msgid "fork() failed in form_exec_objects"
+msgstr ""
+
+#: form_engine.c:1069
+msgid "open(/dev/null) failed in init_form child process"
+msgstr ""
+
+#: form_engine.c:1078
+msgid "Can't exec form cmd: "
+msgstr ""
+
+#: form_engine.c:1157
+#, c-format
+msgid "Desc file: %s, line: %d"
+msgstr ""
+
+#: pick_engine.c:82
+msgid "pipe(pipe_fd) failed in init_pick"
+msgstr ""
+
+#: pick_engine.c:87
+msgid "fork() failed in init_pick"
+msgstr ""
+
+#: pick_engine.c:106
+msgid "Can't exec pick start cmd: "
+msgstr ""
+
+#: pick_engine.c:129
+msgid "Can't stat pick input file: "
+msgstr ""
+
+#: pick_engine.c:135
+msgid "Pick input file empty: "
+msgstr ""
+
+#: pick_engine.c:141
+msgid "Can't open pick input file: "
+msgstr ""
+
+#: pick_engine.c:149
+msgid "No pick input available"
+msgstr ""
+
+#: pick_engine.c:162
+msgid "No pick objects available"
+msgstr ""
+
+#: pick_engine.c:168
+msgid "Failed to open pick window"
+msgstr ""
+
+#: pick_engine.c:333
+msgid "F11 View"
+msgstr ""
+
+#: pick_engine.c:335
+msgid "<q> Quit View"
+msgstr ""
+
+#: pick_engine.c:337
+msgid "<Sp> Process"
+msgstr ""
+
+#: pick_engine.c:338
+msgid "<Sp> Edit"
+msgstr ""
+
+#: pick_engine.c:339
+msgid "<Tab> Search"
+msgstr ""
+
+#: pick_engine.c:341
+msgid "<Tab> Select"
+msgstr ""
+
+#: pick_engine.c:383
+msgid "Selection Processed"
+msgstr ""
+
+#: pick_engine.c:642
+msgid "Can't open pick output file: "
+msgstr ""
+
+#: pick_engine.c:763
+msgid "rep_substring() failed in exec_objects"
+msgstr ""
+
+#: pick_engine.c:812
+msgid "fork() failed in exec_objects"
+msgstr ""
+
+#: pick_engine.c:862
+msgid "Pick Help"
+msgstr ""
+
+#: pick_engine.c:927 pick_engine.c:1216 pick_engine.c:1377
+#, c-format
+msgid "Line %d, Page %d/%d"
+msgstr ""
+
+#: pick_engine.c:1546 pick_engine.c:1550 pick_engine.c:1566 pick_engine.c:1570
+msgid "ui_display_image() failed in new_view_file"
+msgstr ""
+
+#: pick_engine.c:1589
+msgid "tree-sitter highlight "
+msgstr ""
+
+#: view_engine.c:256
+msgid "Resize key received"
+msgstr ""
+
+#: view_engine.c:258
+#, c-format
+msgid "Resize: lines=%d, cols=%d"
+msgstr ""
+
+#: view_engine.c:361
+msgid "Startup Command:"
+msgstr ""
+
+#: view_engine.c:377
+msgid "Ignore Case in search (Y or N)->"
+msgstr ""
+
+#: view_engine.c:386
+msgid "Line Numbering (Y or N)->"
+msgstr ""
+
+#: view_engine.c:397
+msgid "view->f_squeeze Multiple Blank lines (Y or N)->"
+msgstr ""
+
+#: view_engine.c:403
+msgid "Line Wrapping (Y or N)->"
+msgstr ""
+
+#: view_engine.c:417
+#, c-format
+msgid "Tabstop Colums Currently %d:"
+msgstr ""
+
+#: view_engine.c:425
+msgid "Tab stops not changed"
+msgstr ""
+
+#: view_engine.c:443
+msgid "Search complete, no more matches"
+msgstr ""
+
+#: view_engine.c:447
+msgid "No previouis search"
+msgstr ""
+
+#: view_engine.c:459 view_engine.c:478 view_engine.c:500
+msgid "No matches found"
+msgstr ""
+
+#: view_engine.c:466
+msgid " Forward:"
+msgstr ""
+
+#: view_engine.c:488
+msgid " Backward:"
+msgstr ""
+
+#: view_engine.c:509
+msgid "File name:"
+msgstr ""
+
+#: view_engine.c:534
+msgid "Mark label (A-Z)->"
+msgstr ""
+
+#: view_engine.c:540
+msgid "Not (a-z)"
+msgstr ""
+
+#: view_engine.c:546
+msgid "Goto mark (A-Z)->"
+msgstr ""
+
+#: view_engine.c:553
+msgid "Not (A-Z)"
+msgstr ""
+
+#: view_engine.c:562
+msgid "no more files"
+msgstr ""
+
+#: view_engine.c:583
+msgid "Enter Notation:"
+msgstr ""
+
+#: view_engine.c:588
+msgid "Unable to create temporary file"
+msgstr ""
+
+#: view_engine.c:621
+msgid "No previous file"
+msgstr ""
+
+#: view_engine.c:649
+msgid "View doesn't support editing current buffer directly"
+msgstr ""
+
+#: view_engine.c:651
+msgid "Would you like to write the buffer to a file?"
+msgstr ""
+
+#: view_engine.c:653 view_engine.c:994
+msgid "Enter Y for yes or any other key to cancel."
+msgstr ""
+
+#: view_engine.c:667 view_engine.c:694
+msgid "0 bytes written"
+msgstr ""
+
+#: view_engine.c:706
+#, c-format
+msgid "C-Menu Version: %s"
+msgstr ""
+
+#: view_engine.c:772
+#, c-format
+msgid "set break at line: %d and restart gdb"
+msgstr ""
+
+#: view_engine.c:925
+#, c-format
+msgid "Col %d of %d"
+msgstr ""
+
+#: view_engine.c:936
+#, c-format
+msgid "File %d of %d"
+msgstr ""
+
+#: view_engine.c:953
+#, c-format
+msgid "Pos %zd-%zd"
+msgstr ""
+
+#: view_engine.c:960
+#, c-format
+msgid " of %zd"
+msgstr ""
+
+#: view_engine.c:971
+msgid "(End)"
+msgstr ""
+
+#: view_engine.c:974
+msgid " Next File: "
+msgstr ""
+
+#: view_engine.c:992
+msgid "Would you like to strip ansi escape sequences?"
+msgstr ""
+
+#: view_engine.c:1007
+msgid "fwrite "
+msgstr ""
+
+#: view_engine.c:1078
+msgid "Mark not set"
+msgstr ""
+
+#: view_engine.c:1131
+msgid "Invalid pattern"
+msgstr ""
+
+#: view_engine.c:1193
+msgid "Regex match failed: "
+msgstr ""
+
+#: view_engine.c:1249
+#, c-format
+msgid "Regex match failed: %s"
+msgstr ""
+
+#: view_engine.c:1893
+msgid "Cannot determine file length"
+msgstr ""
+
+#: view_engine.c:1918
+msgid "Line number out of bounds"
+msgstr ""
+
+#: view_engine.c:1981 view_engine.c:2026
+msgid "Memory allocation failed"
+msgstr ""
+
+#: view_engine.c:2116
+#, c-format
+msgid ""
+"%s:%d prefresh(view->sfc->mwin[WIN2], pminrow=%d, pmincol=%d, smaxrow=%d, "
+"smaxcol=%d) returned %d\n"
+msgstr ""
+
+#: view_engine.c:2700
+msgid "Unable to "
+msgstr ""
+
+#: view_engine.c:2713 view_engine.c:2735
+msgid "unable to "
+msgstr ""
+
+#: view_engine.c:2723
+msgid "form -d file_name.f -o "
+msgstr ""
+
+#: view_engine.c:2748
+#, c-format
+msgid "Unable to open %s for writing"
+msgstr ""
+
+#: view_engine.c:2750
+msgid "Try again? y (yes) or n (no) "
+msgstr ""
+
+#: rsh.c:108
+#, c-format
+msgid "PAM start failed: %s"
+msgstr ""
+
+#: rsh.c:109
+#, c-format
+msgid "PAM start failed: %s\n"
+msgstr ""
+
+#: rsh.c:124
+#, c-format
+msgid "Authentication succeeded for user '%s': %s"
+msgstr ""
+
+#: rsh.c:126
+#, c-format
+msgid "Authentication failed for user '%s': %s"
+msgstr ""
+
+#: rsh.c:127
+#, c-format
+msgid "Failure: Authentication failed: %s\n"
+msgstr ""
+
+#: rsh.c:134
+#, c-format
+msgid "PAM authentication failed: %s\n"
+msgstr ""
+
+#: rsh.c:148
+#, c-format
+msgid "SSH authentication succeeded\n"
+msgstr ""
+
+#: rsh.c:158
+msgid "fork() fatal error"
+msgstr ""
+
+#: rsh.c:163
+msgid "setuid(0) fatal error"
+msgstr ""
+
+#: rsh.c:171
+msgid "execvp() fatal error"
+msgstr ""
+
+#: rsh.c:181
+msgid "Child process exited"
+msgstr ""
+
+#: rsh.c:185
+msgid "Child process terminated by signal"
+msgstr ""
+
+#: rsh.c:187 exec.c:164
+msgid "Child process terminated abnormally"
+msgstr ""
+
+#: lf.c:117
+msgid ""
+"lf list files\n"
+"If specified, DIRECTORY is the top-level\n"
+" directory to search. REGULAR_EXPRESSION is a properly\n"
+"formatted regular expression for which matching files\n"
+"will be listed."
+msgstr ""
+
+#: lf.c:208
+msgid "after"
+msgstr ""
+
+#: lf.c:208 lf.c:209
+msgid "time"
+msgstr ""
+
+#: lf.c:208
+msgid "Last Modified after YYYY-MM-DDTHH:MM:SS"
+msgstr ""
+
+#: lf.c:209
+msgid "before"
+msgstr ""
+
+#: lf.c:209
+msgid "Last Modified before YYYY-MM-DDTHH:MM:SS"
+msgstr ""
+
+#: lf.c:210
+msgid "max_depth"
+msgstr ""
+
+#: lf.c:210
+msgid "number"
+msgstr ""
+
+#: lf.c:210
+msgid "Depth into directory tree"
+msgstr ""
+
+#: lf.c:211
+msgid "error_file_spec"
+msgstr ""
+
+#: lf.c:211
+msgid "file_spec"
+msgstr ""
+
+#: lf.c:211
+msgid "Error message output file"
+msgstr ""
+
+#: lf.c:212
+msgid "ere"
+msgstr ""
+
+#: lf.c:212 lf.c:216
+msgid "regex"
+msgstr ""
+
+#: lf.c:212
+msgid "Exclude regular expression"
+msgstr ""
+
+#: lf.c:213
+msgid "ignore_case"
+msgstr ""
+
+#: lf.c:213
+msgid "Search ignore case"
+msgstr ""
+
+#: lf.c:214
+msgid "include_perms"
+msgstr ""
+
+#: lf.c:214
+msgid "sgrwx"
+msgstr ""
+
+#: lf.c:215
+msgid "x-execute, w-write, r-read, s-setuid, g-setgid"
+msgstr ""
+
+#: lf.c:216
+msgid "re"
+msgstr ""
+
+#: lf.c:216
+msgid "Regular expression to search for"
+msgstr ""
+
+#: lf.c:217
+msgid "include_types"
+msgstr ""
+
+#: lf.c:217
+msgid "pcdbflsu"
+msgstr ""
+
+#: lf.c:218
+msgid ""
+"p-pipe, c-character_dev, d-directory, b-block_dev, f-regular_file, l-link, s-"
+"socket, u-unknown"
+msgstr ""
+
+#: lf.c:220
+msgid "file_size_min"
+msgstr ""
+
+#: lf.c:220
+msgid "size"
+msgstr ""
+
+#: lf.c:221
+msgid "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes"
+msgstr ""
+
+#: lf.c:222
+msgid "user"
+msgstr ""
+
+#: lf.c:222
+msgid "user name"
+msgstr ""
+
+#: lf.c:222
+msgid "User Name of file owner "
+msgstr ""
+
+#: lf.c:223
+msgid "debug"
+msgstr ""
+
+#: lf.c:224
+msgid ""
+"1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, 8-"
+"only_errors, 9-report_error_count"
+msgstr ""
+
+#: lf.c:226
+msgid "include_hidden"
+msgstr ""
+
+#: lf.c:226
+msgid "Include hidden files (o=hidden only)"
+msgstr ""
+
+#: lf.c:227
+msgid "follow_links"
+msgstr ""
+
+#: lf.c:227
+msgid "Follow symbolic links"
+msgstr ""
+
+#: lf.c:228
+msgid "sort_reverse"
+msgstr ""
+
+#: lf.c:228
+msgid "Sort in Reverse order"
+msgstr ""
+
+#: lf.c:229
+msgid "sort"
+msgstr ""
+
+#: lf.c:229
+msgid "Sort in Ascending order"
+msgstr ""
+
+#: lf.c:230
+msgid "nthreads"
+msgstr ""
+
+#: lf.c:230
+msgid "Number of nthreads"
+msgstr ""
+
+#: lf.c:231
+msgid "count"
+msgstr ""
+
+#: lf.c:231
+msgid "Count (s only report count)"
+msgstr ""
+
+#: lf.c:244 lf.c:251
+#, c-format
+msgid "-b time must be greater than -a time.\n"
+msgstr ""
+
+#: lf.c:423
+#, c-format
+msgid "User '%s' not found.\n"
+msgstr ""
+
+#: lf.c:463
+msgid "4G"
+msgstr ""
+
+#: lf.c:480
+#, c-format
+msgid "lf: arg1: '%s' is neither a directory nor a valid regex.\n"
+msgstr ""
+
+#: lf.c:497
+#, c-format
+msgid "lf: '%s' is neither a directory nor a valid regular expression.\n"
+msgstr ""
+
+#: lf.c:524
+#, c-format
+msgid "Files: %zu\n"
+msgstr ""
+
+#: lf.c:528
+#, c-format
+msgid "Errors: %zu\n"
+msgstr ""
+
+#: lf.c:573
+#, c-format
+msgid "Failed to execute sort: %s\n"
+msgstr ""
+
+#: lf.c:621
+#, c-format
+msgid "lf debug      %s\n"
+msgstr ""
+
+#: lf.c:622 lf.c:624 lf.c:626 lf.c:628 lf.c:630 lf.c:632 lf.c:634 lf.c:636
+#: lf.c:639 lf.c:641
+msgid "true"
+msgstr ""
+
+#: lf.c:622
+msgid "     false"
+msgstr ""
+
+#: lf.c:623
+#, c-format
+msgid "  1-config      %s\n"
+msgstr ""
+
+#: lf.c:624 lf.c:626 lf.c:628 lf.c:630 lf.c:632 lf.c:634 lf.c:636 lf.c:639
+#: lf.c:641
+msgid "|    false"
+msgstr ""
+
+#: lf.c:625
+#, c-format
+msgid "  2-info        %s\n"
+msgstr ""
+
+#: lf.c:627
+#, c-format
+msgid "  3-warnings    %s\n"
+msgstr ""
+
+#: lf.c:629
+#, c-format
+msgid "  4-errors      %s\n"
+msgstr ""
+
+#: lf.c:631
+#, c-format
+msgid "  5-badlinks    %s\n"
+msgstr ""
+
+#: lf.c:633
+#, c-format
+msgid "  6-trace       %s\n"
+msgstr ""
+
+#: lf.c:635
+#, c-format
+msgid "  8-only_errors %s\n"
+msgstr ""
+
+#: lf.c:638
+#, c-format
+msgid "Count files: %s\n"
+msgstr ""
+
+#: lf.c:640
+#, c-format
+msgid "Count only: %s\n"
+msgstr ""
+
+#: lf.c:643
+#, c-format
+msgid ""
+"Search directory: %s\n"
+"\n"
+msgstr ""
+
+#: lf.c:645
+#, c-format
+msgid ""
+"Max depth 0 (unlimited)\n"
+"\n"
+msgstr ""
+
+#: lf.c:647
+#, c-format
+msgid ""
+"Max depth %d\n"
+"\n"
+msgstr ""
+
+#: lf.c:648
+#, c-format
+msgid ""
+"Using %d threads\n"
+"\n"
+msgstr ""
+
+#: lf.c:649
+#, c-format
+msgid ""
+"File types preceeded by an asterisk (\"*\") will be included:\n"
+"\n"
+msgstr ""
+
+#: lf.c:650
+#, c-format
+msgid "  LF type        DT type\n"
+msgstr ""
+
+#: lf.c:651
+msgid "FIFO    p-named pipe"
+msgstr ""
+
+#: lf.c:652
+msgid "CHR     c-character device"
+msgstr ""
+
+#: lf.c:653
+msgid "DIR     d-directory"
+msgstr ""
+
+#: lf.c:654
+msgid "BLK     b-block device"
+msgstr ""
+
+#: lf.c:655
+msgid "REG     f-regular file"
+msgstr ""
+
+#: lf.c:656
+msgid "LINK    l-symbolic link"
+msgstr ""
+
+#: lf.c:657
+msgid "SOCK    s-socket"
+msgstr ""
+
+#: lf.c:658
+msgid "UNKNOWN u-unknown"
+msgstr ""
+
+#: lf.c:664
+#, c-format
+msgid "User: %s (%ju)\n"
+msgstr ""
+
+#: lf.c:667
+#, c-format
+msgid "    %08b Execute\n"
+msgstr ""
+
+#: lf.c:669
+#, c-format
+msgid "    %08b Write\n"
+msgstr ""
+
+#: lf.c:671
+#, c-format
+msgid "    %08b Read\n"
+msgstr ""
+
+#: lf.c:673
+#, c-format
+msgid "    %08b SETUID\n"
+msgstr ""
+
+#: lf.c:675
+#, c-format
+msgid "    %08b SETGID\n"
+msgstr ""
+
+#: lf.c:679
+#, c-format
+msgid ""
+"Include regex: %s\n"
+"\n"
+msgstr ""
+
+#: lf.c:681
+#, c-format
+msgid ""
+"Exclude regex: %s\n"
+"\n"
+msgstr ""
+
+#: lf.c:686
+#, c-format
+msgid ""
+"Modified after: %s\n"
+"\n"
+msgstr ""
+
+#: lf.c:692
+#, c-format
+msgid ""
+"Modified before: %s\n"
+"\n"
+msgstr ""
+
+#: lf.c:705
+#, c-format
+msgid ""
+"Minimum file size: %s\n"
+"\n"
+msgstr ""
+
+#: lf.c:708
+#, c-format
+msgid ""
+"Max depth: %d\n"
+"\n"
+msgstr ""
+
+#: lf.c:710
+#, c-format
+msgid ""
+"Ignore case in regex matching.\n"
+"\n"
+msgstr ""
+
+#: lf.c:712
+#, c-format
+msgid ""
+"Include hidden files.\n"
+"\n"
+msgstr ""
+
+#: lf.c:714
+#, c-format
+msgid ""
+"Follow symbolic links.\n"
+"\n"
+msgstr ""
+
+#: lf.c:716
+#, c-format
+msgid ""
+"Sort output in ascending order.\n"
+"\n"
+msgstr ""
+
+#: lf.c:718
+#, c-format
+msgid ""
+"Sort output in reverse order.\n"
+"\n"
+msgstr ""
+
+#: lf.c:752
+#, c-format
+msgid "lf: '%s' Invalid pattern\n"
+msgstr ""
+
+#: lf.c:760
+#, c-format
+msgid "lf: '%s' Invalid exclude pattern\n"
+msgstr ""
+
+#: lf.c:773
+msgid "Mutex initialization failed"
+msgstr ""
+
+#: lf.c:786
+#, c-format
+msgid "Failed to enqueue initial directory\n"
+msgstr ""
+
+#: lf.c:795
+#, c-format
+msgid "Out of memory allocating threads\n"
+msgstr ""
+
+#: lf.c:805
+#, c-format
+msgid "Error: Unable to create thread %d\n"
+msgstr ""
+
+#: lf.c:818
+msgid "Mutex destroy failed"
+msgstr ""
+
+#: lf.c:826
+#, c-format
+msgid "Warning: Base path '%s' is not a directory. No files will be found.\n"
+msgstr ""
+
+#: lf.c:850
+msgid "mmap failed to reserve tracking arena memory"
+msgstr ""
+
+#: lf.c:1079
+#, c-format
+msgid "Out of memory allocating child_node\n"
+msgstr ""
+
+#: lf.c:1122
+#, c-format
+msgid "OPEN_FAIL,%s,%s\n"
+msgstr ""
+
+#: lf.c:1143
+#, c-format
+msgid "READDIR_FAIL,%s,%s\n"
+msgstr ""
+
+#: lf.c:1179
+#, c-format
+msgid "LSTAT_FAIL,%s,%s\n"
+msgstr ""
+
+#: lf.c:1201
+#, c-format
+msgid "STAT_FAIL,%s,%s\n"
+msgstr ""
+
+#: lf.c:1203
+#, c-format
+msgid "FSTATAT_FAIL,%s/%s\n"
+msgstr ""
+
+#: lf.c:1230 lf.c:1349
+#, c-format
+msgid "PATH_TOO_LONG,%s/%s\n"
+msgstr ""
+
+#: lf.c:1261
+#, c-format
+msgid "CYCLE_ARENA_ALLOC_FAIL,%s\n"
+msgstr ""
+
+#: lf.c:1267
+msgid "---CYCLE_DETECTION---\n"
+msgstr ""
+
+#: lf.c:1269
+#, c-format
+msgid "effective: %8lu/%8lu, %s\n"
+msgstr ""
+
+#: lf.c:1286
+#, c-format
+msgid "CYCLER,%lu/%lu,%s,%lu/%lu,%s\n"
+msgstr ""
+
+#: lf.c:1309
+#, c-format
+msgid "MEM_ALLOC_FAIL,%s\n"
+msgstr ""
+
+#: lf.c:1489
+#, c-format
+msgid "Failed to open error file %s: %s\n"
+msgstr ""
+
+#: exec.c:144
+#, c-format
+msgid "fork failed: %s, errno: %d"
+msgstr ""
+
+#: exec.c:152
+#, c-format
+msgid "execvp failed: %s, errno: %d\n"
+msgstr ""
+
+#: exec.c:159
+#, c-format
+msgid "Child process terminated by signal: %d"
+msgstr ""
+
+#: exec.c:194
+#, c-format
+msgid "First fork failed: %s\n"
+msgstr ""
+
+#: exec.c:199
+#, c-format
+msgid "Set session ID failed: %s\n"
+msgstr ""
+
+#: exec.c:218
+msgid "execvp failed"
+msgstr ""

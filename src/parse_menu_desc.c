@@ -48,7 +48,7 @@ unsigned int parse_menu_description(Init *init) {
     fltr['q'] = true;
     fp = fopen(menu->mapp_spec, "r");
     if (fp == nullptr) {
-        strnz__cpy(tmp_buf, "file not found", MAXLEN);
+        strnz__cpy(tmp_buf, _("file not found"), MAXLEN);
         ui_abend(-1, tmp_buf);
         exit(-1);
     }
@@ -103,7 +103,7 @@ unsigned int parse_menu_description(Init *init) {
                 }
                 s++;
             }
-            strnz__cpy(tmp_buf, " x - ", MAXLEN - 1);
+            strnz__cpy(tmp_buf, _(" x - "), MAXLEN - 1);
             strnz__cat(tmp_buf, s, MAXLEN - 1);
             menu->line[menu->line_idx]->choice_text = strdup(tmp_buf);
             menu->line[menu->line_idx]->type = MT_CHOICE;
@@ -114,12 +114,12 @@ unsigned int parse_menu_description(Init *init) {
         case ':':
             if (choices > commands) {
                 ssnprintf(em0, MAXLEN - 1,
-                          "More choices than commands at line %d of",
+                          _("More choices than commands at line %d of"),
                           in_fp_line);
                 strnz__cpy(em1, menu->mapp_spec, MAXLEN - 1);
                 strnz__cpy(em2, in_buf, MAXLEN - 1);
                 ui_display_error(em0, em1, em2, nullptr);
-                ui_abend(-1, "unrecoverable error");
+                ui_abend(-1, _("unrecoverable error"));
             }
             l = strlen(tmp_buf);
             menu->text_max_len = max(menu->text_max_len, l);
@@ -134,7 +134,7 @@ unsigned int parse_menu_description(Init *init) {
                 menu->line[menu->line_idx] = calloc(1, sizeof(Line));
                 if (menu->line[menu->line_idx] == (Line *)0) {
                     sprintf(tmp_str,
-                            "2-malloc(%ld bytes) failed menu->line[%d]",
+                            _("2-malloc(%ld bytes) failed menu->line[%d]"),
                             sizeof(Line), menu->line_idx);
                     ui_abend(-1, tmp_str);
                 }
@@ -151,7 +151,7 @@ unsigned int parse_menu_description(Init *init) {
         case '\n':
             break;
         default:
-            ssnprintf(em0, MAXLEN - 1, "Invalid directive '%c' at line %d of",
+            ssnprintf(em0, MAXLEN - 1, _("Invalid directive '%c' at line %d of"),
                       directive, in_fp_line);
             strnz__cpy(em1, menu->mapp_spec, MAXLEN - 1);
             strnz__cpy(em2, in_buf, MAXLEN - 1);
@@ -164,7 +164,7 @@ unsigned int parse_menu_description(Init *init) {
          menu->line_idx++) {
         menu->line[menu->line_idx]->letter_pos = 1;
         // Try to get a choice_letter
-        // skip past " x - "
+        // skip past _(" x - ")
         if (menu->line[menu->line_idx]->choice_letter != '\0') {
             ltr = menu->line[menu->line_idx]->choice_letter;
             s = menu->line[menu->line_idx]->choice_text + 5;
@@ -204,7 +204,7 @@ unsigned int parse_menu_description(Init *init) {
                         break;
                     }
                 if (ltr > 126) {
-                    ui_perror("Ran out of letters");
+                    ui_perror(_("Ran out of letters"));
                     return 0;
                 }
             }
@@ -218,7 +218,7 @@ unsigned int parse_menu_description(Init *init) {
     else
         menu->cols = menu->choice_max_len + 6;
     if (menu->cols >= MAXLEN)
-        ui_perror("line too long");
+        ui_perror(_("line too long"));
     return 0;
 }
 /** @brief Get command type from command string

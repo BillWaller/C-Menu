@@ -3,28 +3,15 @@ cmake_minimum_required(VERSION 4.1)
 set (CMAKE_C_STANDARD 23)
 SET (CMAKE_C_STANDARD_REQUIRED ON)
 
-set(UI "UAL_UI" CACHE STRING "UI Backend selection: UAL_UI, NOTCURSES_UI, or
-NCURSES_UI")
+set(UI "UAL_UI" CACHE STRING "UI Backend selection: UAL_UI, NOTCURSES_UI, or NCURSES_UI")
 set_property(CACHE UI PROPERTY STRINGS UAL_UI NOTCURSES_UI NCURSES_UI)
-
-add_compile_options(
-    -O3 -g3 -fPIC -pthread -fno-omit-frame-pointer -rdynamic
-    -Wall -Wextra -Wshadow -Wpointer-arith -Wstrict-prototypes
-    -Wmissing-prototypes -Wmissing-declarations -Werror
-)
-
-if(UI)
-    add_compile_definitions(${UI})
-else()
-    add_compile_definitions(NOTCURSES_UI)
-endif()
 
 find_package(PkgConfig REQUIRED)
 
 # Find Gettext Tools natively
 find_package(Gettext REQUIRED)
-# Standard glibc includes gettext inside libc,
-# but look for an explicit external bin if present
+# Standard glibc includes gettext inside libc, but look for an explicit external bin if present
+find_library(INTL_LIBRARY NAMES intl libintl)
 
 if(UI STREQUAL "NOTCURSES_UI")
     pkg_check_modules(UI_DEPS REQUIRED notcurses)
@@ -71,8 +58,6 @@ configure_file("${PROJECT_SOURCE_DIR}/include/version.h.in"
 
 include_directories("${PROJECT_SOURCE_DIR}/include"
                     "${PROJECT_SOURCE_DIR}/ui")
-
-file (GLOB SOURCES "*.c" "ui/ui_*.c")
 
 # Pre-declare target shared library
 if(UI STREQUAL "NOTCURSES_UI")
@@ -282,115 +267,3 @@ if(UNIX AND NOT APPLE)
     COMPONENT Runtime)
 endif()
 
-# ==============================================================================
-# Automation Target: Update Templates and Sync .po Files (make CMenu-pot)
-# ==============================================================================
-if(GETTEXT_FOUND)
-    # Define explicitly tracked source file paths for scanning
-    set(POT_SCAN_SRCS
-        ${PROJECT_SOURCE_DIR}/menu.c
-        ${PROJECT_SOURCE_DIR}/enterchr.c
-        ${PROJECT_SOURCE_DIR}/enterstr.c
-        ${PROJECT_SOURCE_DIR}/amort.c
-        ${PROJECT_SOURCE_DIR}/iloan.c
-        ${PROJECT_SOURCE_DIR}/lf.c
-        ${PROJECT_SOURCE_DIR}/detach.c
-        ${PROJECT_SOURCE_DIR}/stripansi.c
-        ${PROJECT_SOURCE_DIR}/whence.c
-        ${COMMON_SRCS}
-        dwin.c exec.c futil.c scriou.c sig.c
-        ui/ui_notcurses.c ui/ui_notcurses_draw.c ui/ui_notcurses_input.c
-        ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c
-        ui/ui_layout.c ui/ui_common.c
-    )
-
-    # Ensure the po directory exists in the source tree
-    set(PO_DIR ${PROJECT_SOURCE_DIR}/po)
-    file(MAKE_DIRECTORY ${PO_DIR})
-    set(POT_FILE ${PO_DIR}/CMenu.pot)
-
-    # Locate msgmerge if not already tracked by FindGettext
-    if(NOT GETTEXT_MSGMERGE_EXECUTABLE)
-        find_program(GETTEXT_MSGMERGE_EXECUTABLE msgmerge)
-    endif()
-
-    # Find all existing translation files in the po directory
-    file(GLOB EXISTING_PO_FILES "${PO_DIR}/*.po")
-
-    # 1. Base command: Extract translatable strings into the master template (.pot)
-    set(POT_COMMANDS
-        COMMAND xgettext
-            -f "${PO_DIR}/POTFILES.in"
-            --language=C
-            --keyword=_
-            --keyword=N_
-            --keyword=gettext_noop
-            --add-comments=TRANSLATORS:
-            --package-name=CMenu
-            --package-version=${PROJECT_VERSION}
-            --output=${POT_FILE}
-    )
-
-    # 2. Append individual msgmerge updates for every .po file discovered
-    if(GETTEXT_MSGMERGE_EXECUTABLE)
-        foreach(po_file ${EXISTING_PO_FILES})
-            get_filename_component(po_name ${po_file} NAME)
-            list(APPEND POT_COMMANDS
-                COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE}
-                    --update
-                    --backup=none
-                    "${po_file}"
-                    "${POT_FILE}"
-                COMMAND ${CMAKE_COMMAND} -E echo " -> Merged template updates into ${po_name}"
-            )
-        endforeach()
-    endif()
-
-    # Define the macro execution target hook
-    add_custom_target(CMenu-pot
-        ${POT_COMMANDS}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        COMMENT "Extracting strings to po/CMenu.pot and updating language catalogs..."
-        VERBATIM
-    )
-endif()
-
-# ==============================================================================
-# Automation Target: Translate .po Files using Local Ollama (make CMenu-translate)
-# ==============================================================================
-find_program(PYTHON_EXECUTABLE python3)
-
-if(GETTEXT_FOUND AND PYTHON_EXECUTABLE)
-    # Define target language pairings for your discovered .po files
-    # For example, if you have po/de.po, map 'de' to 'German'
-    set(LLM_COMMANDS)
-
-    foreach(po_file ${EXISTING_PO_FILES})
-        get_filename_component(lang ${po_file} NAME_WE)
-
-        # Human-readable language inference helper for the LLM
-        if(lang STREQUAL "de")
-            set(lang_full "German")
-        elseif(lang STREQUAL "es")
-            set(lang_full "Spanish")
-        elseif(lang STREQUAL "fr")
-            set(lang_full "French")
-        else()
-            set(lang_full ${lang}) # Fallback to code string
-        endif()
-
-        list(APPEND LLM_COMMANDS
-            COMMAND ${PYTHON_EXECUTABLE} "${PROJECT_SOURCE_DIR}/translate_po.py" "${po_file}" "${lang_full}"
-        )
-    endforeach()
-
-    if(LLM_COMMANDS)
-        add_custom_target(CMenu-translate
-            ${LLM_COMMANDS}
-            DEPENDS CMenu-pot
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-            COMMENT "Invoking local Ollama instance to translate un-translated fields..."
-            VERBATIM
-        )
-    endif()
-endif()

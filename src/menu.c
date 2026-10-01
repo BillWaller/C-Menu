@@ -51,7 +51,9 @@ int main(int argc, char **argv) {
     ui_init(&ui_config, init->sio);
     rc = atexit(end_pgm);
     if (rc != 0) {
-        fprintf(stderr, _("\nCannot set exit function\n"));
+        fprintf(stderr, "\n");
+        fprintf(stderr, _("Cannot set exit function"));
+        fprintf(stderr, "\n");
         exit(EXIT_FAILURE);
     }
     sig_prog_mode();

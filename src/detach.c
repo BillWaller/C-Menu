@@ -16,6 +16,18 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#ifdef __USE_GNU_GETTEXT
+#include <libintl.h>
+#define _(String) gettext(String)
+#define gettext_noop(String) String
+#define N_(String) gettext_noop(String)
+#else
+#define _(String) (String)
+#define N_(String) String
+#define textdomain(Domain)
+#define bindtextdomain(Package, Directory)
+#endif
+
 int fork_detach_execvp(char **eargv);
 
 /** @brief Fork, set new session ID, close files, and execute detached command
@@ -30,12 +42,12 @@ int fork_detach_execvp(char **eargv) {
     pid_t pid = fork();
 
     if (pid < 0) {
-        fprintf(stderr, "First fork failed: %s\n", strerror(errno));
+        fprintf(stderr, _("First fork failed: %s\n"), strerror(errno));
         exit(EXIT_FAILURE);
     }
     if (pid == 0) {
         if (setsid() < 0) {
-            fprintf(stderr, "Set session ID failed: %s\n", strerror(errno));
+            fprintf(stderr, _("Set session ID failed: %s\n"), strerror(errno));
             exit(EXIT_FAILURE);
         }
         close(STDIN_FILENO);
@@ -54,7 +66,7 @@ int fork_detach_execvp(char **eargv) {
         for (long fd = 3; fd < max_fd; fd++)
             close(fd);
         execvp(eargv[0], eargv);
-        perror("execvp failed");
+        perror(_("execvp failed"));
         exit(EXIT_FAILURE);
     }
     return 0;
@@ -64,12 +76,12 @@ int main(int argc, char *argv[]) {
     char **eargv = &argv[1];
 
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <command> [args...]\n", argv[0]);
+        fprintf(stderr, _("Usage: %s <command> [args...]\n"), argv[0]);
         return EXIT_FAILURE;
     }
 
     if (fork_detach_execvp(eargv) != 0) {
-        fprintf(stderr, "Failed to fork and execute command\n");
+        fprintf(stderr, _("Failed to fork and execute command\n"));
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
