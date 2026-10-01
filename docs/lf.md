@@ -136,9 +136,11 @@ providing a variety of options for customizing the search criteria.
     Use -R to sort the results in ascending order. By default, results
     are not sorted.
 
-    Note: This option invokes the sort command to sort the results. It is likely
+    Note: This option invokes the sort command internallay. It is likely
     that the user can obtain better results by piping the output of lf through
     a custom sort command taylored to the specific needs of the application.
+
+    Example: lf -H | LC_ALL=C sort --parallel=4 --buffer_size=4G
 
 -t, --include_types=pcdbflsu
 
@@ -182,6 +184,8 @@ providing a variety of options for customizing the search criteria.
 
     Print program version
 
+# USAGE TIPS
+
 A space after short options is optional. For example, -s10M and -s 10M are both valid.
 
 Option arguments may be ganged. For example, to list all files, directories, and
@@ -193,6 +197,33 @@ for any corresponding short options.
 If specified, DIRECTORY is the top-level directory to search.
 REGULAR_EXPRESSION is a properly formatted regular expression for which
 matching files will be listed.
+
+Although lf has "-S" and "-R" options for sorting, it is likely that the user
+can obtain better results by passing the output of lf through a custom sort
+command taylored to the specific needs of the application. For example, if you
+want to sort the results in ascending order by file size, you can use the
+following command adjusted for your system:
+
+    Example: lf -H | LC_ALL=C sort --parallel=4 --buffer_size=4G
+
+lf does not have an "-exec" option like find. The preferred method for executing
+commands on files found is to pipe the output lf through xargs. For example, to
+delete all files found, you can use:
+
+    lf -r '.*\.tmp$' | xargs rm -f
+
+USE EXTREME CAUTION when using xargs with commands that modify or delete files. Always
+verify the output of lf before executing any commands that modify or delete files.
+
+xargs is a standard unix command that reads items from standard input and
+executes a command with those items as arguments. xargs is a powerful and highly
+optimized tool for processing large numbers of files. xargs may also be used
+with find and lf. In fact, we found that passing the output of find through xargs
+was significantly faster than using the exec option of find.
+
+If you are replacing find with lf in a script, you should consider that lf omits
+hidden files and directories by default. Use the "-H" option to include hidden files and directories. Both lf and fd omit the top-level base path from the output, don't prefix file paths, and indicate directories by appending "/".
+
 
 # EXAMPLES
 

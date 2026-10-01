@@ -1,26 +1,10 @@
-/** ANNOUNCEMENT: This file is part of the lf project, which is currently being
- * tested in anticipation of public release. The test suite consists of a test
- * script, lf_tests.sh, which uses diff to compare the output with find. There
- * is also an accompanying markdown file, lf_tests.md, that outlines the testing
- * methodology, cases, and expected results.
- *
- * As a design choice, lf segregates directory entries with fatal errors,
- * meaning those that do not provide functionality conforming to known
- * standards.
- *
- * Your feedback and suggestions are always welcome.
- *
- * Feel free to run the test script on your own system, and if you encounter any
- * issues, please report them to the author.
- */
-
-/** @file lf4.c
+/** @file lf.c
     @brief list files matching a regular expression
     @author Bill Waller
-    Copyright (c) 2025
+    Copyright (c) 2026
     MIT License
     billxwaller@gmail.com
-    @date 2026-02-09
+    @date 2026-09-22
  */
 #define _GNU_SOURCE
 #include "cm.h"
@@ -47,6 +31,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+
 #define QUEUE_CAPACITY 16384
 #define QUEUE_MASK (QUEUE_CAPACITY - 1)
 #define MAX_PATH_LEN _POSIX_PATH_MAX
@@ -836,6 +821,9 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
 // ----------------------------------------------------------------------
 // CYCLE_ARENA_INIT
 // ----------------------------------------------------------------------
+/** @brief Initialize the cycle arena for tracking visited directories.
+    @details This function initializes a global cycle arena structure that is used to track visited directories during the file search process. It reserves virtual memory space for the arena using mmap, allowing for efficient allocation of CycleNode structures without immediate physical memory allocation. The arena is designed to handle a maximum number of nodes defined by ARENA_MAX_NODES.
+   */
 void cycle_arena_init(void) {
     g_cycle_arena.capacity = ARENA_MAX_NODES;
     size_t total_bytes = g_cycle_arena.capacity * sizeof(CycleNode);
@@ -856,6 +844,9 @@ void cycle_arena_init(void) {
 // ----------------------------------------------------------------------
 // CYCLE_ARENA_DESTROY
 // ----------------------------------------------------------------------
+/** @brief Destroy the cycle arena and release allocated resources.
+    @details This function releases the resources allocated for the global cycle arena structure. It unmaps the virtual memory space reserved for the arena using munmap, allowing the operating system to reclaim the memory. This function should be called when the cycle arena is no longer needed to prevent memory leaks.
+   */
 void cycle_arena_destroy(void) {
     if (g_cycle_arena.nodes != NULL && g_cycle_arena.nodes != MAP_FAILED) {
         size_t total_bytes = g_cycle_arena.capacity * sizeof(CycleNode);
@@ -865,6 +856,13 @@ void cycle_arena_destroy(void) {
 // ----------------------------------------------------------------------
 // CYCLE_ARENA_ALLOC
 // ----------------------------------------------------------------------
+/** @brief Allocate a new CycleNode in the cycle arena.
+    @param dev The device ID of the directory being allocated.
+    @param ino The inode number of the directory being allocated.
+    @param parent A pointer to the parent CycleNode, or nullptr if this is the root.
+    @return A pointer to the newly allocated CycleNode, or nullptr if allocation fails (e.g., if the arena is full).
+    @details This function allocates a new CycleNode structure in the global cycle arena. It uses atomic operations to ensure thread-safe allocation of nodes. If the arena has reached its maximum capacity, the function returns nullptr to indicate that no more nodes can be allocated. The allocated node is initialized with the provided device ID, inode number, and parent pointer.
+   */
 static CycleNode *cycle_arena_alloc(dev_t dev, ino_t ino, CycleNode *parent) {
     size_t idx = atomic_fetch_add_explicit(&g_cycle_arena.index, 1, memory_order_relaxed);
     // Bounds check to ensure we don't breach our massive virtual limit
@@ -1470,6 +1468,13 @@ int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
     }
     return true;
 }
+/** @brief Thread-safe error output function that writes formatted error messages to the specified error file or stderr.
+    @param lf A pointer to the LfContext struct containing the output mutex and error file information.
+    @param format A printf-style format string for the error message.
+    @param ... Additional arguments corresponding to the format string.
+    @return The number of characters written, or a negative value if an error occurred.
+    @details This function locks the output mutex to ensure that only one thread can write to the error output at a time. It checks if an error file has been specified; if not, it defaults to stderr. If an error file is specified but not yet opened, it attempts to open it in append mode. The function uses vfprintf to write the formatted error message and then unlocks the mutex before returning.
+   */
 int err_out(LfContext *lf, const char *format, ...) {
 
     pthread_mutex_lock(&lf->output_mutex);
@@ -1496,7 +1501,6 @@ int err_out(LfContext *lf, const char *format, ...) {
     }
     int result = vfprintf(lf->err_fd, format, args);
     pthread_mutex_unlock(&lf->output_mutex);
-
     va_end(args);
     return result;
 }

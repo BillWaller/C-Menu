@@ -98,15 +98,24 @@ Creates a CMake build environment for C-Menu. This script is used to build C-Men
 Prints a loan amortization schedule for a given principal, interest rate, and
 number of payments. The schedule shows the monthly payment amount, the interest paid, and the remaining balance after each payment.
 
+The purpose of amort is to demonstrate how to integrate an external command line program into a C-Menu application.
+
 ### iloan
 
 Given any 3 of 4 parameters, (principal, interest rate, number of payments,
 monthly payment amount), iloan computes the missing parameter.
 
+The purpose of iloan is to demonstrate how to integrate an external command line program into a C-Menu application.
+
 ### ui_hello
 
 A minimal UAL_UI program to display "Hello World!" in a bordered window.
 
+The purpose of ui_hello is to demonstrate how to create simple UAL_UI programs that display text on UI surfaces and can be integrated into C-Menu applications.
+
 ### ui_visual
 
 A minimal UAL_UI program to display an image in a bordered window.
+
+The purpose of ui_visual is to demonstrate how to create simple UAL_UI programs that display image files on UI surfaces and can be integrated into C-Menu applications.
+
