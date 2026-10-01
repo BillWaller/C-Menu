@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-01T09:58:03-05:00* - DOCUMENTATION UPDATES lf, C-Menu-CLI 
+
+*2026-09-30T23:39:45-05:00* - Update CHANGELOG.md 
+
 *2026-09-30T23:39:02-05:00* - FIXES: Internationalization (i18n) (l10n) 
 
 *2026-09-30T14:25:11-05:00* - Update CHANGELOG.md 
