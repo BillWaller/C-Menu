@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-09-30T23:39:02-05:00* - FIXES: Internationalization (i18n) (l10n) 
+
+*2026-09-30T14:25:11-05:00* - Update CHANGELOG.md 
+
 *2026-09-30T14:19:49-05:00* - FEATURE: Internationalization (i18n) support for C-Menu. Localization (l10n) support for C-Menu. Multiple language translations will be integrated into C-Menu as the translations are completed. 
 
 *2026-09-28T11:02:22-05:00* - Update CHANGELOG.md 
