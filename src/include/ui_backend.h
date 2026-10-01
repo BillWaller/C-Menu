@@ -926,7 +926,7 @@ void fast_exit(UiSurface *s);
 int ui_perror(char *emsg_str);
 FileType file_type(const char *filename);
 int utf8_decode(const unsigned char *s, uint32_t *codepoint);
-void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx);
+void ui_parse_ansi(char *ansi_str, attr_t *attr, uint *cpx);
 void ui_def_prog_mode();
 // ---------------------------------------------------------------
 // NOTCURSES Specific
@@ -998,7 +998,7 @@ uint ui_add_pair(uint fg, uint bg);
 int ui_chg_pair(uint pair, uint fg, uint bg);
 int ui_color_content(uint color, uint *r, uint *g, uint *b);
 int ui_color_from_rgb(RGB *rgb);
-void destroy_curses();
+void ui_destroy_curses();
 
 int ui_getcchar(const UiCell *cell, wchar_t *wstr, attr_t *attrs, short *pair, const void *opts);
 

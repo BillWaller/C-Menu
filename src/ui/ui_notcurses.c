@@ -227,7 +227,7 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
         ui_log(ERROR, "Failed to allocate memory for UiSurface\n");
         return NULL;
     }
-    ui_log(INFO, "Memory allocated for new surface");
+    ui_log(INFO, _("Memory allocated for new surface"));
     s->runtime = ui;
     s->parent = parent;
     ncplane_options plane_opts = {
@@ -243,16 +243,16 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
     if (parent && parent->mplane[p]) {
         s->mplane[w] = ncplane_create(parent->mplane[p], &plane_opts);
         if (!s->mplane[w]) {
-            ui_log(ERROR, "Failed to create mplane: %d", w);
+            ui_log(ERROR, _("Failed to create mplane: %d"), w);
         }
     } else {
         stdplane = notcurses_stdplane(ui->nc);
         s->mplane[w] = ncplane_create(stdplane, &plane_opts);
         if (!s->mplane[w]) {
-            ui_log(ERROR, "Failed to create stdplane");
+            ui_log(ERROR, _("Failed to create stdplane"));
         }
     }
-    ui_log(ERROR, "mplane[%d] created", w);
+    ui_log(ERROR, _("mplane[%d] created"), w);
     if (!s->mplane[w]) {
         notcurses_stop(ui->nc);
         f_notcurses_open = false;
@@ -346,7 +346,7 @@ int ui_surface_addpad(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
     s->meta[w].hidden = false;
     s->mplane[w] = ncplane_create(s->mplane[p], &plane_opts);
     if (!s->mplane[w]) {
-        ui_log(ERROR, "failed to create mplane[%d]", w);
+        ui_log(ERROR, _("failed to create mplane[%d]"), w);
         notcurses_stop(ui->nc);
         f_notcurses_open = false;
         return -1;
@@ -387,7 +387,7 @@ int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
     s->meta[w].hidden = false;
     s->mplane[w] = ncplane_create(s->mplane[p], &plane_opts);
     if (!s->mplane[w]) {
-        ui_log(ERROR, "failed to create mplane[%d]", w);
+        ui_log(ERROR, _("failed to create mplane[%d]"), w);
         notcurses_stop(ui->nc);
         f_notcurses_open = false;
         return -1;
@@ -420,14 +420,14 @@ void ui_shutdown() {
         return;
     while (sfc_ptr >= 0) {
         if (ui_surface[sfc_ptr]) {
-            ui_log(INFO, "Destroying surface: %d", sfc_ptr);
+            ui_log(INFO, _("Destroying surface: %d"), sfc_ptr);
             ui_surface_destroy(ui_surface[sfc_ptr]);
             ui_surface[sfc_ptr] = NULL;
         }
         sfc_ptr--;
     }
     if (stdsfc->mplane[BOX]) {
-        ui_log(INFO, "Destroying mplane[%d]", BOX);
+        ui_log(INFO, _("Destroying mplane[%d]"), BOX);
         ncplane_erase(stdsfc->mplane[BOX]);
         ncplane_destroy(stdsfc->mplane[BOX]);
         stdsfc->mplane[BOX] = NULL;
@@ -437,31 +437,31 @@ void ui_shutdown() {
         // ui->tty_fp = NULL;
     }
     if (stdsfc != NULL) {
-        ui_log(INFO, "Destroying stdsfc");
+        ui_log(INFO, _("Destroying stdsfc"));
         free(stdsfc);
         stdsfc = NULL;
     }
-    ui_log(INFO, "Calling notcurses_stop");
+    ui_log(INFO, _("Calling notcurses_stop"));
     notcurses_stop(ui->nc);
     f_notcurses_open = false;
     if (ui != NULL) {
         if (ui_pair != NULL) {
-            ui_log(INFO, "Destroying ui_pair");
+            ui_log(INFO, _("Destroying ui_pair"));
             free(ui_pair);
             ui_pair = NULL;
         }
         if (ui_color != NULL) {
-            ui_log(INFO, "Destroying ui_color");
+            ui_log(INFO, _("Destroying ui_color"));
             free(ui_color);
             ui_color = NULL;
         }
         if (ui->sio) {
-            ui_log(INFO, "Destroying ui->sio");
+            ui_log(INFO, _("Destroying ui->sio"));
             free(ui->sio);
             ui->sio = nullptr;
         }
         if (ui != NULL) {
-            ui_log(INFO, "Destroying ui");
+            ui_log(INFO, _("Destroying ui"));
             free(ui);
             ui = NULL;
         }
@@ -480,7 +480,7 @@ void ui_surface_destroy(UiSurface *s) {
     ss_t w = SUB_SFC_MAX;
     while (1) {
         if (s->mplane[w] != NULL) {
-            ui_log(INFO, "Destroying mplane[%d]", w);
+            ui_log(INFO, _("Destroying mplane[%d]"), w);
             ncplane_erase(s->mplane[w]);
             ncplane_destroy(s->mplane[w]);
             s->mplane[w] = NULL;
@@ -490,7 +490,7 @@ void ui_surface_destroy(UiSurface *s) {
         w--;
     };
     if (s != NULL) {
-        ui_log(INFO, "Destroying surface: s");
+        ui_log(INFO, _("Destroying surface: s"));
         free(s);
         s = NULL;
     }
@@ -1304,8 +1304,8 @@ uint ui_add_pair(uint fg, uint bg) {
             return i;
     }
     if (i + 1 >= UI_PAIRS) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "NotCurses COLOR_PAIRS (%d) exceeded (%d)",
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, _("NotCurses COLOR_PAIRS (%d) exceeded (%d))",
                   UI_PAIRS, i);
         strerror_r(errno, em2, MAXLEN);
         ui_display_error(em0, em1, em2, nullptr);

@@ -1,5 +1,5 @@
 /** @file lf.c
-    @brief list files matching a regular expression
+    @brief list files based on matching criteria
     @author Bill Waller
     Copyright (c) 2026
     MIT License

@@ -84,11 +84,7 @@ Valgrind output for lf:
 
 ## Uniform Abstraction Layer User Interface
 
-C-Menu has fully integrated the new Uniform Abstraction Layer (UAL) for UI
-Backends. Currently, NCurses and Notcurses are fully supported, and additional
-backends can be added in the future. The UAL allows C-Menu to provide a
-consistent interface across different terminal environments, while also enabling
-advanced features such as mouse support, color management, and improved performance. This makes C-Menu more versatile and adaptable to a wider range of use cases.
+C-Menu has fully integrated the new Uniform Abstraction Layer (UAL) for UI Backends. Currently, NCurses and Notcurses are fully supported, and additional backends such as GTK and qt can be added in the future. The UAL allows C-Menu to provide a consistent interface across different terminal environments, while also enabling advanced features such as mouse support, color management, and improved performance. This makes C-Menu more versatile and adaptable to a wider range of use cases.
 
 The UAL UI is a separate library that can be used with or independently of C-Menu,
 allowing developers to build their own terminal-based applications with a consistent and powerful UI framework. The UAL provides a set of APIs for creating windows, menus, forms, and other UI elements, as well as handling input events and managing the terminal display.
@@ -104,6 +100,8 @@ The answer is no. The UAL is designed to be lightweight and efficient, and it do
 
 The core C-Menu components are visually and functionally identical across both
 NCurses and Notcurses backends, and the same code drives both backends through the UAL. This means that you can develop your application using the Notcurses backend, and then deploy it using the NCurses backend without any changes to your code. This is a powerful feature that allows you to take advantage of the advanced features of Notcurses during development, while still being able to deploy your application on systems that only support NCurses.
+
+See [UAL_UI Documentation](docs/UAL_UI.md) for more information on the UAL and its features.
 
 ---
 

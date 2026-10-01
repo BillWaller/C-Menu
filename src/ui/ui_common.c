@@ -81,9 +81,9 @@ const wchar_t *bw_h09 = L"\u23BD"; /**< horizontal line 9 */
     @details These names are used in .minitrc to specify color overrides The
    order of these names corresponds to the ColorsEnum values */
 char const colors_text[][10] = {
-    "black", "red", "green", "yellow", "blue", "magenta", "cyan",
-    "white", "orange", "bg", "abg", "bblack", "bred", "bgreen",
-    "byellow", "bblue", "bcyan", "bmagenta", "bwhite", "borange", ""};
+    _("black"), _("red"), _("green"), _("yellow"), _("blue"), _("magenta"), _("cyan"),
+    _("white"), _("orange"), _("bg"), _("abg"), _("bblack"), _("bred"), _("bgreen"),
+    _("byellow"), _("bblue"), _("bcyan"), _("bmagenta"), _("bwhite"), _("borange"), ""};
 
 // -----------------------------------------------------------------------
 // Standard UiCells
@@ -400,7 +400,7 @@ uint ui__mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell
     cmplx_buf[*pos] = cc;
     return *pos;
 }
-void destroy_curses() {
+void ui_destroy_curses() {
     if (!f_ncurses_open && !f_notcurses_open)
         return;
     ui_shutdown();
@@ -480,7 +480,7 @@ void ui_abend(int ec, char *s) {
     ui_shutdown();
     restore_shell_tioctl();
     sig_dfl_mode();
-    fprintf(stderr, "\n\nABEND: %s (code: %d)\n", s, ec);
+    fprintf(stderr, _("\n\nABEND: %s (code: %d)\n"), s, ec);
     exit(EXIT_FAILURE);
 }
 // -----------------------------------------------------------------------------
@@ -503,7 +503,7 @@ void ui_abend(int ec, char *s) {
  */
 int ui_tracked_sfc_box(uint wlines, uint wcols, uint wbegy, uint wbegx, const char *wtitle) {
     if (sfc_ptr >= SFC_MAX) {
-        ui_log(ERROR, "Maximum number of surfaces (%d) exceeded", SFC_MAX);
+        ui_log(ERROR, _("Maximum number of surfaces (%d) exceeded"), SFC_MAX);
         exit(EXIT_FAILURE);
     }
     uint maxy, maxx;
@@ -541,17 +541,17 @@ int ui_tracked_sfc_box(uint wlines, uint wcols, uint wbegy, uint wbegx, const ch
  */
 int ui_tracked_sfc_split_box(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, const char *wtitle) {
     if (sfc_ptr >= SFC_MAX) {
-        ui_log(ERROR, "Maximum number of surfaces (%d) exceeded", SFC_MAX);
+        ui_log(ERROR, _("Maximum number of surfaces (%d) exceeded"), SFC_MAX);
         exit(EXIT_FAILURE);
     }
     if (wlines == 0 || wcols == 0) {
-        ui_log(ERROR, "Invalid window size: lines=%d, cols=%d", wlines, wcols);
+        ui_log(ERROR, _("Invalid window size: lines=%d, cols=%d"), wlines, wcols);
         return -1;
     }
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
     if (wbegy > maxy || wbegx > maxx) {
-        ui_log(ERROR, "Invalid window position: wbegy=%d, wbegx=%d, wlines=%d, wcols=%d", wbegy, wbegx, wlines, wcols);
+        ui_log(ERROR, _("Invalid window position: wbegy=%d, wbegx=%d, wlines=%d, wcols=%d"), wbegy, wbegx, wlines, wcols);
         return -1;
     }
     wlines = min(wlines, maxy);
@@ -718,7 +718,7 @@ int ui_border_title(UiSurface *sfc, const char *title) {
 UiChyron *ui_new_chyron(UiSurface *sfc, ss_t w) {
     UiChyron *chyron = (UiChyron *)calloc(1, sizeof(UiChyron));
     if (!chyron) {
-        ui_abend(-1, "calloc chyron failed");
+        ui_abend(-1, _("calloc chyron failed"));
         return nullptr;
     }
     chyron->sfc = sfc;
@@ -726,7 +726,7 @@ UiChyron *ui_new_chyron(UiSurface *sfc, ss_t w) {
     for (int i = 0; i < CHYRON_KEYS; i++) {
         chyron->key[i] = (UiChyronKey *)calloc(1, sizeof(UiChyronKey));
         if (!chyron->key[i]) {
-            ui_abend(-1, "calloc chyron->key[i] failed");
+            ui_abend(-1, _("calloc chyron->key[i] failed"));
             return nullptr;
         }
     }
@@ -891,7 +891,7 @@ void ui_deactivate_all_chyron_keys(UiChyron *chyron) {
     @ingroup UiChyron
     @param chyron
     @details The chyron string is constructed by concatenating the labels of the
-   set keys, separated by " | ". The end_pos values for each key are set to
+   set keys, separated by _(" | "). The end_pos values for each key are set to
    determine the zones for mouse clicks. When a mouse click occurs, the
    get_chyron_key function uses the end_pos values to determine which key was
    clicked based on the X position of the click.
@@ -930,7 +930,7 @@ void ui_compile_chyron(UiChyron *chyron) {
         end_pos = pos;
         chyron->l = end_pos;
         chyron->key[k]->end_pos = end_pos;
-        ssnprintf(tmp_str, MAXLEN - 1, "k=%d, text=%s, end_pos=%d", k,
+        ssnprintf(tmp_str, MAXLEN - 1, _("k=%d, text=%s, end_pos=%d"), k,
                   chyron->key[k]->text, chyron->key[k]->end_pos);
         k++;
     }
@@ -1090,7 +1090,7 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     uint line, pos, msg_l, msg0_l, msg1_l, msg2_l, msg3_l;
 
     if (!f_ncurses_open && f_notcurses_open) {
-        fprintf(stderr, "\n\n%s\n%s\n%s\n%s\n\n", msg0, msg1, msg2, msg3);
+        fprintf(stderr, _("\n\n%s\n%s\n%s\n%s\n\n"), msg0, msg1, msg2, msg3);
         return 1;
     }
     uint maxy, maxx;
@@ -1106,17 +1106,17 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     msg_l = min(msg_l, maxx - 4);
     pos = ((maxx - msg_l) - 4) / 2;
     line = (maxy - 6) / 2;
-    strnz__cpy(title, "Notification", MAXLEN - 1);
+    strnz__cpy(title, _("Notification"), MAXLEN - 1);
     if (ui_tracked_sfc_box(5, msg_l, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed", 5,
+        ssnprintf(title, MAXLEN - 1, _("ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed"), 5,
                   msg_l + 2, line, pos, title);
         ui_abend(-1, title);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiChyron *chyron = ui_new_chyron(sfc, WIN);
-    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
-    ui_set_chyron_key(chyron, 2, "N - No", 'n');
-    ui_set_chyron_key(chyron, 3, "Y - Yes", 'y');
+    ui_set_chyron_key(chyron, 1, _("F1 Help"), UIKEY_F01);
+    ui_set_chyron_key(chyron, 2, _("N - No"), 'n');
+    ui_set_chyron_key(chyron, 3, _("Y - Yes"), 'y');
     ui_compile_chyron(chyron);
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, msg0);
@@ -1167,17 +1167,17 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
 
     pos = ((maxx - msg_l) - 4) / 2;
     line = (maxy - 6) / 2;
-    strnz__cpy(title, "Notification", MAXLEN - 1);
+    strnz__cpy(title, _("Notification"), MAXLEN - 1);
     if (ui_tracked_sfc_box(5, msg_l, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, "ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed", 5,
+        ssnprintf(title, MAXLEN - 1, _("ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed"), 5,
                   msg_l + 2, line, pos, title);
         ui_abend(-1, title);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiChyron *chyron = ui_new_chyron(sfc, WIN);
-    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
-    ui_set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
-    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
+    ui_set_chyron_key(chyron, 1, _("F1 Help"), UIKEY_F01);
+    ui_set_chyron_key(chyron, 9, _("F9 Cancel"), UIKEY_F09);
+    ui_set_chyron_key(chyron, 10, _("F10 Continue"), UIKEY_F10);
     ui_compile_chyron(chyron);
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, msg0);
@@ -1223,18 +1223,18 @@ int ui_perror(char *emsg_str) {
     cols = max(cols, 50);
     pos = (maxx - cols - 4) / 2;
     line = (maxy - 4) / 2;
-    strnz__cpy(title, "Notification", MAXLEN - 1);
+    strnz__cpy(title, _("Notification"), MAXLEN - 1);
     if (ui_tracked_sfc_box(2, cols, line, pos, title)) {
-        ssnprintf(tmp_str, MAXLEN - 1, "ui_tracked_sfc_box(%d, %d, %d, %d, %s, %b) failed",
+        ssnprintf(tmp_str, MAXLEN - 1, _("ui_tracked_sfc_box(%d, %d, %d, %d, %s, %b) failed"),
                   4, line, line, pos, title);
         ui_log(ERROR, "%s", tmp_str);
         exit(EXIT_FAILURE);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiChyron *chyron = ui_new_chyron(sfc, WIN);
-    ui_set_chyron_key(chyron, 1, "F1 Help", UIKEY_F01);
-    ui_set_chyron_key(chyron, 9, "F9 Cancel", UIKEY_F09);
-    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
+    ui_set_chyron_key(chyron, 1, _("F1 Help"), UIKEY_F01);
+    ui_set_chyron_key(chyron, 9, _("F9 Cancel"), UIKEY_F09);
+    ui_set_chyron_key(chyron, 10, _("F10 Continue"), UIKEY_F10);
     ui_compile_chyron(chyron);
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, emsg_str);
@@ -1270,13 +1270,13 @@ bool ui_action_disposition(char *title, char *action_str) {
     col = (maxx - len - 4) / 2;
     line = (maxy - 4) / 2;
     if (ui_tracked_sfc_box(2, len, line, col, title)) {
-        ssnprintf(em0, MAXLEN - 1, "ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed", 4,
+        ssnprintf(em0, MAXLEN - 1, _("ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed"), 4,
                   line, line, col, title);
         ui_perror(em0);
     }
     UiSurface *sfc = ui_surface[sfc_ptr];
     UiChyron *chyron = ui_new_chyron(sfc, WIN);
-    ui_set_chyron_key(chyron, 10, "F10 Continue", UIKEY_F10);
+    ui_set_chyron_key(chyron, 10, _("F10 Continue"), UIKEY_F10);
     ui_compile_chyron(chyron);
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, action_str);
@@ -1303,9 +1303,9 @@ char *ui_iso8601_timestamp(char *buf, size_t n, bool local) {
     time_t t = time(NULL);
     struct tm *tp = local ? localtime(&t) : gmtime(&t);
     if (local) {
-        strftime(buf, n, "%Y-%m-%dT%H:%M:%S%z", tp);
+        strftime(buf, n, _("%Y-%m-%dT%H:%M:%S%z"), tp);
     } else {
-        strftime(buf, n, "%Y-%m-%dT%H:%M:%SZ", tp);
+        strftime(buf, n, _("%Y-%m-%dT%H:%M:%SZ"), tp);
     }
     return buf;
 }
@@ -1314,7 +1314,7 @@ const char *subsfc_s[] = {
     SUB_SURFACE_LIST(AS_STRING)};
 const char *ui_sub_surface_str(ss_t w) {
     if (w < BOX || w >= SUB_SFC_MAX)
-        return "unknown";
+        return _("unknown");
     return subsfc_s[w];
 }
 #define AS_STRING(NAME) #NAME,
@@ -1328,7 +1328,7 @@ const char *const ui_logcolor[] = {
     [INFO] = "\033[0;32m",    // Green
     [VERBOSE] = "\033[0;36m", // Cyan
     [DEBUG] = "\033[0;34m",   // Blue
-    [SILENT] = "SILENT",
+    [SILENT] = _("SILENT"),
 };
 
 FILE *ui_log_fp = NULL;
@@ -1347,18 +1347,18 @@ FILE *ui_open_log() {
             strnz__cpy(ui_log_file_name, "/tmp/ui_default.log", MAXLEN - 1);
         ui_log_fp = fopen(ui_log_file_name, "w");
         if (!ui_log_fp) {
-            fprintf(stderr, "Failed to open log file: %s\n", ui_log_file_name);
+            fprintf(stderr, _("Failed to open log file: %s\n"), ui_log_file_name);
             exit(EXIT_FAILURE);
         }
         setvbuf(ui_log_fp, NULL, _IOLBF, BUFSIZ);
     }
     char ttyname[MAXLEN];
     char cmenu_user[MAXLEN];
-    char *p = getenv("USER");
+    char *p = getenv(_("USER"));
     strnz__cpy(cmenu_user, p, MAXLEN - 1);
     if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)
         strnz__cpy(em0, ttyname, MAXLEN - 1);
-    ssnprintf(em0, MAXLEN - 1, "Ui_Log started by user '%s' on terminal '%s'", cmenu_user, ttyname);
+    ssnprintf(em0, MAXLEN - 1, _("Ui_Log started by user '%s' on terminal '%s'"), cmenu_user, ttyname);
     ui_log(INFO, "%s:", em0);
     return ui_log_fp;
 }
@@ -1372,11 +1372,11 @@ FILE *ui_open_log() {
     @param ansi_str ANSI escape sequence string
     @param attr Pointer to attribute variable to be updated
     @param cpx Pointer to color pair index to be updated
-    @details This function parses an ANSI escape sequence string (e.g., "\033[31;1m")
+    @details This function parses an ANSI escape sequence string (e.g., _("\033[31;1m"))
    and updates the provided attribute and color pair index accordingly. It handles
    standard colors, extended colors, and text attributes like bold, underline, etc.
  */
-void parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
+void ui_parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
     char *tok;
     char t0, t1;
     char tstr[3];

@@ -3,16 +3,28 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#ifdef __USE_GNU_GETTEXT
+#include <libintl.h>
+#define _(String) gettext(String)
+#define gettext_noop(String) String
+#define N_(String) gettext_noop(String)
+#else
+#define _(String) (String)
+#define N_(String) String
+#define textdomain(Domain)
+#define bindtextdomain(Package, Directory)
+#endif
+
 int main() {
     struct notcurses_options nopts = {};
     struct notcurses *nc = notcurses_init(&nopts, NULL);
     if (!nc) {
-        fprintf(stderr, "Error: Unable to initialize notcurses.\n");
+        fprintf(stderr, _("Error: Unable to initialize notcurses.\n"));
         return EXIT_FAILURE;
     }
     struct ncvisual *ncv = ncvisual_from_file("test.png");
     if (!ncv) {
-        fprintf(stderr, "Error: Could not load image file.\n");
+        fprintf(stderr, _("Error: Could not load image file.\n"));
         goto end;
     }
     struct ncvisual_options vopts = {

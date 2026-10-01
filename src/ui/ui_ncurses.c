@@ -144,7 +144,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
     if (cfg->log_level >= FATAL)
         ui_min_log_level = cfg->log_level;
 
-    ui_log(INFO, "ui_init: using tty: %s", tty_name);
+    ui_log(INFO, _("ui_init: using tty: %s"), tty_name);
     ui->screen = newterm(NULL, ui->tty_fp, ui->tty_fp);
     f_ncurses_open = true;
     if (!ui->screen) {
@@ -179,7 +179,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
     stdsfc->mpan[BOX] = new_panel(stdsfc->mwin[BOX]);
     if (!stdsfc->mpan[BOX]) {
         free(stdsfc);
-        ui_log(ERROR, "new_panel failed for stdsfc->mpan[BOX]");
+        ui_log(ERROR, _("new_panel failed for stdsfc->mpan[BOX]"));
         exit(EXIT_FAILURE);
     }
     if (cfg->border_style)
@@ -209,7 +209,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
         }
     }
     ui_initialize_sio(sio);
-    ui_log(INFO, "ui_init: stdsfc->mwin[BOX]: %p, stdsfc->mpan[BOX]: %p", (void *)stdsfc->mwin[BOX], (void *)stdsfc->mpan[BOX]);
+    ui_log(INFO, _("ui_init: stdsfc->mwin[BOX]: %p, stdsfc->mpan[BOX]: %p"), (void *)stdsfc->mwin[BOX], (void *)stdsfc->mpan[BOX]);
     return ui;
 }
 // -------------------------------------------------------------------------
@@ -232,9 +232,9 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
     if (lines > maxy || cols > maxx) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "ui_surface_new failed for lines: %d, cols: %d", lines, cols);
-        ssnprintf(em2, MAXLEN - 1, "maxy: %d, maxx: %d", maxy, maxx);
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, _("ui_surface_new failed for lines: %d, cols: %d"), lines, cols);
+        ssnprintf(em2, MAXLEN - 1, _("maxy: %d, maxx: %d"), maxy, maxx);
         ui_display_error(em0, em1, em2, nullptr);
         return NULL;
     }
@@ -291,9 +291,9 @@ UiSurface *ui_surface_box(UiSurface *parent, uint p, uint lines, uint cols, uint
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
     if (lines > maxy || cols > maxx) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "ui_surface_box failed for lines: %d, cols: %d", lines, cols);
-        ssnprintf(em2, MAXLEN - 1, "maxy: %d, maxx: %d", maxy, maxx);
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, _("ui_surface_box failed for lines: %d, cols: %d"), lines, cols);
+        ssnprintf(em2, MAXLEN - 1, _("maxy: %d, maxx: %d"), maxy, maxx);
         ui_display_error(em0, em1, em2, nullptr);
         return NULL;
     }
@@ -418,36 +418,36 @@ void ui_endwin() {
 void ui_shutdown() {
     if (ui == NULL)
         return;
-    ui_log(INFO, "ui_shutdown in progress...");
+    ui_log(INFO, _("ui_shutdown in progress..."));
     while (sfc_ptr >= 0) {
         if (ui_surface[sfc_ptr] != NULL) {
             ui_surface_destroy(ui_surface[sfc_ptr]);
             ui_surface[sfc_ptr] = NULL;
         }
-        ui_log(INFO, "surface destroy: %d", sfc_ptr);
+        ui_log(INFO, _("surface destroy: %d"), sfc_ptr);
         sfc_ptr--;
     }
     if (stdsfc->mpan[0] != NULL) {
-        ui_log(INFO, "calling del_panel(stdsfc->mpan[BOX])");
+        ui_log(INFO, _("calling del_panel(stdsfc->mpan[BOX])"));
         hide_panel(stdsfc->mpan[0]);
         del_panel(stdsfc->mpan[0]);
         stdsfc->mpan[0] = NULL;
     }
-    ui_log(INFO, "calling endwin()");
+    ui_log(INFO, _("calling endwin()"));
     endwin();
     f_ncurses_open = false;
     if (ui->screen != NULL) {
-        ui_log(INFO, "calling delscreen(ui->screen)");
+        ui_log(INFO, _("calling delscreen(ui->screen)"));
         delscreen(ui->screen);
         ui->screen = NULL;
     }
     if (ui->tty_fp != NULL) {
-        ui_log(INFO, "closing tty_fp");
+        ui_log(INFO, _("closing tty_fp"));
         fclose(ui->tty_fp);
         ui->tty_fp = NULL;
     }
     if (stdsfc != NULL) {
-        ui_log(INFO, "freeing stdsfc");
+        ui_log(INFO, _("freeing stdsfc"));
         free(stdsfc);
         stdsfc = NULL;
     }
@@ -456,7 +456,7 @@ void ui_shutdown() {
             free(ui->sio);
             ui->sio = nullptr;
         }
-        ui_log(INFO, "freeing ui");
+        ui_log(INFO, _("freeing ui"));
         free(ui);
         ui = NULL;
     }
@@ -1021,17 +1021,17 @@ uint ui_add_pair(uint fg, uint bg) {
             return i;
     }
     if (i + 1 >= UI_PAIRS) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "ui_add_pair failed for pair: %d", i);
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, _("ui_add_pair failed for pair: %d"), i);
         strerror_r(errno, em2, MAXLEN);
         ui_display_error(em0, em1, em2, nullptr);
         return (EXIT_FAILURE);
     }
     rc = init_extended_pair(i, fg, bg);
     if (rc == ERR) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, "init_extended_pair failed for pair: %d", i);
-        ssnprintf(em2, MAXLEN - 1, "fg: %d, bg: %d, ui_pair_cnt: %d", fg, bg, ui_pair_cnt);
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
+        ssnprintf(em1, MAXLEN - 1, _("init_extended_pair failed for pair: %d"), i);
+        ssnprintf(em2, MAXLEN - 1, _("fg: %d, bg: %d, ui_pair_cnt: %d"), fg, bg, ui_pair_cnt);
         ui_display_error(em0, em1, em2, nullptr);
         return (EXIT_FAILURE);
     }
@@ -1062,9 +1062,9 @@ int ui_color_from_rgb(RGB *rgb) {
         return 0;
     // #ifdef DEBUG_COLOR
     if (rgb->r > 255 || rgb->g > 255 || rgb->b > 255) {
-        ssnprintf(em0, MAXLEN - 1, "%s, line: %d", __FILE__, __LINE__ - 1);
+        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
         ui_log(ERROR, "%s", em0);
-        ssnprintf(em1, MAXLEN - 1, "ui_color_from_rgb failed for RGB: %d,%d,%d", rgb->r, rgb->g, rgb->b);
+        ssnprintf(em1, MAXLEN - 1, _("ui_color_from_rgb failed for RGB: %d,%d,%d"), rgb->r, rgb->g, rgb->b);
         ui_log(ERROR, "%s", em0);
         // return (EXIT_FAILURE);
     }
