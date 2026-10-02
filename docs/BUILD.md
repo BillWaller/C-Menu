@@ -256,6 +256,9 @@ export LD_LIBRARY_PATH="$HOME/menuapp/lib64:$LD_LIBRARY_PATH"
 export CMENU_HOME="$HOME"/menuapp
 ```
 
+See [C-Menu_bashrc](docs/C-Menu_bashrc.md) for more information on setting up
+your environment.
+
 ### Running C-Menu
 
 After setting up your environment, you can run the C-Menu binaries from any terminal. For example, to run the `menu` binary, simply type:

@@ -10,18 +10,15 @@ More sophisticated applications can be be built using the C-Menu API that is ful
 
 ## lf
 
-lf is a regular-expression-based file finder that can be used to generate file lists for pick, shell pipelines, or custom scripts. lf is comparable to the popular find command, but it is designed to be more user-friendly and easier to use.
+lf is a high performance file finder that can be used to generate file lists for pick, shell pipelines, or custom scripts. lf is comparable to the popular find command, but it is designed to be more user-friendly and ridiculously fast.
 
-To say that lf is fast is understated. It is easily ten times faster than the find command, and, in some benchmarks, faster than the revered fd. lf handles huge directories with ease. It can be used to find files based on name, type, date, size, and other attributes, making it a powerful tool for file discovery and filtering. It also has an option that only reports cyclic or broken links.
+To say that lf is fast is understated. It is easily ten times faster than find, and, even faster than fd. lf handles huge directories with ease. It can be used to find files based on name, type, date, size, and other attributes, making it a powerful tool for file discovery and filtering. It also has an option that only reports cyclic and broken links.
 
 ![lf help Screenshot](screenshots/lf.help.png)
 
 Report bugs to billxwaller@gmail.com.
 
 ## find, lf, and fd Performance Comparison
-
-Why are Rust programs so fast, and why isn't lf (or C-Menu for that matter) written in Rust? Rust is a great language, but its executables are generally much larger than C
-programs, and it isn't inherently faster than C. The steep learning curve for Rust selects good programmers and Rust itself is conducive to well-written code. Nevertheless, the design objective for C-Menu (and lf) was to be fast, small, portable across a wide rage of platforms, and accessible to a wide range of developers. Nothing but C can meet those objectives. lf is written in C, and it is fast, small, and portable. It is also easy to read and understand, and it is easy to modify and extend. The lf source code is well-documented, and it is easy to learn from. The lf source code is also well-tested, and it is easy to verify that it works correctly and competitively. Here's a comparison of find, fd, and lf on a large directory tree. The results are impressive.
 
 ### find - 0.82 elapsed - "Very Fast"
 
@@ -52,22 +49,7 @@ lf found 517551 files
 
 ## Under the Hood
 
-### Fair Benchmarking
-
-Please note that the -I option was used in the fd benchmark. The -I option tells fd to ignore hidden files and directories. That's a handy feature to be sure, but it carries roughly a 30% performance penalty and it is activated by default. When lf gets an ignore files feature, we will run benchmarks with the feature activated. I suspect the algorithm fd is using is quite sophisticated, so it will not be easy to match their performance. As you know, fd is written in Rust, and it has a reputation as a very fast language. However, I attribute much of that speed to the fact that Rust is selective about who can write Rust code, and the language itself is conducive to well-written code. In other words, I think Rust has attracted some of the brightest programmers in the world, and they have written some very fast code.
-
-### Why Not Rust?
-
-I considered writing C-Menu in Rust. I studied the Rust book, and went through the Rustlings exercises more than once. I have written a few Rust programs and ported some C-Menu programs to Rust. The language is perfectly capable. It was C-Menu's design criteria that led me to choose C. In the end, accessibility and resource economy with Rust were problematic. Rust isn't available on many platforms, it has a steep learning curve, and it is resource-intensive. The executables combined with the required libraries are generally much larger than a similar applications written in C.
-
-### Why C?
-
-lf and other C-Menu programs are written in C. It is fast, small, portable, and easy to read and understand. Only assembly language outperforms well-written and optimized C. After all, C is the beating heart of Unix, Linux, and most other operating systems.
-
 ### Quality Controll
-
-With the rapid pace of feature additions in the last few months, it was
-inevitable that there would be bugs. We expected that, and we have been working hard to find and fix them. As we move toward release 1.0, we are focusing on quality control and performance. We are putting the final touches on C-Menu, and responsibly using the available tools like perf, strace, sanitize, and valgrind to ensure that the code is fast, correct, and free of memory leaks. The following is a sample of the valgrind output for lf. It shows that there are no memory leaks, and that all heap blocks were freed.
 
 Valgrind output for lf:
 
@@ -86,34 +68,14 @@ Valgrind output for lf:
 
 C-Menu has fully integrated the new Uniform Abstraction Layer (UAL) for UI Backends. Currently, NCurses and Notcurses are fully supported, and additional backends such as GTK and qt can be added in the future. The UAL allows C-Menu to provide a consistent interface across different terminal environments, while also enabling advanced features such as mouse support, color management, and improved performance. This makes C-Menu more versatile and adaptable to a wider range of use cases.
 
-The UAL UI is a separate library that can be used with or independently of C-Menu,
-allowing developers to build their own terminal-based applications with a consistent and powerful UI framework. The UAL provides a set of APIs for creating windows, menus, forms, and other UI elements, as well as handling input events and managing the terminal display.
-
-While Notcurses has many advanced features, and is just plain cool
-[See the Notcurses III Demo](https://www.youtube.com/watch?v=dcjkezf1ARY). That
-being said, NCurses, with fewer cool features, is solid as a rock, and it isn't
-going anywhere. You can use the Notcurses version of C-Menu on your powerful
-desktop development system, and then deploy the NCurses version of C-Menu on your production server. The UAL makes this possible, and it is a key feature of C-Menu that sets it apart from other terminal-based UI toolkits.
-
-It's only natural to wonder if an extra layer will slow the application down.
-The answer is no. The UAL is designed to be lightweight and efficient, and it does not introduce any significant overhead. In fact, the UAL can actually improve performance in some cases, by providing a more efficient way to manage the terminal display and input events. As for the forwarded function calls, the redirection is handled at compile time, so there is no runtime overhead. The UAL is designed to be fast and efficient, and it does not introduce any significant performance penalties.
-
-The core C-Menu components are visually and functionally identical across both
-NCurses and Notcurses backends, and the same code drives both backends through the UAL. This means that you can develop your application using the Notcurses backend, and then deploy it using the NCurses backend without any changes to your code. This is a powerful feature that allows you to take advantage of the advanced features of Notcurses during development, while still being able to deploy your application on systems that only support NCurses.
+The core C-Menu components are visually and functionally identical across both NCurses and Notcurses backends, and the same code drives both backends through the UAL. This means that you can develop your application using the Notcurses backend, and then deploy it using the NCurses backend without any changes to your code. This is a powerful feature that allows you to take advantage of the advanced features of Notcurses during development, while still being able to deploy your application on systems that only support NCurses.
 
 See [UAL_UI Documentation](docs/UAL_UI.md) for more information on the UAL and its features.
 
 ---
 
-Below is a screenshot of a simple example program using the UAL. You may notice
-that many function names are simply the equivalent NCurses function name, but
-with a "ui_" prepended. 
-
-That is, except for the high-level functions like ui_tracked_sfc_box() for which neither NCurses nor Notcurses has an equivalent. This particular function creates a new surface surrounded by an immutable box (so you can't overwrite it with misplaced text), and up to seven sub-surfaces inside the box.
-
-You may also notice ui_get_event(), another high-level feature not found in NCurses or Notcurses. Like getch(), this function reads keyboard and mouse input, but it goes much further. It handles interrupt signals, mouse positioning, 5 buttons, a scroll wheel, regular text, and Unicode. The data structure returned by ui_get_event() includes the surface and sub-surface on which the event occurred and switch case matching codes for a zoned chyron.
-
-The program compiles and runs with either NCurses or Notcurses, and the UAL handles the differences in the two backends. The UAL is designed to be easy to use and understand, and it provides a consistent interface for developers to work with, regardless of the underlying backend.
+The following snippet is actually a complete program that opens a bordered
+window and displays some text. It shows just how easy it is to use the UAL_UI.
 
 ![ui_hello.c](screenshots/hello.png)
 
