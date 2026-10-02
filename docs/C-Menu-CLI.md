@@ -3,17 +3,17 @@
 ## C-Menu Main Suite
 
 The following components may be called as functions from a C program, or used as
-command line utilities. The command line utilities are installed in ~/menuapp/bin by default.
+command line utilities. The command line utilities are installed in ~/menuapp/bin by default. C-Menu is actually a single executable that performs different functions depending on the name it is called with. This is accomplished by creating symbolic links to the C-Menu executable with different names. The following components are available:
 
 See [c-menu documentation](docs/c-menu.md) for more information.
 
-### form - Form Maker
+### form - Form
 
 Reads a text file containing simple field definitions to generate an on-screen form.
 
 See [form documentation](docs/form.md) for more information.
 
-### menu - Menu Maker
+### menu - Menu
 
 Reads a text file containing simple menu definitions to generate an on-screen menu.
 
@@ -23,9 +23,9 @@ Reads text files containing items from which the user can select items.
 
 See [pick documentation](docs/pick.md) for more information.
 
-### view - Pager/Viewer
+### view - Viewer/Pager
 
-Like less, but windowed and blazingly fast. 
+Like less, but windowed and blazingly fast.
 
 See [view documentation](docs/view.md) for more information
 
@@ -35,14 +35,13 @@ The following may be used as stand-alone command line utilities.
 
 ### lf - High Performance File Finder
 
-File finder like find, but more intuitive with multi-threaded concurrency and other
-optimizations make it 10x faster than find, and even faster than fd.
+File finder like find, but more intuitive and extremely performant with multi-threaded concurrency and other optimizations make it 10x faster than find, and even faster than fd.
 
 See [lf documentation](docs/lf.md) for more information.
 
 ### rsh - Root Shell Helper
 
-when installed as setuid root, rsh invokes a root shell without having to enter a password. This shell can be used interactively or to run scripts or commands.
+When installed as setuid root, rsh invokes a root shell without having to enter a password. This shell can be used interactively or to run scripts or commands.
 
 See [rsh documentation](docs/rsh.md) for more information.
 
