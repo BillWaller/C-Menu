@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-03T18:23:34-05:00* - FIXES: view_engine.c: file positioning had several issues which prevented go_to_line, go_to_percent, and go_to_position from functioning correctly. Added two new functions, sync_pos, and sync_ln to replace the old sync_ln. Initial tests indicate that these functions are working correctly. 
+
+*2026-10-02T09:57:04-05:00* - Update CHANGELOG.md 
+
 *2026-10-02T09:56:50-05:00* - DOCUMENTATION UPDATES 
 
 *2026-10-02T05:29:35-05:00* - Update CHANGELOG.md 
