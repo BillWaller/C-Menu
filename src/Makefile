@@ -70,7 +70,7 @@ ifeq ($(UI), "-DNOTCURSES_UI")
 BINEXES+=ui_hello ui_visual
 endif
 
-MANPAGES:=cmenu.1.gz lf.1.gz rsh.1.gz
+MANPAGES:=cmenu.1.gz form.1.gz pick.1.gz view.1.gz lf.1.gz rsh.1.gz
 
 OTHER:=CMenu.conf
 
@@ -117,7 +117,7 @@ SHARED_LDFLAGS:=-Wl,-ffunction-sections \
 
 .PHONY: all config help install man install_man clean uninstall helgrind valgrind conformance_test
 
-all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) CMenu.conf
+all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) man CMenu.conf
 	@echo Make Complete
 
 config:
@@ -233,6 +233,18 @@ rsh.1.gz:	../docs/rsh.md
 	pandoc -f markdown-smart -standalone --to man ../docs/rsh.md -o rsh.1
 	gzip -f rsh.1
 
+view.1.gz:	../docs/view.md
+	pandoc -f markdown-smart -standalone --to man ../docs/view.md -o view.1
+	gzip -f view.1
+
+form.1.gz:	../docs/form.md
+	pandoc -f markdown-smart -standalone --to man ../docs/form.md -o form.1
+	gzip -f form.1
+
+pick.1.gz:	../docs/pick.md
+	pandoc -f markdown-smart -standalone --to man ../docs/pick.md -o pick.1
+	gzip -f pick.1
+
 clean:
 	rm -rf $(BINEXES) $(CFLOW_OUTPUT) .user_id .group_id core scan-build* \
 	CMenu.conf manifest.txt manifest.ls perf.* x xx* *.[aeos] *.diff *.so \
@@ -297,6 +309,12 @@ install:
 	ln	-sf	$(INSTALL_BIN_DIR)/menu $(INSTALL_BIN_DIR)/view
 	ln	-sf	$(INSTALL_BIN_DIR)/menu $(INSTALL_BIN_DIR)/ckeys
 	ldconfig
+	install -CDp cmenu.1.gz	-t $(INSTALL_MAN_DIR)
+	install -CDp lf.1.gz	-t $(INSTALL_MAN_DIR)
+	install -CDp rsh.1.gz	-t $(INSTALL_MAN_DIR)
+	install -CDp view.1.gz	-t $(INSTALL_MAN_DIR)
+	install -CDp form.1.gz	-t $(INSTALL_MAN_DIR)
+	install -CDp pick.1.gz	-t $(INSTALL_MAN_DIR)
 	./manifest.sh
 ifeq ($(DISPLAY_MANIFEST), 1)
 	cat manifest.txt
@@ -309,6 +327,9 @@ install_man:
 	install -CDp cmenu.1.gz	-t $(INSTALL_MAN_DIR)
 	install -CDp lf.1.gz	-t $(INSTALL_MAN_DIR)
 	install -CDp rsh.1.gz	-t $(INSTALL_MAN_DIR)
+	install -CDp view.1.gz	-t $(INSTALL_MAN_DIR)
+	install -CDp form.1.gz	-t $(INSTALL_MAN_DIR)
+	install -CDp pick.1.gz	-t $(INSTALL_MAN_DIR)
 
 uninstall:
 	$(INSTALL_BIN_DIR)/menu \

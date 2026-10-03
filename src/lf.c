@@ -253,6 +253,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         if (arg && arg[0] != '\0') {
             debug_p = strdup(arg);
             i = 0;
+            lf->report_errors = true;
             while (debug_p[i]) {
                 switch (debug_p[i]) {
                 case '1': // CONFIG

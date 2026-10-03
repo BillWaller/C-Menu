@@ -298,6 +298,47 @@ Compare number of files found in the current working directory by find, fd, and 
     base path. fd and lf do not include the top-level base path as that would be
     tautilogical.
 
+List all man pages that begin with "view" in MANPATH.
+
+    Using the script, ~/menuapp/bin/lf_path_str.sh, type:
+
+    lf_path_str.sh $MANPATH '\/view.*$'
+
+    Output:
+
+    /home/bill/menuapp/man/man1/view.1.gz
+    /usr/share/man/de/man1/view.1.gz
+    /usr/share/man/da/man1/view.1.gz
+    /usr/share/man/ru/man1/view.1.gz
+    /usr/share/man/ja/man1/view.1.gz
+    /usr/share/man/tr/man1/view.1.gz
+    /usr/share/man/fr/man1/view.1.gz
+    /usr/share/man/pl/man1/view.1.gz
+    /usr/share/man/sv/man1/view.1.gz
+    /usr/share/man/it/man1/view.1.gz
+    /usr/share/man/man1/view.1.gz
+
+    NOTE: Only the first file listed is C-Menu view's manual page. I suspect the
+    remainder are symbolic links to vim.
+
+    This can be verified with the two following commands:
+
+    lf_path_str.sh $PATH '\/view$'
+
+    Output:
+
+    /home/bill/menuapp/bin/view
+    /usr/bin/view
+    /bin/view
+
+    Then type:
+
+    /bin/view --version | head -1
+
+    Output:
+
+    VIM - Vi IMproved 9.2 (2026 Feb 14)
+
 # REPORTING BUGS
 
 Report bugs to <billxwaller@gmail.com>.

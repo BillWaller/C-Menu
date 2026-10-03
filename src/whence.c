@@ -43,14 +43,16 @@ static char args_doc[] = "";
 
 static struct argp_option options[] = {
     {_("all"), 'a', 0, 0, _("list all matches"), 0},
-    {"setuid", 's', 0, 0, "setuid only", 0},
-    {"executable", 'x', 0, 0, _("executable only"), 0},
-    {"verbose", 'v', 0, 0, _("verbose messages"), 0},
+    {_("setuid"), 's', 0, 0, _("setuid only"), 0},
+    {_("executable"), 'x', 0, 0, _("executable only"), 0},
+    {_("path"), 'p', "text", 0, _("path environment variable"), 0},
+    {_("verbose"), 'v', 0, 0, _("verbose messages"), 0},
     {}};
 
 struct wh_opts {
     int flags;
     int argc;
+    char *path_env;
     char *argv[MAXARGS];
 };
 
@@ -62,6 +64,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 's':
         wh_opts->flags |= WH_SETUID;
+        break;
+    case 'p':
+        wh_opts->path_env = strdup(arg);
         break;
     case 'v':
         wh_opts->flags |= WH_VERBOSE;
@@ -91,12 +96,17 @@ int main(int argc, char **argv) {
     struct wh_opts wh_opts = {};
     wh_opts.flags = 0;
     wh_opts.argv[0] = nullptr;
+    wh_opts.path_env = nullptr;
     int i = 0;
     int found = 0;
     argp_parse(&argp, argc, argv, 0, 0, &wh_opts);
-    path_p = getenv("PATH");
+    if (wh_opts.path_env != nullptr) {
+        path_p = getenv(wh_opts.path_env);
+    } else {
+        path_p = getenv("PATH");
+    }
     if (path_p == nullptr)
-        ABEND(argv[0], 0, _("PATH environment variable not set"));
+        ABEND(argv[0], 0, _("Search PATH not set"));
     if (wh_opts.flags & WH_VERBOSE)
         printf("%s\n", path_p);
     while (i < wh_opts.argc) {

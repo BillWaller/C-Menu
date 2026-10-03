@@ -1603,7 +1603,7 @@ void new_view_file(Init *init, char *file) {
                 view->file_pos = 0;
                 ui_border_title(view->sfc, view->title);
                 initialize_line_table(view);
-                next_page(view);
+                page_next(view);
                 build_prompt(view);
                 display_prompt(view, view->prompt_str);
                 pad_refresh(view);

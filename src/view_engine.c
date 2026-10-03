@@ -19,7 +19,6 @@
 #include <ncursesw/panel.h>
 #endif
 #include <common.h>
-#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <iso646.h>
@@ -121,10 +120,10 @@ int go_to_line(View *, off_t);
 void go_to_percent(View *, uint);
 void go_to_position(View *, off_t);
 bool search(View *, int, char *);
-void next_page(View *);
-void prev_page(View *);
-void scope_toward_eof(View *, uint);
-void scope_toward_bof(View *, uint);
+void page_next(View *);
+void page_prev(View *);
+void scroll_next(View *view, uint n);
+void scroll_prev(View *view, uint n);
 void get_line(View *, off_t);
 int fmt_line(View *);
 void log_split_lines(View *);
@@ -145,7 +144,8 @@ void increment_ln(View *);
 void initialize_line_table(View *);
 void destroy_line_table(View *);
 int pad_refresh(View *);
-void sync_ln(View *);
+void sync_ln(View *, off_t ln_no);
+void sync_pos(View *, off_t pos);
 off_t line_number(View *, off_t);
 char err_msg[MAXLEN];
 
@@ -182,14 +182,14 @@ int view_file(Init *init) {
                 view->page_top_pos = 0;
                 view->page_top_ln_no = 0;
                 view->page_bot_ln_no = 0;
-                view->ln_max_pos = 0;
+                view->ln_pos_max = 0;
                 view->page_bot_pos = 0;
                 view->file_pos = 0;
                 strnz__cpy(view->title, view->cur_file_str, MAXLEN - 1);
                 if (!view->f_full_screen)
                     ui_border_title(view->sfc, view->title);
                 initialize_line_table(view);
-                next_page(view);
+                page_next(view);
                 view_cmd_processor(init);
                 destroy_line_table(view);
                 munmap(view->buf, view->file_size);
@@ -314,7 +314,7 @@ int view_cmd_processor(Init *init) {
         case UIKEY_UP:
             if (n_cmd <= 0)
                 n_cmd = 1;
-            scope_toward_bof(view, (uint)n_cmd);
+            scroll_prev(view, (uint)n_cmd);
             break;
         /** 'j', UIKEY_DOWN, UIKEY_ENTER - scroll down one line */
         case 'j':
@@ -324,18 +324,18 @@ int view_cmd_processor(Init *init) {
         case UIKEY_ENTER:
             if (n_cmd <= 0)
                 n_cmd = 1;
-            scope_toward_eof(view, (uint)n_cmd);
+            scroll_next(view, (uint)n_cmd);
             break;
         /** Ctrl('B'), UIKEY_PPAGE - Previous Page */
         case UIKEY_PPAGE:
         case Ctrl('B'):
-            prev_page(view);
+            page_prev(view);
             break;
         /**  Ctrl('F'), UIKEY_NPAGE Next Page */
         case UIKEY_NPAGE:
         case Ctrl('F'):
             view->ln_no++;
-            next_page(view);
+            page_next(view);
             break;
         /**  '!', Execute Shell Command from within C-Menu View */
         case '!':
@@ -1154,8 +1154,7 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
                 goto cleanup;
             }
         }
-        view->ln_no = view->srch_curr_ln_no;
-        sync_ln(view);
+        sync_ln(view, view->srch_curr_ln_no);
         /** get line to scan */
         if (search_cmd == '/') {
             if (view->cury == view->scroll_lines)
@@ -1268,17 +1267,17 @@ cleanup:
     return rc;
 }
 
-/*--------------------------------------------------------------
-   Navigation
- *--------------------------------------------------------------- */
+/* --------------------------------------------------------------
+    Navigation
+   --------------------------------------------------------------- */
 /** @brief display previous page
     @ingroup view_navigation
     @param view data structure
     @details Displays the previous page starting at (view->page_top_ln_no -
    view->scroll_lines).
-    __prev_page
+    __page_prev
  */
-void prev_page(View *view) {
+void page_prev(View *view) {
     off_t ln_no;
     if (view->page_top_ln_no == 0)
         return;
@@ -1332,7 +1331,7 @@ void prev_page(View *view) {
             view->ln_no = 0;
         view->page_top_ln_no = view->ln_no;
     }
-    next_page(view);
+    page_next(view);
 }
 /** @brief Advance to Next Page
     @ingroup view_navigation
@@ -1345,9 +1344,9 @@ void prev_page(View *view) {
    page, updates the file position to the current bottom position of the
    page, and sets the top position and line number of the page accordingly.
    Finally, it calls the function to display the new page content.
-    __next_page
+    __page_next
 */
-void next_page(View *view) {
+void page_next(View *view) {
 
     view->file_pos = view->ln_tbl[view->ln_no];
     if (view->file_pos == view->file_size)
@@ -1517,12 +1516,9 @@ void display_line_eod(View *view) {
     @param view Pointer to the View structure containing the state and
    parameters of the view application. This structure is used to access and
    modify the state of the application as needed.
-    @param n The number of lines to scroll down. This parameter specifies how
-   many lines the view should move toward end-of-file, effectively advancing
-   the view scope by n lines. The function will handle scrolling, updating the
-   current line number, and refreshing the display accordingly.
-   __scope_toward_eof */
-void scope_toward_eof(View *view, uint n) {
+    @param n add n to page line pointers, moving the scope of the view window toward the end of data (eod).
+   __scroll_next */
+void scroll_next(View *view, uint n) {
     uint scroll, scroll_this_line, avail;
     off_t ln_no;
     UiSurface *sfc = view->sfc;
@@ -1656,14 +1652,10 @@ void scope_toward_eof(View *view, uint n) {
     @param view Pointer to the View structure containing the state and
    parameters of the view application. This structure is used to access and
    modify the state of the application as needed.
-    @param n The number of lines to scroll up. This parameter specifies how
-   many lines the view should move up in the file, effectively moving the
-   display up by n lines. The function will handle scrolling, updating the
-   current line number, and refreshing the display accordingly.
-    @note It is easy to get confused with the direction of scrolling. The function scope_toward_eof moves the content of the page down, which means that the view is moving up in the file. We will arbitrarily define the direction of scrolling as follows: if the content of the page moves down, we are moving up in the file; if the content of the page moves up, we are moving down in the file. This is consistent with the behavior of most text viewers and editors, where scrolling down reveals content that is further down in the file, and scrolling up reveals content that is earlier in the file. Accordingly, scope_toward_bof moves the content of the page down, while scope_toward_eof moves the content of the page up.
-   __scope_toward_bof
+    @param n subtract n from page line pointers, moving the scope of the view window toward the beginning of data (bod).
+   __scroll_prev
  */
-void scope_toward_bof(View *view, uint n) {
+void scroll_prev(View *view, uint n) {
     uint scroll, avail, scroll_this_line;
     off_t ln_no;
     view->f_eod = false;
@@ -1862,14 +1854,13 @@ void get_line(View *view, off_t line) {
     __go_to_eof
  */
 void go_to_eof(View *view) {
-    view->file_pos = view->file_size;
-    sync_ln(view);
+    sync_pos(view, view->file_size);
     view->ln_no--;
     view->ln_no_max = view->ln_no;
     if (view->wrap) {
         view->page_top_ln_no = view->ln_no;
         view->f_eod = true;
-        prev_page(view);
+        page_prev(view);
         return;
     }
     if (view->ln_no > view->scroll_lines)
@@ -1881,7 +1872,7 @@ void go_to_eof(View *view) {
     // view->page_bot_pos = view->page_top_pos;
     // view->file_pos = view->page_top_pos;
     view->cury = 0;
-    next_page(view);
+    page_next(view);
 }
 /** @brief Go to Percent of File
     @ingroup view_navigation
@@ -1889,22 +1880,13 @@ void go_to_eof(View *view) {
     @param percent of file
 */
 void go_to_percent(View *view, uint percent) {
+    off_t pos;
     if (view->file_size < 0) {
         ui_perror(_("Cannot determine file length"));
         return;
     }
-    view->file_pos = (percent * view->file_size) / 100;
-    view->ln_no = line_number(view, view->file_pos);
-    view->file_pos = view->ln_tbl[view->ln_no];
-    sync_ln(view);
-    if (view->ln_no > view->scroll_lines)
-        view->page_top_ln_no = view->ln_no - view->scroll_lines;
-    else
-        view->page_top_ln_no = 0;
-    view->page_top_pos = view->ln_tbl[view->page_top_ln_no];
-    view->page_bot_pos = view->page_top_pos;
-    view->file_pos = view->page_top_pos;
-    next_page(view);
+    pos = (percent * view->file_size) / 100;
+    go_to_position(view, pos);
 }
 /** @brief Go to Specific Line
     @ingroup view_navigation
@@ -1918,14 +1900,11 @@ int go_to_line(View *view, off_t line_idx) {
         ui_perror(_("Line number out of bounds"));
         return EOF;
     }
-    view->ln_no = line_idx;
-    view->file_pos = view->page_bot_pos;
-    // view->file_pos = view->ln_tbl[view->ln_no];
-    sync_ln(view);
+    sync_ln(view, line_idx);
     view->page_top_pos = view->file_pos;
     view->page_bot_pos = view->file_pos;
     // view->file_pos = view->page_top_pos;
-    next_page(view);
+    page_next(view);
     return 0;
 }
 /** @brief Go to Specific File Position
@@ -1933,11 +1912,9 @@ int go_to_line(View *view, off_t line_idx) {
     @param view data Structure
     @param go_to_pos
 */
-void go_to_position(View *view, off_t go_to_pos) {
-    view->ln_no = line_number(view, go_to_pos);
-    view->file_pos = view->ln_tbl[view->ln_no];
-    sync_ln(view);
-    next_page(view);
+void go_to_position(View *view, off_t pos) {
+    sync_pos(view, pos);
+    page_next(view);
 }
 /** @brief Get Line Number for a Given File Position
     @ingroup view_navigation
@@ -1981,7 +1958,7 @@ void initialize_line_table(View *view) {
         ui_perror(_("Memory allocation failed"));
         exit(EXIT_FAILURE);
     }
-    view->ln_max_pos = 0;
+    view->ln_pos_max = 0;
     view->ln_tbl[0] = 0;
     view->ln_no = 0;
 }
@@ -1999,7 +1976,7 @@ void destroy_line_table(View *view) {
     free(view->ln_tbl);
     view->ln_tbl = nullptr;
     view->ln_tbl_size = 0;
-    view->ln_max_pos = 0;
+    view->ln_pos_max = 0;
     view->ln_no = 0;
 }
 /** @brief Increment Line Index and Update Line Table
@@ -2016,7 +1993,7 @@ void increment_ln(View *view) {
     // view->ln_tbl[0] is set to 0 in initialize_line_table
     // view->ln_tbl[1] is the second line
     view->ln_no++;
-    if (view->file_pos <= view->ln_max_pos)
+    if (view->file_pos <= view->ln_pos_max)
         return;
     if (view->ln_no > view->ln_tbl_size - 1) {
         view->ln_tbl_size += LINE_TBL_INCR;
@@ -2027,8 +2004,8 @@ void increment_ln(View *view) {
             exit(EXIT_FAILURE);
         }
     }
-    view->ln_tbl_cnt = view->ln_no;
-    view->ln_max_pos = view->file_pos;
+    view->ln_no_max = view->ln_no;
+    view->ln_pos_max = view->file_pos;
     view->ln_tbl[view->ln_no] = view->file_pos;
 }
 /** @brief Synchronize Line Table with Current File Position
@@ -2036,54 +2013,45 @@ void increment_ln(View *view) {
     @param view data Structure
     @details The line table (view->ln_tbl) is an array that stores the file
    position of each line. The index (view->ln_no + 1) corresponds to the
-   current line number. (the line number table is 0-based, while line
-   numbering starts at 1).
+   current line number.
     @details If the line or position requested is not in the line table, this
    function reads forward to sycn.
     If the line or positione requested is behind the current line
-   table index, the line index will be decremented it matches the file
+   table index, the line index will be decremented until it matches the file
    position.
     __sync_ln
  */
-void sync_ln(View *view) {
+void sync_ln(View *view, off_t ln_no) {
     int c = 0;
-    off_t idx;
-    off_t target_pos = view->file_pos;
-    off_t target_ln_no = view->ln_no;
-    view->ln_no = view->ln_tbl_cnt;
-    if (target_ln_no > view->ln_no) {
-        view->file_pos = view->ln_tbl[view->ln_no];
-        while (view->ln_no < target_ln_no) {
-            get_next_char();
-            if (view->f_eod) {
-                view->ln_no_max = view->ln_no;
-                return;
-            }
-        }
+    // Advance view->ln_no_max to view->ln_no if necessary
+    if (ln_no < view->ln_no_max) {
+        view->file_pos = view->ln_tbl[ln_no];
+        view->ln_no = ln_no;
         return;
     }
-    if (view->ln_tbl[view->ln_no] == view->file_pos)
-        return;
-    view->file_pos = view->ln_tbl[view->ln_tbl_cnt];
-    if (view->file_pos < target_pos) {
-        view->ln_no = view->ln_tbl_cnt;
-        while (view->ln_max_pos < target_pos) {
-            get_next_char();
-            if (view->f_eod) {
-                view->ln_no_max = view->ln_no;
-                return;
-            }
-        }
-    } else if (view->ln_tbl[view->ln_no] > target_pos) {
-        idx = view->ln_no - 1;
-        while (view->ln_tbl[idx] > target_pos)
-            idx--;
-        view->ln_no = idx;
-        view->file_pos = view->ln_tbl[view->ln_no];
-    } else {
-        view->ln_no = view->ln_tbl_cnt;
-        view->file_pos = view->ln_tbl[view->ln_no];
+    while (view->ln_no_max < ln_no) {
+        get_next_char();
+        if (view->f_eod)
+            break;
     }
+}
+void sync_pos(View *view, off_t pos) {
+    int c = 0;
+    // Advance view->ln_tbl[view->ln_no] to view->file_pos if necessary
+    while (view->ln_tbl[view->ln_no] < pos) {
+        if (view->ln_no >= view->ln_no_max) {
+            get_next_char();
+            if (view->f_eod)
+                break;
+        } else
+            view->ln_no++;
+    }
+    while (view->ln_tbl[view->ln_no] > pos) {
+        if (view->ln_no == 0)
+            break;
+        view->ln_no--;
+    }
+    view->file_pos = view->ln_tbl[view->ln_no];
 }
 /*------------------------------------------------------------
         END NAVIGATION
@@ -2717,7 +2685,7 @@ bool enter_file_spec(Init *init, char *file_spec) {
             ui_display_error(em0, em1, nullptr, nullptr);
             return false;
         }
-        /** call form to get file_name
+        /* call form to get file_name
             write the name to a temporary file */
 
         strnz__cpy(earg_str, _("form -d file_name.f -o "), MAXLEN - 1);

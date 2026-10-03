@@ -28,5 +28,8 @@
     /home/bill/menuapp/lib64/libcm.so.0 \
     /home/bill/menuapp/lib64/libcm.so.0.2.9 \
     /home/bill/menuapp/man/man1/cmenu.1.gz \
+    /home/bill/menuapp/man/man1/form.1.gz \
+    /home/bill/menuapp/man/man1/pick.1.gz \
+    /home/bill/menuapp/man/man1/view.1.gz \
     /home/bill/menuapp/man/man1/lf.1.gz \
     /home/bill/menuapp/man/man1/rsh.1.gz >manifest.txt

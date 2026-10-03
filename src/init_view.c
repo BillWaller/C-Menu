@@ -401,6 +401,7 @@ int view_init_input(Init *init, char *file_name) {
         char buf[VBUFSIZ];
         ssize_t bytes_read = 0;
         ssize_t bytes_written = 0;
+
         while ((bytes_read = read(view->in_fd, buf, sizeof(buf))) > 0) {
             if ((bytes_written = write(view->tmp_fd, buf, bytes_read)) != bytes_read) {
                 ui_abend(-1, _("unable to write view->tmp_fd"));
