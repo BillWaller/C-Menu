@@ -12,6 +12,8 @@
 #include "ui_notcurses_internal.h"
 #include <notcurses/notcurses.h>
 #endif
+#include <locale.h>
+#include <poll.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +21,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 #include <wchar.h>
 
@@ -1196,6 +1199,50 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     return (cmd_key);
 }
 
+int ui_timeout_prompt(char *msg0, char *msg1, uint timeout_ms) {
+    char title[MAXLEN];
+    uint line, pos, msg_l, msg0_l, msg1_l;
+    if (!f_ncurses_open && !f_notcurses_open) {
+        fprintf(stderr, "\n\n%s\n", msg0);
+        fprintf(stderr, "%s\n", msg1);
+        return 1;
+    }
+    uint maxy, maxx;
+    ui_get_screen_size(&maxy, &maxx);
+    msg0_l = strnz(msg0, maxx - 4);
+    msg1_l = strnz(msg1, maxx - 4);
+    msg_l = max(msg0_l, msg1_l);
+    msg_l = max(msg_l, 50);
+    msg_l = min(msg_l, maxx - 4);
+
+    pos = ((maxx - msg_l) - 4) / 2;
+    line = (maxy - 6) / 2;
+    strnz__cpy(title, _("Notification"), MAXLEN - 1);
+    if (ui_tracked_sfc_box(5, msg_l, line, pos, title)) {
+        ssnprintf(title, MAXLEN - 1, _("ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed"), 5,
+                  msg_l + 2, line, pos, title);
+        ui_abend(-1, title);
+    }
+    UiSurface *sfc = ui_surface[sfc_ptr];
+    UiChyron *chyron = ui_new_chyron(sfc, WIN);
+    ui_set_chyron_key(chyron, 1, _("F1 Help"), UIKEY_F01);
+    ui_set_chyron_key(chyron, 9, _("F9 Cancel"), UIKEY_F09);
+    ui_set_chyron_key(chyron, 10, _("F10 Continue"), UIKEY_F10);
+    ui_compile_chyron(chyron);
+    UiEvent event;
+    ui_draw_text(sfc, WIN, 0, 1, msg0);
+    ui_draw_text(sfc, WIN, 1, 1, msg1);
+    ui_display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
+    do {
+        event.y = event.x = -1;
+        cmd_key = ui_get_event(sfc, WIN, chyron, &event, timeout_ms);
+        if (cmd_key == UIKEY_F09 || cmd_key == UIKEY_F10 || cmd_key == 'q' || cmd_key == 'Q')
+            break;
+    } while (1);
+    ui_cm_surface_destroy(sfc);
+    ui_destroy_chyron(chyron);
+    return (cmd_key);
+}
 /** ui_perror
     @brief Display a simple error message window or print to stderr
     @ingroup error_handling
@@ -1361,6 +1408,24 @@ FILE *ui_open_log() {
     ssnprintf(em0, MAXLEN - 1, _("Ui_Log started by user '%s' on terminal '%s'"), cmenu_user, ttyname);
     ui_log(INFO, "%s:", em0);
     return ui_log_fp;
+}
+/* -------------------------------------------------------------------------
+   Multiplexed input
+   ------------------------------------------------------------------------- */
+void ui_register_read_fd(int fd, int token_id) {
+    if (ui_ctx.ext_fd_count < MAX_EXT_FDS) {
+        ui_ctx.ext_fds[ui_ctx.ext_fd_count++] = (ext_fd_reg_t){fd, token_id};
+    }
+}
+
+void ui_unregister_read_fd(int fd) {
+    for (int i = 0; i < ui_ctx.ext_fd_count; i++) {
+        if (ui_ctx.ext_fds[i].fd == fd) {
+            ui_ctx.ext_fds[i] = ui_ctx.ext_fds[ui_ctx.ext_fd_count - 1];
+            ui_ctx.ext_fd_count--;
+            break;
+        }
+    }
 }
 
 /* -------------------------------------------------------------------------

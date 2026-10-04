@@ -8,7 +8,9 @@
 
 #include "ui_backend.h"
 #include "ui_notcurses_internal.h"
+#include <errno.h>
 #include <notcurses/notcurses.h>
+#include <poll.h>
 #include <string.h>
 #include <termios.h>
 
@@ -109,7 +111,46 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
         return -1;
     memset(ev, 0, sizeof(*ev));
     ncinput ni;
+    memset(&ni, 0, sizeof(ni));
     ui_render();
+#ifdef TIMEOUT_POLL
+    struct pollfd fds[1 + MAX_EXT_FDS];
+    int fd_count = 0;
+    // Fetch the active UI file descriptor
+    fds[fd_count].fd = notcurses_inputready_fd(ui->nc);
+    fds[fd_count].events = POLLIN;
+    fd_count++;
+    // Add registered pipeline file descriptors
+    int ext_start_idx = fd_count;
+    for (int i = 0; i < ui_ctx.ext_fd_count; i++) {
+        fds[fd_count].fd = ui_ctx.ext_fds[i].fd;
+        fds[fd_count].events = POLLIN;
+        fd_count++;
+    }
+    // 2. Perform the poll execution block
+    int poll_ret = poll(fds, fd_count, timeout_ms);
+    if (poll_ret < 0) {
+        if (errno == EINTR)
+            return 0; // standard retry loop trigger
+        return -1;
+    }
+    if (poll_ret == 0) {
+        ni.id = NCKEY_INVALID; // Signal a zero/timeout state downstream
+        return 0;              // Timeout occurred
+    }
+    // 3. Process which descriptor unblocked poll()
+    // bool ui_ready = (fds[0].revents & POLLIN);
+    // Check if background pipeline streams fired first
+    for (int i = ext_start_idx; i < fd_count; i++) {
+        if (fds[i].revents & (POLLIN | POLLHUP | POLLERR)) {
+            int reg_idx = i - ext_start_idx;
+            // Populate key structure with stream info if necessary
+            ev->key = ui_ctx.ext_fds[reg_idx].token_id;
+            return UI_EV_DATA_STREAM;
+        }
+    }
+#endif
+    // 4. Fall through to legacy backend execution if UI data is ready
     if (timeout_ms < 0) {
         do {
             notcurses_get_blocking(ui->nc, &ni);
@@ -159,7 +200,7 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
             }
         }
     }
-    return ev->ch;
+    return ni.id;
 }
 /** @brief Wait for a single input character from the NotCurses context.
    @return The NotCurses key code, or -1 if @p ui is NULL.

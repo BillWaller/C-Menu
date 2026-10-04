@@ -1024,7 +1024,7 @@ int notcurses_input(UiSurface *sfc, uint w) {
             strcpy(kstr, "NCKEY_EOF");
             break;
         default:
-            snprintf(kstr, 32, "NCKEY_%d"), key_id);
+            snprintf(kstr, 32, "NCKEY_%d", key_id);
             break;
         }
         ui_mvwaddstr(sfc, w, 6, 3, _("     Action:"));

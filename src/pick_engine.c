@@ -1597,7 +1597,7 @@ void new_view_file(Init *init, char *file) {
                 view->page_top_pos = 0;
                 view->page_top_ln_no = 0;
                 view->page_bot_ln_no = 0;
-                view->ln_max_pos = 0;
+                view->ln_pos_max = 0;
                 view->ln_no = 0;
                 view->page_bot_pos = 0;
                 view->file_pos = 0;

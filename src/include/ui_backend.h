@@ -123,6 +123,35 @@ typedef struct {
     };
 } GCluster;
 
+// ---------------------------------------------------------------
+// Multiplexed input
+// ---------------------------------------------------------------
+// Number of registry entries for external file descriptors
+#define MAX_EXT_FDS 8
+#define UI_EV_DATA_STREAM (-2)
+// registry for external file descriptors
+typedef struct {
+    int fd;
+    int token_id;
+} ext_fd_reg_t;
+
+// UI input context structure
+typedef struct {
+    int tty_fd;
+    int input_fd; // Notcurses-specific input FD (-1 if NCurses)
+    ext_fd_reg_t ext_fds[MAX_EXT_FDS];
+    int ext_fd_count;
+} ui_context_t;
+
+// This should be safe to use as a global variable, as it is only used for input
+// handling and does not contain any state that would be modified by multiple
+// threads. However, if you plan to use this in a multi-threaded environment,
+// consider using thread-local storage or mutexes to protect access to this
+// structure.
+static ui_context_t ui_ctx;
+// ---------------------------------------------------------------
+
+// Miscelaneous UI Structures
 typedef struct UiRuntime UiRuntime;
 typedef struct SIO SIO;
 typedef struct UiSurface UiSurface;
@@ -928,6 +957,12 @@ FileType file_type(const char *filename);
 int utf8_decode(const unsigned char *s, uint32_t *codepoint);
 void ui_parse_ansi(char *ansi_str, attr_t *attr, uint *cpx);
 void ui_def_prog_mode();
+// -------------------------------------------------------------------------------
+// Multiplexed input
+// -------------------------------------------------------------------------------
+void ui_register_read_fd(int fd, int token_id);
+void ui_unregister_read_fd(int fd);
+int ui_timeout_prompt(char *msg0, char *msg1, uint timeout_ms);
 // ---------------------------------------------------------------
 // NOTCURSES Specific
 // ---------------------------------------------------------------

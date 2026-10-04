@@ -398,16 +398,65 @@ int view_init_input(Init *init, char *file_name) {
             ui_display_error(em0, em1, em2, nullptr);
             exit(EXIT_FAILURE);
         }
+        // ------------------------------------------------------
+        // transfer view->in_fd to view->tmp_fd
+        // ------------------------------------------------------
         char buf[VBUFSIZ];
         ssize_t bytes_read = 0;
         ssize_t bytes_written = 0;
-
+#ifdef TIMEOUT_POLL
+        // UIKEY_STREAM_DATA = octal 740
+        ui_register_read_fd(view->in_fd, UIKEY_STREAM_DATA);
+        int status = 0;
+        struct timespec start_time, now_time;
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
+        bool active_timeout_prompt = false;
+        int timeout_ms = 300;
+        while (true) {
+            if (active_timeout_prompt) {
+                clock_gettime(CLOCK_MONOTONIC, &now_time);
+                double elapsed = (now_time.tv_sec - start_time.tv_sec) * 1000.0 +
+                                 (now_time.tv_nsec - start_time.tv_nsec) / 1e9;
+                double remaining = 10.0 - elapsed;
+                if (remaining <= 0)
+                    break;
+                timeout_ms = (int)(remaining * 1000.0);
+            }
+            UiEvent ev;
+            memset(&ev, 0, sizeof(UiEvent));
+            if (!active_timeout_prompt) {
+                active_timeout_prompt = true;
+                status = ui_timeout_prompt(_("Waiting for input..."), _("from view_input"), timeout_ms);
+                continue;
+            } else
+                break;
+            if (status == UI_EV_DATA_STREAM) {
+                bytes_read = read(view->in_fd, buf, sizeof(buf));
+                if (bytes_read > 0) {
+                    if ((bytes_written = write(view->tmp_fd, buf, bytes_read)) != bytes_read) {
+                        ui_abend(-1, _("unable to write view->tmp_fd"));
+                        exit(EXIT_FAILURE);
+                    }
+                } else if (bytes_read == 0)
+                    break;
+                continue;
+            }
+            if (ev.key == UIKEY_F09)
+                exit(EXIT_SUCCESS);
+        }
+        ui_unregister_read_fd(view->in_fd);
+#else
         while ((bytes_read = read(view->in_fd, buf, sizeof(buf))) > 0) {
-            if ((bytes_written = write(view->tmp_fd, buf, bytes_read)) != bytes_read) {
+            if (write(view->tmp_fd, buf, bytes_read) != bytes_read) {
                 ui_abend(-1, _("unable to write view->tmp_fd"));
                 exit(EXIT_FAILURE);
             }
+            bytes_written += bytes_read;
         }
+#endif
+        // ------------------------------------------------------
+        // end transfer
+        // ------------------------------------------------------
         if (fstat(view->tmp_fd, &sb) == -1) {
             ssnprintf(em0, MAXLEN - 1, "fstat(view->in_fd) failed\n");
             ssnprintf(em1, MAXLEN - 1, "%s", strerror(errno));

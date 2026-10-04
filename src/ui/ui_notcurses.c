@@ -1305,7 +1305,7 @@ uint ui_add_pair(uint fg, uint bg) {
     }
     if (i + 1 >= UI_PAIRS) {
         ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, _("NotCurses COLOR_PAIRS (%d) exceeded (%d))",
+        ssnprintf(em1, MAXLEN - 1, _("NotCurses COLOR_PAIRS (%d) exceeded (%d)"),
                   UI_PAIRS, i);
         strerror_r(errno, em2, MAXLEN);
         ui_display_error(em0, em1, em2, nullptr);

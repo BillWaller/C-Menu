@@ -8,9 +8,9 @@
 #
 BUILD_TYPE=Release
 BUILD_TYPE=Debug
-# UI?="-DUAL_UI"
+# UI?=-DUAL_UI
 # UI?=-DNCURSES_UI
-# UI?="-DNOTCURSES_UI"
+# UI?=-DNOTCURSES_UI
 include UI.mk
 # EXP= Experimental executable name, e.g. lf3
 EXP=
@@ -39,7 +39,7 @@ endif
 INCLUDE_DIRS:=-I./include -I./ui
 CFLAGS+=$(INCLUDE_DIRS)
 
-ifeq ($(UI), "-DNOTCURSES_UI")
+ifeq ($(UI), -DNOTCURSES_UI)
 	PACKAGES= notcurses
 else
 	PACKAGES= panelw ncursesw
@@ -75,11 +75,11 @@ MANPAGES:=cmenu.1.gz form.1.gz pick.1.gz view.1.gz lf.1.gz rsh.1.gz
 OTHER:=CMenu.conf
 
 LIB_SRCS=dwin.c futil.c scriou.c exec.c sig.c
-ifeq ($(UI), "-DUAL_UI")
+ifeq ($(UI), -DUAL_UI)
 	LIB_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c \
 		ui/ui_common.c ui/ui_layout.c
 endif
-ifeq ($(UI), "-DNOTCURSES_UI")
+ifeq ($(UI), -DNOTCURSES_UI)
 	LIB_SRCS+=ui/ui_notcurses.c ui/ui_notcurses_draw.c ui/ui_notcurses_input.c \
 		ui/ui_common.c ui/ui_layout.c
 endif
@@ -91,23 +91,23 @@ COMMON_HDRS:=include/cm.h include/menu.h \
 COMMON_SRCS:=menu_engine.c parse_menu_desc.c curskeys.c \
 	fields.c cm_fields.c form_engine.c init.c init_view.c mem.c \
 	pick_engine.c popups.c view_engine.c
-ifeq ($(UI), "-DUAL_UI")
+ifeq ($(UI), -DUAL_UI)
 	COMMON_HDRS+=include/ui_backend.h ui/ui_ncurses_internal.h
 	COMMON_SRCS+=ui/ui_ncurses.c ui/ui_ncurses_draw.c ui/ui_ncurses_input.c \
 		ui/ui_common.c ui/ui_layout.c
 	CFLAGS+=-DNCURSES_UI -DUAL_LEGACY_COMPAT
 endif
-ifeq ($(UI), "-DNOTCURSES_UI")
+ifeq ($(UI), -DNOTCURSES_UI)
 	COMMON_HDRS+=include/ui_backend.h ui/ui_notcurses_internal.h
 	COMMON_SRCS+=ui/ui_notcurses.c ui/ui_notcurses_draw.c \
 		ui/ui_notcurses_input.c ui/ui_common.c ui/ui_layout.c
+	CFLAGS+=-DNOTCURSES_UI
 endif
 CC+=$(CFLAGS)
-ifeq ($(UI), "-DNOTCURSES_UI")
+ifeq ($(UI), -DNOTCURSES_UI)
 	NCLIBS:=-ltinfo
 endif
 COMMON_OBJS=$(COMMON_SRCS:.c=.o)
-
 LDFLAGS:=$(LINKOPT) -L. -lcm -lm $(shell pkg-config --libs $(PACKAGES)) \
 		 $(NCLIBS) -Wl,-rpath,$(RPATH)
 SHARED_LDFLAGS:=-Wl,-ffunction-sections \
@@ -121,6 +121,7 @@ all:	$(LIB_SHARED) $(LIB_STATIC) $(BINEXES) man CMenu.conf
 	@echo Make Complete
 
 config:
+	@echo ------------------------------------------------------
 	@echo "     Build Date $(SYSDATE)"
 	@echo "     Build Type $(BUILD_TYPE)"
 	@echo "             UI $(UI)"
