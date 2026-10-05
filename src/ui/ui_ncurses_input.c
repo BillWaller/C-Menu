@@ -9,6 +9,7 @@
 #include "cm.h"
 #include "ui_backend.h"
 #include "ui_ncurses_internal.h"
+#include <poll.h>
 #include <stddef.h>
 #include <string.h>
 #include <termios.h>
@@ -109,16 +110,51 @@ static UiKey translate_key(int ch) {
 int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeout_ms) {
     if (!ev)
         return -1;
+    int ch;
+    // Flush: If not now, when?
+    tcflush(0, TCIOFLUSH);
+    if (timeout_ms < 0)
+        timeout_ms = -1; // Block waiting for input
+    if (timeout_ms > 0) {
+        // ------------------------------------------------------------
+        // Poll for input on the TTY and any registered external files
+        // ------------------------------------------------------------
+        struct pollfd fds[1 + MAX_EXT_FDS];
+        nfds_t nfds = 0;
+        int token_id;
+        int reg_idx;
+        fds[nfds].fd = ui->tty_fd;
+        fds[nfds].events = POLLIN; // also POLLERR | POLLHUP | POLLNVAL
+        nfds++;
+        nfds_t ext_start_idx = nfds;
+        for (nfds_t i = 0; i < ui_ctx.ext_nfds; i++) {
+            fds[nfds].fd = ui_ctx.ext_fds[i].fd;
+            fds[nfds].events = POLLIN; // also POLLERR | POLLHUP | POLLNVAL
+            nfds++;
+        }
+        int poll_rc = poll(fds, nfds, timeout_ms);
+        if (poll_rc < 0) {
+            if (errno == EINTR)
+                return 0; // continue
+            return -1;
+        }
+        if (poll_rc == 0) {
+            ch = UIKEY_INVALID; // Signal a zero/timeout state downstream
+            return 0;           // Timeout occurred
+        }
+        for (nfds_t i = ext_start_idx; i < nfds; i++) {
+            if (fds[i].revents & (POLLIN | POLLHUP | POLLERR)) {
+                reg_idx = i - ext_start_idx;
+                token_id = ui_ctx.ext_fds[reg_idx].token_id;
+                return token_id;
+            }
+        }
+        timeout_ms = 0;
+    }
     memset(ev, 0, sizeof(*ev));
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
-    if (timeout_ms <= 0) {
-        timeout_ms = -1;
-    } else
-        wtimeout(s->mwin[w], timeout_ms);
-    int ch;
+    wtimeout(s->mwin[w], timeout_ms);
     do {
-        // qiflush();
-        tcflush(0, TCIOFLUSH);
         curs_set(2);
         ch = wgetch(s->mwin[w]);
         if (sig_received != 0) {

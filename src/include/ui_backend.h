@@ -22,6 +22,7 @@ extern "C" {
 #include <notcurses/notcurses.h>
 // #include "../ui/ui_notcurses_internal.h"
 #endif
+#include <poll.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -128,7 +129,7 @@ typedef struct {
 // ---------------------------------------------------------------
 // Number of registry entries for external file descriptors
 #define MAX_EXT_FDS 8
-#define UI_EV_DATA_STREAM (-2)
+// #define UIKEY_STREAM_DATA (-2) (octal 740)
 // registry for external file descriptors
 typedef struct {
     int fd;
@@ -138,17 +139,19 @@ typedef struct {
 // UI input context structure
 typedef struct {
     int tty_fd;
-    int input_fd; // Notcurses-specific input FD (-1 if NCurses)
+    int input_fd;
     ext_fd_reg_t ext_fds[MAX_EXT_FDS];
-    int ext_fd_count;
+    nfds_t ext_nfds;
 } ui_context_t;
 
-// This should be safe to use as a global variable, as it is only used for input
-// handling and does not contain any state that would be modified by multiple
-// threads. However, if you plan to use this in a multi-threaded environment,
-// consider using thread-local storage or mutexes to protect access to this
-// structure.
+// NOTE: It should be safe to use ui_ctx as a global variable, as it is only
+// used for input handling and does not contain any state that would be modified
+// by multiple threads. However, if you plan to use this in a multi-threaded
+// environment, consider using thread-local storage or mutexes to protect access
+// to this structure.
+
 static ui_context_t ui_ctx;
+
 // ---------------------------------------------------------------
 
 // Miscelaneous UI Structures
@@ -219,6 +222,7 @@ typedef struct {
 struct UiRuntime {
     SCREEN *screen; /**< NCurses SCREEN created by newterm() */
     FILE *tty_fp;   /**< TTY file handle opened by ui_init() */
+    int tty_fd;     /**< TTY file descriptor opened by ui_init() */
     bool mouse_enabled;
     bool alt_screen;
     bool cursor_visible;
@@ -322,6 +326,7 @@ struct UiRuntime {
     unsigned int lines;
     unsigned int cols;
     FILE *tty_fp;
+    int tty_fd;
     SIO *sio;
 };
 
@@ -963,6 +968,8 @@ void ui_def_prog_mode();
 void ui_register_read_fd(int fd, int token_id);
 void ui_unregister_read_fd(int fd);
 int ui_timeout_prompt(char *msg0, char *msg1, uint timeout_ms);
+int ui_update_timeout_prompt(UiSurface *s, ss_t w, uint timeout_ms);
+int ui_poll_reg_read_fd(int timeout_ms);
 // ---------------------------------------------------------------
 // NOTCURSES Specific
 // ---------------------------------------------------------------

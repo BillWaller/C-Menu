@@ -641,7 +641,8 @@ int ui_border_ysplit(UiSurface *sfc, uint y) {
    extends across the width of the box, with the provided text displayed in the
    middle of the line. Use this function when you want to visually separate two
    sections within a window and label the separator with descriptive text. */
-int ui_border_ysplit_text(UiSurface *sfc, char *text, uint separator_line) {
+int ui_border_ysplit_text(UiSurface *sfc, char *text_in, uint separator_line) {
+    char text[MAXLEN];
     uint maxx = ui_getmaxx(sfc, BOX);
     uint l;
     uint y = separator_line;
@@ -653,7 +654,8 @@ int ui_border_ysplit_text(UiSurface *sfc, char *text, uint separator_line) {
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
-    strnz(text, maxx - 7);
+
+    strnz__cpy(text, text_in, maxx - 7);
     wchar_t *text_wc;
     text_wc = ui_mbstr_to_wcstr(text);
     l = wcswidth(text_wc, wcslen(text_wc));
@@ -1098,10 +1100,10 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     }
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
-    msg0_l = strnz(msg0, maxx - 4);
-    msg1_l = strnz(msg1, maxx - 4);
-    msg2_l = strnz(msg2, maxx - 4);
-    msg3_l = strnz(msg3, maxx - 4);
+    msg0_l = strlen(msg0);
+    msg1_l = strlen(msg1);
+    msg2_l = strlen(msg2);
+    msg3_l = strlen(msg3);
     msg_l = max(msg0_l, msg1_l);
     msg_l = max(msg_l, msg2_l);
     msg_l = max(msg_l, msg3_l);
@@ -1158,10 +1160,10 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     }
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
-    msg0_l = strnz(msg0, maxx - 4);
-    msg1_l = strnz(msg1, maxx - 4);
-    msg2_l = strnz(msg2, maxx - 4);
-    msg3_l = strnz(msg3, maxx - 4);
+    msg0_l = strlen(msg0);
+    msg1_l = strlen(msg1);
+    msg2_l = strlen(msg2);
+    msg3_l = strlen(msg3);
     msg_l = max(msg0_l, msg1_l);
     msg_l = max(msg_l, msg2_l);
     msg_l = max(msg_l, msg3_l);
@@ -1209,8 +1211,8 @@ int ui_timeout_prompt(char *msg0, char *msg1, uint timeout_ms) {
     }
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
-    msg0_l = strnz(msg0, maxx - 4);
-    msg1_l = strnz(msg1, maxx - 4);
+    msg0_l = strlen(msg0);
+    msg1_l = strlen(msg1);
     msg_l = max(msg0_l, msg1_l);
     msg_l = max(msg_l, 50);
     msg_l = min(msg_l, maxx - 4);
@@ -1232,17 +1234,68 @@ int ui_timeout_prompt(char *msg0, char *msg1, uint timeout_ms) {
     UiEvent event;
     ui_draw_text(sfc, WIN, 0, 1, msg0);
     ui_draw_text(sfc, WIN, 1, 1, msg1);
+    ssnprintf(em3, MAXLEN - 1, _("Timeout in %d seconds"), timeout_ms / 1000);
+    ui_draw_text(sfc, WIN, 3, 1, em3);
     ui_display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
     do {
         event.y = event.x = -1;
-        cmd_key = ui_get_event(sfc, WIN, chyron, &event, timeout_ms);
-        if (cmd_key == UIKEY_F09 || cmd_key == UIKEY_F10 || cmd_key == 'q' || cmd_key == 'Q')
+        cmd_key = ui_get_event(sfc, WIN, chyron, &event, 1000);
+        if (cmd_key == UIKEY_F09 || cmd_key == UIKEY_F10 || cmd_key == 'q' || cmd_key == 'Q' || cmd_key == UIKEY_STREAM_DATA)
             break;
-    } while (1);
+        timeout_ms -= 1000;
+        ui_update_timeout_prompt(sfc, WIN, timeout_ms);
+    } while (timeout_ms > 0);
     ui_cm_surface_destroy(sfc);
     ui_destroy_chyron(chyron);
-    return (cmd_key);
+    return cmd_key;
 }
+
+int ui_update_timeout_prompt(UiSurface *sfc, ss_t w, uint timeout_ms) {
+    if (!f_ncurses_open && !f_notcurses_open) {
+        fprintf(stderr, _("Timeout in %d seconds\n"), timeout_ms / 1000);
+        return 1;
+    }
+    ssnprintf(em3, MAXLEN - 1, _("%d seconds"), timeout_ms / 1000);
+    ui_draw_text(sfc, w, 3, 12, em3);
+    ui_wclrtoeol(sfc, w);
+    ui_render();
+    return 0;
+}
+
+int ui_poll_reg_read_fd(int timeout_ms) {
+    if (timeout_ms <= 0)
+        return 0;
+    // ------------------------------------------------------------
+    // Poll for input on registered external files
+    // ------------------------------------------------------------
+    struct pollfd fds[1 + MAX_EXT_FDS];
+    nfds_t nfds = 0;
+    int token_id;
+    int reg_idx;
+    nfds_t ext_start_idx = nfds;
+    for (nfds_t i = 0; i < ui_ctx.ext_nfds; i++) {
+        fds[nfds].fd = ui_ctx.ext_fds[i].fd;
+        fds[nfds].events = POLLIN; // also POLLERR | POLLHUP | POLLNVAL
+        nfds++;
+    }
+    int poll_rc = poll(fds, nfds, timeout_ms);
+    if (poll_rc < 0) {
+        if (errno == EINTR)
+            return 0;
+        return -1;
+    }
+    if (poll_rc == 0)
+        return 0; // Timeout occurred
+    for (nfds_t i = ext_start_idx; i < nfds; i++) {
+        if (fds[i].revents & (POLLIN | POLLHUP | POLLERR)) {
+            reg_idx = i - ext_start_idx;
+            token_id = ui_ctx.ext_fds[reg_idx].token_id;
+            return token_id;
+        }
+    }
+    return 0;
+}
+
 /** ui_perror
     @brief Display a simple error message window or print to stderr
     @ingroup error_handling
@@ -1413,16 +1466,16 @@ FILE *ui_open_log() {
    Multiplexed input
    ------------------------------------------------------------------------- */
 void ui_register_read_fd(int fd, int token_id) {
-    if (ui_ctx.ext_fd_count < MAX_EXT_FDS) {
-        ui_ctx.ext_fds[ui_ctx.ext_fd_count++] = (ext_fd_reg_t){fd, token_id};
+    if (ui_ctx.ext_nfds < MAX_EXT_FDS) {
+        ui_ctx.ext_fds[ui_ctx.ext_nfds++] = (ext_fd_reg_t){fd, token_id};
     }
 }
 
 void ui_unregister_read_fd(int fd) {
-    for (int i = 0; i < ui_ctx.ext_fd_count; i++) {
+    for (nfds_t i = 0; i < ui_ctx.ext_nfds; i++) {
         if (ui_ctx.ext_fds[i].fd == fd) {
-            ui_ctx.ext_fds[i] = ui_ctx.ext_fds[ui_ctx.ext_fd_count - 1];
-            ui_ctx.ext_fd_count--;
+            ui_ctx.ext_fds[i] = ui_ctx.ext_fds[ui_ctx.ext_nfds - 1];
+            ui_ctx.ext_nfds--;
             break;
         }
     }

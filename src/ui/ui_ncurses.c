@@ -141,6 +141,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
         free(ui);
         return NULL;
     }
+    ui->tty_fd = fileno(ui->tty_fp);
     if (cfg->log_level >= FATAL)
         ui_min_log_level = cfg->log_level;
 

@@ -589,7 +589,13 @@ size_t strz(char *s) {
      @param max_len - maximum length to scan
      @returns length of resulting string
      @details The use case is to ensure that strings read from files or user
-   input do not contain embedded newlines or carriage returns. */
+   input do not contain embedded newlines or carriage returns.
+     WARNING: This function is prone to segmentation faults because it
+    attempts to write a terminating zero. Do not use strnz() on:
+    read-only function arguments such as const and quoted literals or
+    strings not terminated in the first max_len characters
+ */
+
 size_t strnz(char *s, size_t max_len) {
     if (s == nullptr || *s == '\0' || max_len == 0)
         return 0;
