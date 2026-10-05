@@ -2,6 +2,12 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-04T23:04:59-05:00* - FIX: init_view.c corrected minor issue in transferring file from standard input. 
+
+*2026-10-04T18:30:28-05:00* - FEATURE PREPARATION: Laying groundwork for future features. This commit includes modifications that will facilitate the implementation of upcoming features including improved handling of piped input for view. 
+
+*2026-10-03T18:26:56-05:00* - Update CHANGELOG.md 
+
 *2026-10-03T18:23:34-05:00* - FIXES: view_engine.c: file positioning had several issues which prevented go_to_line, go_to_percent, and go_to_position from functioning correctly. Added two new functions, sync_pos, and sync_ln to replace the old sync_ln. Initial tests indicate that these functions are working correctly. 
 
 *2026-10-02T09:57:04-05:00* - Update CHANGELOG.md 
