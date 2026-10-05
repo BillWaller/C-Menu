@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-05T17:08:48-05:00* - FEATURE UPGRADE: Added file ready polling to get_event() with count-down timer. This will be useful for viewing data from a slow network connection or device. 
+
+*2026-10-04T23:06:45-05:00* - Update CHANGELOG.md 
+
 *2026-10-04T23:04:59-05:00* - FIX: init_view.c corrected minor issue in transferring file from standard input. 
 
 *2026-10-04T18:30:28-05:00* - FEATURE PREPARATION: Laying groundwork for future features. This commit includes modifications that will facilitate the implementation of upcoming features including improved handling of piped input for view. 
