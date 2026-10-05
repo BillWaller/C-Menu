@@ -403,7 +403,6 @@ int view_init_input(Init *init, char *file_name) {
         // ------------------------------------------------------
         char buf[VBUFSIZ];
         ssize_t bytes_read = 0;
-        ssize_t bytes_written = 0;
 #ifdef TIMEOUT_POLL
         // UIKEY_STREAM_DATA = octal 740
         ui_register_read_fd(view->in_fd, UIKEY_STREAM_DATA);
@@ -451,7 +450,6 @@ int view_init_input(Init *init, char *file_name) {
                 ui_abend(-1, _("unable to write view->tmp_fd"));
                 exit(EXIT_FAILURE);
             }
-            bytes_written += bytes_read;
         }
 #endif
         // ------------------------------------------------------
