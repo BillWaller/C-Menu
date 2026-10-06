@@ -1,5 +1,5 @@
 ---
-title: "C-Menu View"
+title: "view"
 section: 1
 header: User Manuals
 footer: C-Menu View Version 0.2.9
@@ -7,37 +7,50 @@ author: Bill Waller
 date: June 2026
 ---
 
-# NAME View
+# NAME
+
+view - file viewer/pager
 
 # SYNOPSIS
 
-Usage: [menu] [form] [pick] [view] [OPTION...] [INPUT] [OUTPUT] [HELP] [ARG4] [ARG5]
-[-DWk?V] [-a file_spec] [-C number] [-L number] [-n number]
-[-o file_spec] [-X number] [-Y number] [-A file_spec]
-[-c file_spec] [-d file_spec] [-H file_spec] [-i file_spec]
-[-R file_spec] [-S file_spec] [-T text] [-w seconds] [-e bool]
-[-j bool] [-s bool] [-x bool] [-f char] [-N[bool]] [-t number]
-[-u text] [--f_dump_config] [--f_write_config]
+view [-Wk?V] [-a file_spec] [-C number] [-L number] [-T text]
+[-X number] [-Y number] [-A file_spec] [-c file_spec]
+[-d file_spec] [-g file_spec] [-H file_spec] [-i file_spec]
+[-l text] [-o file_spec] [-R file_spec] [-S file_spec] [-Z text]
+[-b text] [-e[bool]] [-f char] [-j[bool]] [-M[bool]] [-n number]
+[-N[bool]] [-r[bool]] [-s[bool]] [-t number] [-u text] [-v[bool]]
+[-w[bool]] [-x[bool]] [-z number] [--f_write_config]
 [--minitrc=file_spec] [--parent_cmd] [--cols=number]
-[--lines=number] [--select_max=number] [--out_spec=file_spec]
-[--begx=number] [--begy=number] [--cmd_all=file_spec]
-[--cmd=file_spec] [--mapp_spec=file_spec] [--help_spec=file_spec]
-[--in_spec=file_spec] [--receiver_cmd=file_spec]
-[--provider_cmd=file_spec] [--title=text] [--wait_timeout=seconds]
-[--f_erase_remainder=bool] [--f_strip_ansi=bool]
-[--f_squeeze=bool] [--f_ignore_case=bool] [--fill_char=char]
-[--f_ln[=bool]] [--tab_stop=number] [--brackets=text]
-[--bg_clr_x=hex_clr] [--bo_clr_x=hex_clr] [--fg_clr_x=hex_clr]
-[--ln__bg_clr_x=hex_clr] [--ln_clr_x=hex_clr] [--blue_gamma=float]
+[--lines=number] [--title=text] [--begx=number] [--begy=number]
+[--cmd_all=file_spec] [--cmd=file_spec] [--mapp_spec=file_spec]
+[--log_file_spec=file_spec] [--help_spec=file_spec]
+[--in_spec=file_spec] [--log_level=text] [--out_spec=file_spec]
+[--receiver_cmd=file_spec] [--provider_cmd=file_spec]
+[--timeout_secs=text] [--border=text] [--editor=text]
+[--f_erase_remainder[=bool]] [--fill_char=char]
+[--f_strip_ansi[=bool]] [--f_multiple_cmd_args[=bool]]
+[--select_max=number] [--f_ln[=bool]] [--f_read_theme[=bool]]
+[--f_squeeze[=bool]] [--tab_stop=number] [--brackets=text]
+[--p_view_files[=bool]] [--wrap[=bool]] [--f_ignore_case[=bool]]
+[--h_shift=number] [--bg=hex_clr] [--box_bg=hex_clr]
+[--box_fg=hex_clr] [--brackets_bg=hex_clr] [--brackets_fg=hex_clr]
+[--cmdln_bg=hex_clr] [--cmdln_fg=hex_clr] [--fg=hex_clr]
+[--fill_char_bg=hex_clr] [--fill_char_fg=hex_clr]
+[--ind_bg=hex_clr] [--ind_fg=hex_clr] [--ln_bg=hex_clr]
+[--ln_fg=hex_clr] [--nt_bg=hex_clr] [--nt_fg=hex_clr]
+[--nt_hl_bg=hex_clr] [--nt_hl_fg=hex_clr] [--nt_hl_rev_bg=hex_clr]
+[--nt_hl_rev_fg=hex_clr] [--nt_rev_bg=hex_clr]
+[--nt_rev_fg=hex_clr] [--ran_bg=hex_clr] [--ran_fg=hex_clr]
+[--title_bg=hex_clr] [--title_fg=hex_clr] [--blue_gamma=float]
 [--gray_gamma=float] [--green_gamma=float] [--red_gamma=float]
 [--bblack=hex_clr] [--bblue=hex_clr] [--bcyan=hex_clr]
 [--bgreen=hex_clr] [--black=hex_clr] [--blue=hex_clr]
 [--bmagenta=hex_clr] [--bred=hex_clr] [--bwhite=hex_clr]
-[--byellow=hex_clr] [--cyan=hex_clr] [--editor=text]
-[--green=hex_clr] [--magenta=hex_clr] [--red=hex_clr]
-[--white=hex_clr] [--yellow=hex_clr] [--mapp_data=directory]
-[--mapp_help=directory] [--mapp_home=directory]
-[--mapp_msrc=directory] [--mapp_user=directory] [--help] [--usage]
+[--byellow=hex_clr] [--cyan=hex_clr] [--green=hex_clr]
+[--magenta=hex_clr] [--red=hex_clr] [--white=hex_clr]
+[--yellow=hex_clr] [--mapp_data=directory] [--mapp_help=directory]
+[--mapp_home=directory] [--mapp_msrc=directory]
+[--mapp_theme=file] [--mapp_user=directory] [--help] [--usage]
 [--version] [INPUT] [OUTPUT] [HELP] [ARG4] [ARG5]
 
 # DESCRIPTION

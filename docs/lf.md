@@ -1,5 +1,5 @@
 ---
-title: "lf - lite find"
+title: "lf"
 section: 1
 header: User Manuals
 footer: C-Menu Version 0.2.9
@@ -9,18 +9,20 @@ date: June 2026
 
 # NAME
 
-lf - lite find
+lf - lightning find
 
 # SYNOPSIS
 
-lf [-HiLRS?V] [-a time] [-b time] [-d number] [-D 12345678] [-e regex]
-[-p sgrwx] [-r regex] [-s size] [-t pcdbflsu] [-T threads]
-[-u user name] [--after=time] [--before=time] [--max_depth=number]
-[--debug=12345678] [--ere=regex] [--include_hidden] [--ignore_case]
-[--follow_links] [--include_perms=sgrwx] [--re=regex]
-[--sort_reverse] [--file_size_min=size] [--sort]
-[--include_types=pcdbflsu] [--nthreads=threads] [--user=user name]
-[--help] [--usage] [--version] [DIRECTORY] [REGULAR_EXPRESSION]
+lf [-iLRS?V] [-a time] [-b time] [-c[s]] [-d number] [-D 123456789]
+[-e regex] [-E file_spec] [-H[o]] [-p sgrwx] [-r regex] [-s size]
+[-t pcdbflsu] [-T threads] [-u user name] [--after=time]
+[--before=time] [--count[=s]] [--max_depth=number]
+[--debug=123456789] [--ere=regex] [--error_file_spec=file_spec]
+[--include_hidden[=o]] [--ignore_case] [--follow_links]
+[--include_perms=sgrwx] [--re=regex] [--sort_reverse]
+[--file_size_min=size] [--sort] [--include_types=pcdbflsu]
+[--nthreads=threads] [--user=user name] [--help] [--usage]
+[--version] [DIRECTORY] [REGULAR_EXPRESSION]
 
 # DESCRIPTION
 
