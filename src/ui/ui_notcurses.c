@@ -123,7 +123,7 @@ UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
         ui = NULL;
         return NULL;
     }
-    notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
+    notcurses_mice_enable(ui->nc, NCMICE_BUTTON_EVENT);
     notcurses_cursor_disable(ui->nc);
     notcurses_stddim_yx(ui->nc, &ui->lines, &ui->cols);
     stdsfc = calloc(1, sizeof(*stdsfc));

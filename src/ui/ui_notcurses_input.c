@@ -178,7 +178,7 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
         };
         do {
             notcurses_get(ui->nc, &ts, &ni);
-        } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_INVALID);
+        } while (ni.evtype == NCTYPE_RELEASE || ni.id == NCKEY_MOTION || ni.id == NCKEY_INVALID);
     }
     ev->key = translate_nckey(ni.id, &ni);
     ev->alt = ncinput_alt_p(&ni);
@@ -243,7 +243,7 @@ int ui_get_event_no_mouse(UiSurface *target, ss_t w, UiEvent *ev) {
         return -1;
     memset(ev, 0, sizeof(*ev));
     ncinput ni;
-    // notcurses_mice_disable(ui->nc);
+    notcurses_mice_disable(ui->nc);
     do {
         notcurses_get(ui->nc, NULL, &ni);
     } while (ni.id == NCKEY_INVALID);
@@ -287,7 +287,6 @@ NcPlane *ui_ncplane_clicked(UiSurface *s, ss_t w, ncinput *ni) {
     }
     return NULL;
 }
-
 // -------------------------------------------------------------------------
 // Mice
 // -------------------------------------------------------------------------
@@ -301,7 +300,7 @@ int ui_mousemask(int mask) {
     if (mask)
         notcurses_mice_enable(ui->nc, mask);
     else
-        notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
+        notcurses_mice_enable(ui->nc, NCMICE_BUTTON_EVENT);
     return 0;
 }
 /** @brief Enable or disable mouse events for the NotCurses context.
@@ -311,7 +310,8 @@ int ui_mousemask(int mask) {
 int ui_mice_enable(int mask) {
     if (mask)
         notcurses_mice_enable(ui->nc, mask);
-    else
-        notcurses_mice_enable(ui->nc, NCMICE_ALL_EVENTS);
+    else {
+        notcurses_mice_enable(ui->nc, NCMICE_BUTTON_EVENT);
+    }
     return 0;
 }
