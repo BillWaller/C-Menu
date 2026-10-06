@@ -84,3 +84,10 @@ int main(int argc, char **argv) {
     destroy_init(init);
     exit(EXIT_SUCCESS);
 }
+
+void cmenu_shutdown(Init *init, int status) {
+    destroy_view(init);
+    ui_shutdown();
+    destroy_init(init);
+    exit(status);
+}

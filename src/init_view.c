@@ -403,9 +403,8 @@ int view_init_input(Init *init, char *file_name) {
         // ------------------------------------------------------
         char buf[VBUFSIZ];
         ssize_t bytes_read = 0;
-        // #ifdef TIMEOUT_POLL
-        // UIKEY_STREAM_DATA = octal 740
         ui_register_read_fd(view->in_fd, UIKEY_STREAM_DATA);
+        ssnprintf(tmp_str, MAXLEN - 1, "ui_ctx.ext_nfds = %ld", ui_ctx.ext_nfds);
         int status = 0;
         struct timespec start_time, now_time;
         clock_gettime(CLOCK_MONOTONIC, &start_time);
@@ -414,47 +413,37 @@ int view_init_input(Init *init, char *file_name) {
         // wait loop
         // ------------------------------------------------------
         status = ui_poll_reg_read_fd(500);
-        int timeout_ms = 10 * 1000;
+        int timeout_ms = init->timeout_secs * 1000;
         while (true) {
-            if (status == UIKEY_STREAM_DATA)
-                break;
-            if (active_timeout_prompt) {
-                clock_gettime(CLOCK_MONOTONIC, &now_time);
-                double elapsed = (now_time.tv_sec - start_time.tv_sec) * 1000.0 +
-                                 (now_time.tv_nsec - start_time.tv_nsec) / 1e6;
-                double remaining = timeout_ms - elapsed;
-                if (remaining <= 0)
-                    break;
-            } else {
-                active_timeout_prompt = true;
-                status = ui_timeout_prompt(_("Waiting for input..."), _("from view_input"), timeout_ms);
-                if (status == UIKEY_STREAM_DATA)
-                    break;
-                continue;
-            }
-            if (status == UIKEY_STREAM_DATA) {
-                bytes_read = read(view->in_fd, buf, sizeof(buf));
-                if (bytes_read > 0) {
-                    if (write(view->tmp_fd, buf, bytes_read) != bytes_read) {
-                        ui_abend(-1, _("unable to write view->tmp_fd"));
-                        exit(EXIT_FAILURE);
+            if (status != UIKEY_STREAM_DATA) {
+                if (active_timeout_prompt) {
+                    clock_gettime(CLOCK_MONOTONIC, &now_time);
+                    double elapsed = (now_time.tv_sec - start_time.tv_sec) * 1000.0 +
+                                     (now_time.tv_nsec - start_time.tv_nsec) / 1e6;
+                    double remaining = timeout_ms - elapsed;
+                    if (remaining <= 0)
+                        break;
+                } else {
+                    active_timeout_prompt = true;
+                    status = ui_timeout_prompt(_("Waiting for input..."), _("from view_input"), timeout_ms);
+                    if (status == UIKEY_F09) {
+                        ui_unregister_read_fd(view->in_fd);
+                        cmenu_shutdown(init, EXIT_SUCCESS);
                     }
-                } else if (bytes_read == 0)
-                    break;
-                continue;
+                    if (status != UIKEY_STREAM_DATA)
+                        continue;
+                }
             }
-            if (status == UIKEY_F09)
-                exit(EXIT_SUCCESS);
+            bytes_read = read(view->in_fd, buf, sizeof(buf));
+            if (bytes_read > 0) {
+                if (write(view->tmp_fd, buf, bytes_read) != bytes_read) {
+                    ui_abend(-1, _("unable to write view->tmp_fd"));
+                    exit(EXIT_FAILURE);
+                }
+            } else if (bytes_read == 0)
+                break;
         }
         ui_unregister_read_fd(view->in_fd);
-        // #else
-        //      while ((bytes_read = read(view->in_fd, buf, sizeof(buf))) > 0) {
-        //         if (write(view->tmp_fd, buf, bytes_read) != bytes_read) {
-        //             ui_abend(-1, _("unable to write view->tmp_fd"));
-        //             exit(EXIT_FAILURE);
-        //         }
-        //      }
-        // #endif
         // ------------------------------------------------------
         // end transfer
         // ------------------------------------------------------

@@ -120,13 +120,15 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
         // Poll for input on the TTY and any registered external files
         // ------------------------------------------------------------
         struct pollfd fds[1 + MAX_EXT_FDS];
-        nfds_t nfds = 0;
         int token_id;
         int reg_idx;
+        // ui->tty_fd is fds[0]
+        nfds_t nfds = 0;
         fds[nfds].fd = ui->tty_fd;
         fds[nfds].events = POLLIN; // also POLLERR | POLLHUP | POLLNVAL
         nfds++;
         nfds_t ext_start_idx = nfds;
+        // Add registered file descriptors to poll list
         for (nfds_t i = 0; i < ui_ctx.ext_nfds; i++) {
             fds[nfds].fd = ui_ctx.ext_fds[i].fd;
             fds[nfds].events = POLLIN; // also POLLERR | POLLHUP | POLLNVAL
@@ -138,18 +140,21 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
                 return 0; // continue
             return -1;
         }
-        if (poll_rc == 0) {
-            ch = UIKEY_INVALID; // Signal a zero/timeout state downstream
-            return 0;           // Timeout occurred
+        if (poll_rc == 0) { // timed out with no input
+            token_id = UIKEY_INVALID;
+            return 0;
         }
-        for (nfds_t i = ext_start_idx; i < nfds; i++) {
-            if (fds[i].revents & (POLLIN | POLLHUP | POLLERR)) {
-                reg_idx = i - ext_start_idx;
-                token_id = ui_ctx.ext_fds[reg_idx].token_id;
-                return token_id;
+        bool ui_ready = (fds[0].revents & POLLIN);
+        if (!ui_ready) {
+            for (nfds_t i = ext_start_idx; i < nfds; i++) {
+                if (fds[i].revents & (POLLIN | POLLHUP | POLLERR)) {
+                    reg_idx = i - ext_start_idx;
+                    token_id = ui_ctx.ext_fds[reg_idx].token_id;
+                    return token_id;
+                }
             }
-        }
-        timeout_ms = 0;
+        } else
+            timeout_ms = -1;
     }
     memset(ev, 0, sizeof(*ev));
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);

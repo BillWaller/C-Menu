@@ -335,9 +335,9 @@ View *new_view(Init *init) {
     @return nullptr
  */
 View *destroy_view(Init *init) {
-    view = init->view;
-    if (!view)
+    if (!init->view)
         return nullptr;
+    view = init->view;
     view->argc = destroy_argv(view->argc, view->argv);
     free(view->argv);
     free(view);

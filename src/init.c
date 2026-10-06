@@ -146,8 +146,9 @@ static struct argp_option options[] = {
     {_("brackets"), 'u', _("text"), 0, _("brackets around fields ([]{}<>)"), 5},
     {_("editor"), CM_EDITOR, _("text"), 0, _("default editor"), 5},
     {_("tab_stop"), 't', _("number"), 0, _("number of spaces per tab (4)"), 5},
+    {_("timeout_secs"), 'Z', _("text"), 0, _("seconds to wait for input"), 3},
     {_("h_shift"), 'z', _("number"), 0, _("horizontal shift width (16)"), 5},
-    {_("border"), BORDER, _("text"), 0, _("single, rounded, double, heavy, none"), 5},
+    {_("border"), 'b', _("text"), 0, _("single, rounded, double, heavy, none"), 5},
     {_("bg"), BG, _("hex_clr"), 0, _("Terminal (stdscr) background (#000000)"), 6},
     {_("fg"), FG, _("hex_clr"), 0, _("Terminal (stdscr) foreground (#d0d0d0)"), 6},
     {_("box_fg"), BOX_FG, _("hex_clr"), 0, _("box foreground (#d0d0d0)"), 6},
@@ -311,6 +312,9 @@ parse_opt(int key, char *arg, struct argp_state *state) {
         init->tab_stop = atoi(arg);
         if (init->tab_stop < 1)
             init->tab_stop = 1;
+        break;
+    case 'Z':
+        init->timeout_secs = atoi(arg);
         break;
     case 'z':
         init->h_shift = atoi(arg);
@@ -842,6 +846,10 @@ int process_config_file(char *config_file_name, Init *init) {
             init->tab_stop = atoi(value);
             continue;
         }
+        if (!strcmp(key, _("timeout_secs"))) {
+            init->timeout_secs = atoi(value);
+            continue;
+        }
         if (!strcmp(key, _("h_shift"))) {
             init->h_shift = atoi(value);
             continue;
@@ -1272,6 +1280,10 @@ int write_config(Init *init) {
     print_argp_doc(minitrc_fp, config_s, _("f_squeeze"));
     ssnprintf(config_s, MAXLEN - 1, _("%s=%d"), _("tab_stop"), init->tab_stop);
     print_argp_doc(minitrc_fp, config_s, _("tab_stop"));
+
+    ssnprintf(config_s, MAXLEN - 1, _("%s=%d"), _("timeout_secs"), init->timeout_secs);
+    print_argp_doc(minitrc_fp, config_s, _("timeout_secs"));
+
     ssnprintf(config_s, MAXLEN - 1, _("%s=%d"), _("h_shift"), init->h_shift);
     print_argp_doc(minitrc_fp, config_s, _("h_shift"));
     ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("brackets"), init->brackets);

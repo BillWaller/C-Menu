@@ -144,13 +144,7 @@ typedef struct {
     nfds_t ext_nfds;
 } ui_context_t;
 
-// NOTE: It should be safe to use ui_ctx as a global variable, as it is only
-// used for input handling and does not contain any state that would be modified
-// by multiple threads. However, if you plan to use this in a multi-threaded
-// environment, consider using thread-local storage or mutexes to protect access
-// to this structure.
-
-static ui_context_t ui_ctx;
+extern ui_context_t ui_ctx;
 
 // ---------------------------------------------------------------
 

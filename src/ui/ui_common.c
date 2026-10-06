@@ -51,6 +51,14 @@ char em3[MAXLEN];
 bool f_ncurses_open = false;
 bool f_notcurses_open = false;
 
+// NOTE: It should be safe to use ui_ctx as a global variable, as it is only
+// used for input handling and does not contain any state that would be modified
+// by multiple threads. However, if you plan to use this in a multi-threaded
+// environment, consider using thread-local storage or mutexes to protect access
+// to this structure.
+
+ui_context_t ui_ctx;
+
 int stdin_fd, stdout_fd, stderr_fd, tty_fd, pipe_in, pipe_out;
 double GRAY_GAMMA = 1.2; /**< Gamma correction. Set in .minitrc */
 double RED_GAMMA = 1.2;
@@ -1466,8 +1474,11 @@ FILE *ui_open_log() {
    Multiplexed input
    ------------------------------------------------------------------------- */
 void ui_register_read_fd(int fd, int token_id) {
+    char tmp_str[MAXLEN];
     if (ui_ctx.ext_nfds < MAX_EXT_FDS) {
-        ui_ctx.ext_fds[ui_ctx.ext_nfds++] = (ext_fd_reg_t){fd, token_id};
+        ui_ctx.ext_fds[ui_ctx.ext_nfds] = (ext_fd_reg_t){fd, token_id};
+        ui_ctx.ext_nfds++;
+        ssnprintf(tmp_str, MAXLEN - 1, "ui_ctx.ext_nfds = %ld", ui_ctx.ext_nfds);
     }
 }
 

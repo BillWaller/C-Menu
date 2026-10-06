@@ -120,9 +120,9 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
         // Poll for input on the TTY and any registered external files
         // ------------------------------------------------------------
         struct pollfd fds[1 + MAX_EXT_FDS];
-        nfds_t nfds = 0;
         int token_id;
         int reg_idx;
+        nfds_t nfds = 0;
         fds[nfds].fd = ui->tty_fd;
         fds[nfds].events = POLLIN;
         nfds++;
@@ -132,13 +132,13 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
             fds[nfds].events = POLLIN;
             nfds++;
         }
-        int poll_ret = poll(fds, nfds, timeout_ms);
-        if (poll_ret < 0) {
+        int poll_rc = poll(fds, nfds, timeout_ms);
+        if (poll_rc < 0) {
             if (errno == EINTR)
                 return 0; // continue
             return -1;
         }
-        if (poll_ret == 0) {
+        if (poll_rc == 0) {
             ni.id = NCKEY_INVALID; // Signal a zero/timeout state downstream
             return 0;              // Timeout occurred
         }

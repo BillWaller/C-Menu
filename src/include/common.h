@@ -179,20 +179,19 @@ typedef struct
     char mapp_spec[MAXLEN];     /**< description file */
     char help_spec[MAXLEN];     /**< help file */
     char log_file_spec[MAXLEN]; /**< log file spec */
+    uint timeout_secs;          /**< timeout seconds for user input */
     UiLogLevel min_log_level;
-    // Pick
     int select_max; /**< Pick maximum number of selections */
-    // View
-    int tab_stop; /**< View - number of spapaces per tab */
-    int h_shift;  /**< View - horizontal scroll shift width */
-    Menu *menu;   /**< menu data structure */
-    int menu_cnt; /**< number of menu data structures allocated */
-    Form *form;   /**< form data structure */
-    int form_cnt; /**< number of form data structures allocated */
-    Pick *pick;   /**< pick data structure */
-    int pick_cnt; /**< number of pick data structures allocated */
-    View *view;   /**< view data structure */
-    int view_cnt; /**< number of view data structures allocated */
+    int tab_stop;   /**< View - number of spapaces per tab */
+    int h_shift;    /**< View - horizontal scroll shift width */
+    Menu *menu;     /**< menu data structure */
+    int menu_cnt;   /**< number of menu data structures allocated */
+    Form *form;     /**< form data structure */
+    int form_cnt;   /**< number of form data structures allocated */
+    Pick *pick;     /**< pick data structure */
+    int pick_cnt;   /**< number of pick data structures allocated */
+    View *view;     /**< view data structure */
+    int view_cnt;   /**< number of view data structures allocated */
 } Init;
 
 // extern Init *init;
@@ -249,6 +248,7 @@ extern void view_stack_free(ViewStack *);
 extern int view_cmd_processor(Init *);
 extern void destroy_view_win(Init *);
 extern void destroy_line_table(View *);
+void cmenu_shutdown(Init *init, int status);
 #ifdef __cplusplus
 }
 #endif
