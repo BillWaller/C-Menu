@@ -289,7 +289,7 @@ valgrind: menu
 		--keep-debuginfo=yes \
 		--suppressions=valgrind.supp \
 		--gen-suppressions=all \
-		./lf -H /home/bill >/dev/null
+		./view
 # 		./view -L60 -C90 -w lsp.log
 
 install:

@@ -85,9 +85,16 @@ int main(int argc, char **argv) {
     exit(EXIT_SUCCESS);
 }
 
-void cmenu_shutdown(Init *init, int status) {
+void cmenu_shutdown(Init *init) {
     destroy_view(init);
     ui_shutdown();
     destroy_init(init);
-    exit(status);
+}
+
+void cmenu_abend(Init *init, int ec, char *s) {
+    cmenu_shutdown(init);
+    restore_shell_tioctl();
+    sig_dfl_mode();
+    fprintf(stderr, _("\n\nABEND: %s (code: %d)\n"), s, ec);
+    exit(EXIT_FAILURE);
 }

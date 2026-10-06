@@ -99,6 +99,14 @@ static UiKey translate_nckey(uint32_t id, const ncinput *ni) {
    Event retrieval
    ------------------------------------------------------------------------- */
 
+/** @brief Flush any pending input events from the NotCurses context.
+   This function discards any input events that have been queued but not yet processed.
+*/
+void ui_flush_input() {
+    int fd = notcurses_inputready_fd(ui->nc);
+    tcflush(fd, TCIOFLUSH);
+}
+
 /** @brief Wait for an input event from the NotCurses context.
    @param ui         UI runtime context.
    @param target     Unused for NotCurses (events are global to the context).
@@ -113,6 +121,7 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
     ncinput ni;
     memset(&ni, 0, sizeof(ni));
     ui_render();
+    ui_flush_input();
     if (timeout_ms < 0)
         timeout_ms = -1;
     if (timeout_ms > 1) {
@@ -122,10 +131,10 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
         struct pollfd fds[1 + MAX_EXT_FDS];
         int token_id;
         int reg_idx;
-        nfds_t nfds = 0;
-        fds[nfds].fd = ui->tty_fd;
-        fds[nfds].events = POLLIN;
-        nfds++;
+        memset(fds, 0, sizeof(fds));
+        fds[0].fd = notcurses_inputready_fd(ui->nc);
+        fds[0].events = POLLIN;
+        nfds_t nfds = 1;
         nfds_t ext_start_idx = nfds;
         for (nfds_t i = 0; i < ui_ctx.ext_nfds; i++) {
             fds[nfds].fd = ui_ctx.ext_fds[i].fd;
@@ -138,20 +147,25 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
                 return 0; // continue
             return -1;
         }
-        if (poll_rc == 0) {
-            ni.id = NCKEY_INVALID; // Signal a zero/timeout state downstream
-            return 0;              // Timeout occurred
+        if (poll_rc == 0) { // timed out with no input
+            ni.id = UIKEY_TIMEOUT;
+            return ni.id;
         }
-        for (nfds_t i = ext_start_idx; i < nfds; i++) {
-            if (fds[i].revents & (POLLIN | POLLHUP | POLLERR)) {
-                reg_idx = i - ext_start_idx;
-                token_id = ui_ctx.ext_fds[reg_idx].token_id;
-                return token_id;
+        bool ui_ready = (fds[0].revents & POLLIN);
+        if (!ui_ready) {
+            for (nfds_t i = ext_start_idx; i < nfds; i++) {
+                if (fds[i].revents & (POLLIN | POLLHUP | POLLERR)) {
+                    reg_idx = i - ext_start_idx;
+                    token_id = ui_ctx.ext_fds[reg_idx].token_id;
+                    return token_id;
+                }
             }
+        } else {
+            timeout_ms = 0;
         }
     }
-    // 4. Fall through to legacy backend execution if UI data is ready
-
+    memset(ev, 0, sizeof(*ev));
+    ui_render();
     if (timeout_ms < 0) {
         do {
             notcurses_get_blocking(ui->nc, &ni);

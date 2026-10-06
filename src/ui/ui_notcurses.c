@@ -102,7 +102,6 @@ UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
         free(ui);
         return NULL;
     }
-    ui->tty_fd = fileno(ui->tty_fp);
     NotCursesOptions nc_opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS |
                  NCOPTION_NO_QUIT_SIGHANDLERS,
@@ -197,6 +196,7 @@ UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
             break;
         }
     }
+    ui->tty_fd = notcurses_inputready_fd(ui->nc);
     ui_initialize_sio(sio);
     stdsfc = calloc(1, sizeof(*stdsfc));
     return ui;

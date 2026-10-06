@@ -248,7 +248,9 @@ extern void view_stack_free(ViewStack *);
 extern int view_cmd_processor(Init *);
 extern void destroy_view_win(Init *);
 extern void destroy_line_table(View *);
-void cmenu_shutdown(Init *init, int status);
+void cmenu_shutdown(Init *init);
+void cmenu_abend(Init *init, int ec, char *s);
+
 #ifdef __cplusplus
 }
 #endif

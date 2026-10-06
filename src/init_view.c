@@ -403,47 +403,33 @@ int view_init_input(Init *init, char *file_name) {
         // ------------------------------------------------------
         char buf[VBUFSIZ];
         ssize_t bytes_read = 0;
+        // ------------------------------------------------------
+        // countdown to timeout if view->in_fd not ready
+        // ------------------------------------------------------
+        ui_flush_input();
         ui_register_read_fd(view->in_fd, UIKEY_STREAM_DATA);
-        ssnprintf(tmp_str, MAXLEN - 1, "ui_ctx.ext_nfds = %ld", ui_ctx.ext_nfds);
-        int status = 0;
-        struct timespec start_time, now_time;
-        clock_gettime(CLOCK_MONOTONIC, &start_time);
-        bool active_timeout_prompt = false;
-        // ------------------------------------------------------
-        // wait loop
-        // ------------------------------------------------------
-        status = ui_poll_reg_read_fd(500);
-        int timeout_ms = init->timeout_secs * 1000;
-        while (true) {
+        int status = ui_poll_reg_read_fd(500);
+        if (status == 0) {
+            int timeout_ms = init->timeout_secs * 1000;
+            status = ui_timeout_prompt(_("Waiting for input..."), _("from view_input"), timeout_ms, init->timeout_secs);
+            ui_unregister_read_fd(view->in_fd);
             if (status != UIKEY_STREAM_DATA) {
-                if (active_timeout_prompt) {
-                    clock_gettime(CLOCK_MONOTONIC, &now_time);
-                    double elapsed = (now_time.tv_sec - start_time.tv_sec) * 1000.0 +
-                                     (now_time.tv_nsec - start_time.tv_nsec) / 1e6;
-                    double remaining = timeout_ms - elapsed;
-                    if (remaining <= 0)
-                        break;
-                } else {
-                    active_timeout_prompt = true;
-                    status = ui_timeout_prompt(_("Waiting for input..."), _("from view_input"), timeout_ms);
-                    if (status == UIKEY_F09) {
-                        ui_unregister_read_fd(view->in_fd);
-                        cmenu_shutdown(init, EXIT_SUCCESS);
-                    }
-                    if (status != UIKEY_STREAM_DATA)
-                        continue;
-                }
+                if (status == UIKEY_F09)
+                    cmenu_abend(init, -1, _("view: terminated by F9"));
+                if (status == UIKEY_TIMEOUT)
+                    cmenu_abend(init, -1, _("view: timed out waiting for input"));
+                cmenu_abend(init, -1, _("view: no input data"));
             }
-            bytes_read = read(view->in_fd, buf, sizeof(buf));
-            if (bytes_read > 0) {
-                if (write(view->tmp_fd, buf, bytes_read) != bytes_read) {
-                    ui_abend(-1, _("unable to write view->tmp_fd"));
-                    exit(EXIT_FAILURE);
-                }
-            } else if (bytes_read == 0)
-                break;
         }
-        ui_unregister_read_fd(view->in_fd);
+        // ------------------------------------------------------
+        // end wait
+        // ------------------------------------------------------
+        bytes_read = read(view->in_fd, buf, sizeof(buf));
+        if (bytes_read > 0) {
+            if (write(view->tmp_fd, buf, bytes_read) != bytes_read)
+                cmenu_abend(init, EXIT_FAILURE, _("view: unable to write view->tmp_fd"));
+        } else if (bytes_read == 0)
+            cmenu_abend(init, EXIT_FAILURE, _("view: unable to read view->tmp_fd"));
         // ------------------------------------------------------
         // end transfer
         // ------------------------------------------------------
@@ -458,7 +444,7 @@ int view_init_input(Init *init, char *file_name) {
         view->file_size = sb.st_size;
         if (view->file_size == 0) {
             close(view->tmp_fd);
-            strnz__cpy(tmp_str, _("no standard input"), MAXLEN - 1);
+            strnz__cpy(tmp_str, _("view: no standard input"), MAXLEN - 1);
             ui_abend(-1, tmp_str);
             exit(EXIT_FAILURE);
         }

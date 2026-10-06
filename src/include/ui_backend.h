@@ -961,9 +961,10 @@ void ui_def_prog_mode();
 // -------------------------------------------------------------------------------
 void ui_register_read_fd(int fd, int token_id);
 void ui_unregister_read_fd(int fd);
-int ui_timeout_prompt(char *msg0, char *msg1, uint timeout_ms);
+int ui_timeout_prompt(char *msg0, char *msg1, uint timeout_ms, uint timeout_secs);
 int ui_update_timeout_prompt(UiSurface *s, ss_t w, uint timeout_ms);
 int ui_poll_reg_read_fd(int timeout_ms);
+void ui_flush_input();
 // ---------------------------------------------------------------
 // NOTCURSES Specific
 // ---------------------------------------------------------------

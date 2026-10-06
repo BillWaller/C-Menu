@@ -1208,8 +1208,15 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     ui_destroy_chyron(chyron);
     return (cmd_key);
 }
-
-int ui_timeout_prompt(char *msg0, char *msg1, uint timeout_ms) {
+/** ui_timeout_prompt
+    @brief Display a timeout prompt window or print to stderr
+    @ingroup error_handling
+    @param msg0 First message line
+    @param msg1 Second message line
+    @param timeout_ms Timeout in milliseconds
+    @param timeout_secs Timeout in seconds to add if F10 is pressed
+    @return Key code of user command */
+int ui_timeout_prompt(char *msg0, char *msg1, uint timeout_ms, uint timeout_secs) {
     char title[MAXLEN];
     uint line, pos, msg_l, msg0_l, msg1_l;
     if (!f_ncurses_open && !f_notcurses_open) {
@@ -1248,16 +1255,30 @@ int ui_timeout_prompt(char *msg0, char *msg1, uint timeout_ms) {
     do {
         event.y = event.x = -1;
         cmd_key = ui_get_event(sfc, WIN, chyron, &event, 1000);
-        if (cmd_key == UIKEY_F09 || cmd_key == UIKEY_F10 || cmd_key == 'q' || cmd_key == 'Q' || cmd_key == UIKEY_STREAM_DATA)
+        if (cmd_key == UIKEY_F09 || cmd_key == 'q' || cmd_key == 'Q' || cmd_key == UIKEY_STREAM_DATA)
             break;
-        timeout_ms -= 1000;
+        if (cmd_key == UIKEY_F10)
+            timeout_ms += timeout_secs * 1000;
+        else
+            timeout_ms -= 1000;
         ui_update_timeout_prompt(sfc, WIN, timeout_ms);
     } while (timeout_ms > 0);
     ui_cm_surface_destroy(sfc);
     ui_destroy_chyron(chyron);
+    ui_render();
     return cmd_key;
 }
-
+/** ui_update_timeout_prompt
+    @brief Update the timeout prompt with the remaining time
+    @ingroup error_handling
+    @param sfc Pointer to the UiSurface structure
+    @param w Window index (WIN or BOX)
+    @param timeout_ms Remaining timeout in milliseconds
+    @return 0 on success, 1 if not in a curses environment
+    @details This function updates the timeout prompt displayed on the specified
+   surface and window with the remaining time in seconds. If not in a curses
+   environment, it prints the timeout message to stderr.
+ */
 int ui_update_timeout_prompt(UiSurface *sfc, ss_t w, uint timeout_ms) {
     if (!f_ncurses_open && !f_notcurses_open) {
         fprintf(stderr, _("Timeout in %d seconds\n"), timeout_ms / 1000);
@@ -1270,17 +1291,30 @@ int ui_update_timeout_prompt(UiSurface *sfc, ss_t w, uint timeout_ms) {
     return 0;
 }
 
+/** ui_poll_reg_read_fd
+    @brief Poll for input on registered external files
+    @ingroup error_handling
+    @param timeout_ms Timeout in milliseconds
+    @return Token ID of the external file that has input, or 0 if no input
+    @details This function polls for input on registered external files. It uses
+   the poll() system call to wait for input on the file descriptors of the
+   registered external files. If input is available, it returns the token ID of
+   the external file that has input. If no input is available within the
+   specified timeout, it returns 0. If an error occurs during polling, it
+   returns -1.
+ */
 int ui_poll_reg_read_fd(int timeout_ms) {
     if (timeout_ms <= 0)
         return 0;
     // ------------------------------------------------------------
     // Poll for input on registered external files
     // ------------------------------------------------------------
-    struct pollfd fds[1 + MAX_EXT_FDS];
-    nfds_t nfds = 0;
-    int token_id;
+    int token_id = 0;
     int reg_idx;
-    nfds_t ext_start_idx = nfds;
+    nfds_t nfds = 0;
+    nfds_t ext_start_idx = ui_ctx.ext_nfds;
+    struct pollfd fds[1 + MAX_EXT_FDS];
+    memset(fds, 0, sizeof(fds));
     for (nfds_t i = 0; i < ui_ctx.ext_nfds; i++) {
         fds[nfds].fd = ui_ctx.ext_fds[i].fd;
         fds[nfds].events = POLLIN; // also POLLERR | POLLHUP | POLLNVAL
@@ -1293,7 +1327,7 @@ int ui_poll_reg_read_fd(int timeout_ms) {
         return -1;
     }
     if (poll_rc == 0)
-        return 0; // Timeout occurred
+        return 0;
     for (nfds_t i = ext_start_idx; i < nfds; i++) {
         if (fds[i].revents & (POLLIN | POLLHUP | POLLERR)) {
             reg_idx = i - ext_start_idx;

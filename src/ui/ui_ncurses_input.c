@@ -99,6 +99,12 @@ static UiKey translate_key(int ch) {
 /* -------------------------------------------------------------------------
    Event retrieval
    ------------------------------------------------------------------------- */
+void ui_flush_input() {
+    if (ui && ui->tty_fd >= 0) {
+        tcflush(ui->tty_fd, TCIFLUSH);
+    }
+}
+
 /** @brief Read input events
    @param s          Surface - may contain multiple widgets (planes/panels)
    @param w          Widget index (A surface may contain multilple widgets)
@@ -111,8 +117,8 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
     if (!ev)
         return -1;
     int ch;
-    // Flush: If not now, when?
-    tcflush(0, TCIOFLUSH);
+    ui_render();
+    ui_flush_input();
     if (timeout_ms < 0)
         timeout_ms = -1; // Block waiting for input
     if (timeout_ms > 0) {
@@ -122,13 +128,11 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
         struct pollfd fds[1 + MAX_EXT_FDS];
         int token_id;
         int reg_idx;
-        // ui->tty_fd is fds[0]
-        nfds_t nfds = 0;
-        fds[nfds].fd = ui->tty_fd;
-        fds[nfds].events = POLLIN; // also POLLERR | POLLHUP | POLLNVAL
-        nfds++;
+        memset(fds, 0, sizeof(fds));
+        fds[0].fd = ui->tty_fd;
+        fds[0].events = POLLIN; // also POLLERR | POLLHUP | POLLNVAL
+        nfds_t nfds = 1;
         nfds_t ext_start_idx = nfds;
-        // Add registered file descriptors to poll list
         for (nfds_t i = 0; i < ui_ctx.ext_nfds; i++) {
             fds[nfds].fd = ui_ctx.ext_fds[i].fd;
             fds[nfds].events = POLLIN; // also POLLERR | POLLHUP | POLLNVAL
@@ -141,8 +145,8 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
             return -1;
         }
         if (poll_rc == 0) { // timed out with no input
-            token_id = UIKEY_INVALID;
-            return 0;
+            token_id = UIKEY_TIMEOUT;
+            return token_id;
         }
         bool ui_ready = (fds[0].revents & POLLIN);
         if (!ui_ready) {
@@ -232,7 +236,6 @@ int ui_get_event_no_mouse(UiSurface *s, ss_t w, UiEvent *ev) {
     int ch;
     mousemask(0, NULL);
     curs_set(2);
-    qiflush();
     tcflush(2, TCIFLUSH);
     cbreak();
     do {
