@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-06T15:28:27-05:00* - FIXES: input countdown timer revisions after first round of testing. Appears to be working correctly for both NCurses and Notcurses backends. 
+
+*2026-10-06T10:53:34-05:00* - Update CHANGELOG.md 
+
 *2026-10-06T10:49:51-05:00* - FEATURE: Add "-Z" timeout_secs to command line options and implemented pop-up countdown timer. 
 
 *2026-10-05T17:13:52-05:00* - Update CHANGELOG.md 
