@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-06T16:58:13-05:00* - DOCUMENTATION UPDATES: manual pages 
+
+*2026-10-06T16:16:16-05:00* - Update CHANGELOG.md 
+
 *2026-10-06T16:08:20-05:00* - FIX: Mouse movement reporting creates a constant stream of events, which we will use to implement hover functions, but until then, we will disable mouse movement reporting. Everything else, button clicks, scroll wheels, etc still work as before. This is a just a temporary fix until we implement hover functions. 
 
 *2026-10-06T15:30:27-05:00* - Update CHANGELOG.md 
