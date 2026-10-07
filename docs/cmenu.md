@@ -44,16 +44,37 @@ Usage: [menu] [form] [pick] [view] [OPTION...] [INPUT] [OUTPUT] [HELP] [ARG4] [A
 
 # DESCRIPTION
 
-C-Menu is an integrated suite of terminal based user interface components and utilities. C-Menu Menu, Form, Pick, and View are the primary user interface components.
+C-Menu is an integrated suite of terminal based user interface components and utilities. The primary user interface components are:
+
+- menu
+
+- form
+
+- pick
+
+- view
 
 # ANCILLARY COMPONENTS
 
-lf - a lightweight finder
-rsh - Root Shell Helper
-ckeys is a utility for displaying key bindings.
-stripansi - a utility for stripping ANSI escape codes from text.
-iloan - a utility for calculating installment loan variables
-amort - a utility for calculating amortization schedules
+- lf - lightning-fast file finder
+
+- rsh - Root Shell Helper
+
+- ckeys is a utility for displaying key bindings.
+
+- stripansi - a utility for stripping ANSI escape codes from text.
+
+- iloan - a utility for calculating installment loan variables
+
+- amort - a utility for calculating amortization schedules
+
+# COMPONENTS
+
+CMenu is a single binary file that functions as menu, form, pick, view, or ckeys
+depending on the name used to invoke it. This is accomplished by creating
+symbolic links to the CMenu binary file with the names menu, form, pick, view, and ckeys. When CMenu is invoked, it checks the name used to invoke it and behaves accordingly.
+
+The motivation for this design is economy of space, simplicity of installation, and better performance. Before combining the components, each required almost as much space as the composite. Because of heavy modularization, each component shares most of its working parts with the others. The single binary saves space, eliminates the need to load separate executables, and provides the same capabilities with much faster direct function calls.
 
 # OPTIONS
 
@@ -448,12 +469,6 @@ All menu command lines begin with an exclamation point followed by the name of f
 
 !dexe [COMMAND]
 
-# COPYRIGHT
-
-Copyright © 2026 Bill Waller.
-
-# LICENSE
-
 # EXAMPLES
 
 To start menu, reading the main.m description file:
@@ -470,6 +485,12 @@ To start menu, reading the main.m description file from an arbitrary location:
     menu -d /path/to/main.m
 
 ---
+
+# COPYRIGHT
+
+Copyright © 2026 Bill Waller.
+
+# LICENSE
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

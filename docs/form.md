@@ -65,26 +65,26 @@ form.
 ```bash
 # ~/menuapp/msrc/iloan.f
 H:Installment Loan Calculator
-#
+
 T:1:4:Enter any three of the four values to calculate the fourth.
 T:2:4:Only one field can be left blank or zero.
 T:3:4:Press F5 to calculate the missing value.
-#
+
 T:5:14:Principal Amount:
 F:5:33:14:Currency
-#
+
 T:6:14:Number of Months:
 F:6:33:5:Decimal_Int
-#
+
 T:7:10:Annual Interest Rate:
 F:7:33:5:APR
-#
+
 T:8:16:Payment Amount:
 F:8:33:12:Currency
-#
+
 T:10:1:First Payment Date (Yyyymmdd):
 F:10:33:10:Yyyymmdd
-#
+
 G
 ?iloan.hlp
 ```
@@ -113,7 +113,6 @@ Parameter 3 - "14" form window column
 
 Parameter 4 - "Principal Amount" text to display in form window
 
----
 
 # Fields
 
@@ -141,8 +140,6 @@ Parameter 4 - "14" field length
 
 Parameter 5 - "Currency" data type
 
----
-
 # Directives
 
 Specification:
@@ -159,8 +156,6 @@ program specified with the -S option.
 "Q" - specifies that field values are to be provided by an external executable
 specified with the -S option and parameterized with a key value for a query
 operation.
-
----
 
 # Form Data Types
 
@@ -194,8 +189,6 @@ HH:MM:SS. Invalid times will be rejected.
 
 APR
 composed of digits 0-9, with an optional decimal point and minus sign. When displayed, APR values are formatted with an optional leading minus sign, up to three digits to the left of the decimal point, and up to four digits to the right of the decimal point, followed by a percent sign. For example: -12.3456.
-
----
 
 # Examples
 
@@ -242,8 +235,6 @@ If a "-o" option was specified on the form command line, and the user presses F1
 After iloan calculates new values for the form, the user may press F10 a second
 time and Form will dispatch View with the data fields from the form.
 
-![iloan](../screenshots/iloan.png)
-
 iloan and amort are trivial applications to demonstrate how to use external executables
 with C-Menu Form. For the purpose of demonstration, we shall designate the images above as 1) upper left, 2) upper right, 3) lower left, and 4) lower right.
 
@@ -274,14 +265,7 @@ Here's the workflow for the Installment Loan Calculations menu item:
   calculation cycles as necessary. When the user gets the desired results, and presses
   the F10 key, the following ../screen appears in View.
 
-![Amortization](../screenshots/Amortization.png)
-
-Of course, these are just demonstration programs, and the real magic doesn't
-start until you start building your own projects with C-Menu.
-
----
-
-#### Cash Receipts
+# Cash Receipts
 
 **_Cash Receipts_** also works like Installment Loan Calculations, except no external
 executable is specified to process data. Obviously, this menu item is not very
@@ -292,8 +276,6 @@ developer who can write external executables or scripts to provide database inte
 :     Cash Receipts
 !form receipt.f -i receipt.dat -o receipt.dat
 ```
-
-![Cash Receipts](../screenshots/Receipt.png)
 
 The left hand Form window demonstrates the use of fill characters to signify allocated, but unpopulated field space. This is a setting that can be specified on the command line or in the C-Menu configuration file, ~/.minitrc.
 
@@ -314,4 +296,24 @@ brackets=[]
 brackets={}
 ```
 
----
+# COPYRIGHT
+
+Copyright © 2026 Bill Waller.
+
+# LICENSE
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# SEE ALSO
+
+C-Menu Menu, Form, Pick, View, RSH, C-Keys
