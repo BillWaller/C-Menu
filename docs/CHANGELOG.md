@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-07T16:51:34-05:00* - DOCUMENTATION UPDATES 
+
+*2026-10-07T15:37:37-05:00* - Update CHANGELOG.md 
+
 *2026-10-07T15:32:44-05:00* - FIX: Intermittent failure to identify chyron zone. The fix was to initialize chyron->y in display_chyron() so that it always gets set to the correct value before being used in get_event(). Also cleaned up a number of issues with Internationalization (i18n) support. 
 
 *2026-10-06T22:37:15-05:00* - Update CHANGELOG.md 
