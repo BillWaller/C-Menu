@@ -142,8 +142,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
         return NULL;
     }
     ui->tty_fd = fileno(ui->tty_fp);
-    if (cfg->log_level >= FATAL)
-        ui_min_log_level = cfg->log_level;
+    ui_min_log_level = cfg->log_level;
 
     ui_log(INFO, _("ui_init: using tty: %s"), tty_name);
     ui->screen = newterm(NULL, ui->tty_fp, ui->tty_fp);
@@ -1217,4 +1216,57 @@ PANEL *ui_ncurses_surface_get_panel(const UiSurface *s, ss_t w) {
     if (!s)
         return NULL;
     return s->mpan[w];
+}
+// -------------------------------------------------------------------------
+// Multibyte conversion
+// -------------------------------------------------------------------------
+uint ui__mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
+    attr_t attrs;
+    short cp;
+    uint p1 = 0;
+    uint *pos = &p1;
+    if (p)
+        pos = p;
+    else
+        pos = &p1;
+    uint i = 0, len = 0;
+    const char *s;
+    UiCell cc = {};
+    wchar_t wstr[5];
+    getcchar(cell_base, &wstr[0], &attrs, &cp, nullptr);
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    if (pos && *pos >= atmost - 1)
+        return 0;
+    while (str[i] != '\0') {
+        s = &str[i];
+        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
+        if (len <= 0) {
+            wstr[0] = L'?';
+            wstr[1] = L'\0';
+            len = 1;
+        }
+        wstr[1] = L'\0';
+        if (*pos > atmost)
+            break;
+        if (setcchar(&cc, wstr, attrs, cp, nullptr) != ERR) {
+            if (len > 0 && (*pos + len) < atmost)
+                cmplx_buf[(*pos)++] = cc;
+        }
+        i += len;
+    }
+    wstr[0] = L'\0';
+    wstr[1] = L'\0';
+    setcchar(&cc, wstr, attrs, cp, nullptr);
+    cmplx_buf[*pos] = cc;
+    return *pos;
+}
+void ui_destroy_curses() {
+    if (!f_ncurses_open && !f_notcurses_open)
+        return;
+    ui_shutdown();
+    f_ncurses_open = false;
+    restore_shell_tioctl();
+    sig_dfl_mode();
+    return;
 }

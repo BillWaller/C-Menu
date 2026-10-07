@@ -45,7 +45,7 @@ static struct argp_option options[] = {
     {_("all"), 'a', 0, 0, _("list all matches"), 0},
     {_("setuid"), 's', 0, 0, _("setuid only"), 0},
     {_("executable"), 'x', 0, 0, _("executable only"), 0},
-    {_("path"), 'p', "text", 0, _("path environment variable"), 0},
+    {_("path"), 'p', "text", 0, _("colon separated path string"), 0},
     {_("verbose"), 'v', 0, 0, _("verbose messages"), 0},
     {}};
 
@@ -100,18 +100,16 @@ int main(int argc, char **argv) {
     int i = 0;
     int found = 0;
     argp_parse(&argp, argc, argv, 0, 0, &wh_opts);
-    if (wh_opts.path_env != nullptr) {
+    if (wh_opts.path_env != nullptr)
         path_p = getenv(wh_opts.path_env);
-    } else {
+    else
         path_p = getenv("PATH");
-    }
     if (path_p == nullptr)
         ABEND(argv[0], 0, _("Search PATH not set"));
     if (wh_opts.flags & WH_VERBOSE)
         printf("%s\n", path_p);
-    while (i < wh_opts.argc) {
+    while (i < wh_opts.argc)
         found = whence(wh_opts.argv[i++], wh_opts.flags);
-    }
     if (found == 0)
         exit(1);
     exit(0);

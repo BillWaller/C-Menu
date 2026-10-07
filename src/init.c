@@ -108,99 +108,99 @@ void print_argp_doc(FILE *, char *, char *);
 int executor = 0;
 
 const char *argp_program_version = CM_VERSION;
-const char *argp_program_bug_address = _("billxwaller@gmail.com");
+const char *argp_program_bug_address = "billxwaller@gmail.com";
 static char doc[] = _("C-Menu - User Interface Toolkit");
 static char args_doc[] = _("[INPUT] [OUTPUT] [HELP] [ARG4] [ARG5]");
 // const int opt_doc_col = 33;
 
 static struct argp_option options[] = {
-    {_("f_write_config"), 'W', 0, OPTION_ARG_OPTIONAL, _("write configuration"), 0},
-    {_("minitrc"), 'a', _("file_spec"), 0, _("configuration file spec"), 1},
-    {_("parent_cmd"), 'k', 0, 0, _("parent command"), 1},
-    {_("begx"), 'X', _("number"), 0, _("begin on column"), 2},
-    {_("begy"), 'Y', _("number"), 0, _("begin on line"), 2},
-    {_("cols"), 'C', _("number"), 0, _("width in columns"), 2},
-    {_("lines"), 'L', _("number"), 0, _("height in lines"), 2},
-    {_("title"), 'T', _("text"), 0, _("Window title"), 2},
-    {_("out_spec"), 'o', _("file_spec"), 0, _("output file spec"), 3},
-    {_("cmd"), 'c', _("file_spec"), 0, _("view cmd, first file"), 3},
-    {_("cmd_all"), 'A', _("file_spec"), 0, _("view cmd, all files"), 3},
-    {_("help_spec"), 'H', _("file_spec"), 0, _("help file spec"), 3},
-    {_("in_spec"), 'i', _("file_spec"), 0, _("input file spec"), 3},
-    {_("log_level"), 'l', _("text"), 0, _("FATAL, ERROR, WARN, INFO, VERBOSE, DEBUG"), 3},
-    {_("log_file_spec"), 'g', _("file_spec"), 0, _("log file spec"), 3},
-    {_("mapp_spec"), 'd', _("file_spec"), 0, _("description file spec"), 3},
-    {_("provider_cmd"), 'S', _("file_spec"), 0, _("execute provider of piped input"), 3},
-    {_("receiver_cmd"), 'R', _("file_spec"), 0, _("execute receiver of piped output"), 3},
-    {_("select_max"), 'n', _("number"), 0, _("number of selections"), 5},
-    {_("f_erase_remainder"), 'e', _("bool"), OPTION_ARG_OPTIONAL, _("erase remainder of line on enter"), 5},
-    {_("f_strip_ansi"), 'j', _("bool"), OPTION_ARG_OPTIONAL, _("always strip ansi when writing"), 5},
-    {_("f_multiple_cmd_args"), 'M', _("bool"), OPTION_ARG_OPTIONAL, _("allow multiple command arguments"), 5},
-    {_("f_read_theme"), 'r', _("bool"), OPTION_ARG_OPTIONAL, _("read and process theme file"), 5},
-    {_("f_squeeze"), 's', _("bool"), OPTION_ARG_OPTIONAL, _("squeeze multiple blank lines"), 5},
-    {_("f_ignore_case"), 'x', _("bool"), OPTION_ARG_OPTIONAL, _("ignore case in search"), 5},
-    {_("p_view_files"), 'v', _("bool"), OPTION_ARG_OPTIONAL, _("File View in Pick"), 5},
-    {_("wrap"), 'w', _("bool"), OPTION_ARG_OPTIONAL, _("view wrap lines"), 5},
-    {_("f_ln"), 'N', _("bool"), OPTION_ARG_OPTIONAL, _("line numbers in view"), 5},
-    {_("fill_char"), 'f', _("char"), 0, _("field fill_char (_,.,empty)"), 5},
-    {_("brackets"), 'u', _("text"), 0, _("brackets around fields ([]{}<>)"), 5},
-    {_("editor"), CM_EDITOR, _("text"), 0, _("default editor"), 5},
-    {_("tab_stop"), 't', _("number"), 0, _("number of spaces per tab (4)"), 5},
-    {_("timeout_secs"), 'Z', _("text"), 0, _("seconds to wait for input"), 3},
-    {_("h_shift"), 'z', _("number"), 0, _("horizontal shift width (16)"), 5},
-    {_("border"), 'b', _("text"), 0, _("single, rounded, double, heavy, none"), 5},
-    {_("bg"), BG, _("hex_clr"), 0, _("Terminal (stdscr) background (#000000)"), 6},
-    {_("fg"), FG, _("hex_clr"), 0, _("Terminal (stdscr) foreground (#d0d0d0)"), 6},
-    {_("box_fg"), BOX_FG, _("hex_clr"), 0, _("box foreground (#d0d0d0)"), 6},
-    {_("box_bg"), BOX_BG, _("hex_clr"), 0, _("box background (#000000)"), 6},
-    {_("ind_fg"), IND_FG, _("hex_clr"), 0, _("indicator foreground (#d0d0d0)"), 6},
-    {_("ind_bg"), IND_BG, _("hex_clr"), 0, _("indicator background (#000000)"), 6},
-    {_("brackets_fg"), BRACKETS_FG, _("hex_clr"), 0, _("brackets foreground (#d0d0d0)"), 6},
-    {_("brackets_bg"), BRACKETS_BG, _("hex_clr"), 0, _("brackets background (#000000)"), 6},
-    {_("fill_char_fg"), FILL_CHAR_FG, _("hex_clr"), 0, _("fill character foreground (#d0d0d0)"), 6},
-    {_("fill_char_bg"), FILL_CHAR_BG, _("hex_clr"), 0, _("fill character background (#000000)"), 6},
-    {_("nt_fg"), NT_FG, _("hex_clr"), 0, _("normal foreground (#d0d0d0)"), 6},
-    {_("nt_bg"), NT_BG, _("hex_clr"), 0, _("normal background (#000000)"), 6},
-    {_("nt_rev_fg"), NT_REV_FG, _("hex_clr"), 0, _("normal reverse foreground (#000000)"), 6},
-    {_("nt_rev_bg"), NT_REV_BG, _("hex_clr"), 0, _("normal reverse background (#d0d0d0)"), 6},
-    {_("nt_hl_fg"), NT_HL_FG, _("hex_clr"), 0, _("normal highlight foreground (#ffffff)"), 6},
-    {_("nt_hl_bg"), NT_HL_BG, _("hex_clr"), 0, _("normal highlight background (#000000)"), 6},
-    {_("nt_hl_rev_fg"), NT_HL_REV_FG, _("hex_clr"), 0, _("normal highlight reverse foreground (#f00000)"), 6},
-    {_("nt_hl_rev_bg"), NT_HL_REV_BG, _("hex_clr"), 0, _("normal highlight reverse background (#d0d0d0)"), 6},
-    {_("ln_fg"), LN_FG, _("hex_clr"), 0, _("line number foreground (#0000b0)"), 6},
-    {_("ln_bg"), LN_BG, _("hex_clr"), 0, _("line number background (#202020)"), 6},
-    {_("cmdln_fg"), CMDLN_FG, _("hex_clr"), 0, _("line number foreground (#0000b0)"), 6},
-    {_("cmdln_bg"), CMDLN_BG, _("hex_clr"), 0, _("line number background (#202020)"), 6},
-    {_("title_fg"), TITLE_FG, _("hex_clr"), 0, _("title foreground (#d0d0d0)"), 6},
-    {_("title_bg"), TITLE_BG, _("hex_clr"), 0, _("title background (#000000)"), 6},
-    {_("ran_fg"), RAN_FG, _("hex_clr"), 0, _("ran foreground (#d0d0d0)"), 6},
-    {_("ran_bg"), RAN_BG, _("hex_clr"), 0, _("ran background (#000000)"), 6},
-    {_("blue_gamma"), GM_BLUE, _("float"), 0, _("blue_gamma (1.2)"), 7},
-    {_("gray_gamma"), GM_GRAY, _("float"), 0, _("gray gamma (1.2)"), 7},
-    {_("green_gamma"), GM_GREEN, _("float"), 0, _("green gamma (1.2)"), 7},
-    {_("red_gamma"), GM_RED, _("float"), 0, _("red gamma (View)"), 7},
-    {_("black"), XBLACK, _("hex_clr"), 0, _("black (#000000)"), 8},
-    {_("red"), XRED, _("hex_clr"), 0, _("red (#bf0000)"), 8},
-    {_("green"), XGREEN, _("hex_clr"), 0, _("green (#00cf00)"), 8},
-    {_("yellow"), XYELLOW, _("hex_clr"), 0, _("yellow (#efbf00)"), 8},
-    {_("blue"), XBLUE, _("hex_clr"), 0, _("blue (#0000FF)"), 8},
-    {_("magenta"), XMAGENTA, _("hex_clr"), 0, _("magenta (#9f009f)"), 8},
-    {_("cyan"), XCYAN, _("hex_clr"), 0, _("cyan (#00dfdf)"), 8},
-    {_("white"), XWHITE, _("hex_clr"), 0, _("white (#d0d0d0)"), 8},
-    {_("bblack"), XBBLACK, _("hex_clr"), 0, _("bright black (#7f7f7f)"), 8},
-    {_("bred"), XBRED, _("hex_clr"), 0, _("bright red (#FF3737)"), 8},
-    {_("bgreen"), XBGREEN, _("hex_clr"), 0, _("bright green (#00FF7f)"), 8},
-    {_("byellow"), XBYELLOW, _("hex_clr"), 0, _("bright yellow (#FFeF00)"), 8},
-    {_("bblue"), XBBLUE, _("hex_clr"), 0, _("bright blue (#00cfFF)"), 8},
-    {_("bmagenta"), XMAGENTA, _("hex_clr"), 0, _("bright magenta (#FF00FF)"), 8},
-    {_("bcyan"), XBCYAN, _("hex_clr"), 0, _("bright cyan (#00FFFF)"), 8},
-    {_("bwhite"), XBWHITE, _("hex_clr"), 0, _("bright white (#FFFFFF)"), 8},
-    {_("mapp_data"), MAPP_DATA, _("directory"), 0, _("data directory"), 9},
-    {_("mapp_help"), MAPP_HELP, _("directory"), 0, _("help directory"), 9},
-    {_("mapp_home"), MAPP_HOME, _("directory"), 0, _("home directory"), 9},
-    {_("mapp_msrc"), MAPP_MSRC, _("directory"), 0, _("source directory"), 9},
-    {_("mapp_user"), MAPP_USER, _("directory"), 0, _("user directory"), 9},
-    {_("mapp_theme"), MAPP_THEME, _("file"), 0, _("default theme file"), 9},
+    {"f_write_config", 'W', 0, OPTION_ARG_OPTIONAL, "write configuration", 0},
+    {"minitrc", 'a', "file_spec", 0, "configuration file spec", 1},
+    {"parent_cmd", 'k', 0, 0, "parent command", 1},
+    {"begx", 'X', "number", 0, "begin on column", 2},
+    {"begy", 'Y', "number", 0, "begin on line", 2},
+    {"cols", 'C', "number", 0, "width in columns", 2},
+    {"lines", 'L', "number", 0, "height in lines", 2},
+    {"title", 'T', "text", 0, "Window title", 2},
+    {"out_spec", 'o', "file_spec", 0, "output file spec", 3},
+    {"cmd", 'c', "file_spec", 0, "view cmd, first file", 3},
+    {"cmd_all", 'A', "file_spec", 0, "view cmd, all files", 3},
+    {"help_spec", 'H', "file_spec", 0, "help file spec", 3},
+    {"in_spec", 'i', "file_spec", 0, "input file spec", 3},
+    {"log_level", 'l', "text", 0, "FATAL, ERROR, WARN, INFO, VERBOSE, DEBUG", 3},
+    {"log_file_spec", 'g', "file_spec", 0, "log file spec", 3},
+    {"mapp_spec", 'd', "file_spec", 0, "description file spec", 3},
+    {"provider_cmd", 'S', "file_spec", 0, "execute provider of piped input", 3},
+    {"receiver_cmd", 'R', "file_spec", 0, "execute receiver of piped output", 3},
+    {"select_max", 'n', "number", 0, "number of selections", 5},
+    {"f_erase_remainder", 'e', "bool", OPTION_ARG_OPTIONAL, "erase remainder of line on enter", 5},
+    {"f_strip_ansi", 'j', "bool", OPTION_ARG_OPTIONAL, "always strip ansi when writing", 5},
+    {"f_multiple_cmd_args", 'M', "bool", OPTION_ARG_OPTIONAL, "allow multiple command arguments", 5},
+    {"f_read_theme", 'r', "bool", OPTION_ARG_OPTIONAL, "read and process theme file", 5},
+    {"f_squeeze", 's', "bool", OPTION_ARG_OPTIONAL, "squeeze multiple blank lines", 5},
+    {"f_ignore_case", 'x', "bool", OPTION_ARG_OPTIONAL, "ignore case in search", 5},
+    {"p_view_files", 'v', "bool", OPTION_ARG_OPTIONAL, "File View in Pick", 5},
+    {"wrap", 'w', "bool", OPTION_ARG_OPTIONAL, "view wrap lines", 5},
+    {"f_ln", 'N', "bool", OPTION_ARG_OPTIONAL, "line numbers in view", 5},
+    {"fill_char", 'f', "char", 0, "field fill_char (_,.,empty)", 5},
+    {"brackets", 'u', "text", 0, "brackets around fields ([]{}<>)", 5},
+    {"editor", CM_EDITOR, "text", 0, "default editor", 5},
+    {"tab_stop", 't', "number", 0, "number of spaces per tab (4)", 5},
+    {"timeout_secs", 'Z', "text", 0, "seconds to wait for input", 3},
+    {"h_shift", 'z', "number", 0, "horizontal shift width (16)", 5},
+    {"border", 'b', "text", 0, "single, rounded, double, heavy, none", 5},
+    {"bg", BG, "hex_clr", 0, "Terminal (stdscr) background (#000000)", 6},
+    {"fg", FG, "hex_clr", 0, "Terminal (stdscr) foreground (#d0d0d0)", 6},
+    {"box_fg", BOX_FG, "hex_clr", 0, "box foreground (#d0d0d0)", 6},
+    {"box_bg", BOX_BG, "hex_clr", 0, "box background (#000000)", 6},
+    {"ind_fg", IND_FG, "hex_clr", 0, "indicator foreground (#d0d0d0)", 6},
+    {"ind_bg", IND_BG, "hex_clr", 0, "indicator background (#000000)", 6},
+    {"brackets_fg", BRACKETS_FG, "hex_clr", 0, "brackets foreground (#d0d0d0)", 6},
+    {"brackets_bg", BRACKETS_BG, "hex_clr", 0, "brackets background (#000000)", 6},
+    {"fill_char_fg", FILL_CHAR_FG, "hex_clr", 0, "fill character foreground (#d0d0d0)", 6},
+    {"fill_char_bg", FILL_CHAR_BG, "hex_clr", 0, "fill character background (#000000)", 6},
+    {"nt_fg", NT_FG, "hex_clr", 0, "normal foreground (#d0d0d0)", 6},
+    {"nt_bg", NT_BG, "hex_clr", 0, "normal background (#000000)", 6},
+    {"nt_rev_fg", NT_REV_FG, "hex_clr", 0, "normal reverse foreground (#000000)", 6},
+    {"nt_rev_bg", NT_REV_BG, "hex_clr", 0, "normal reverse background (#d0d0d0)", 6},
+    {"nt_hl_fg", NT_HL_FG, "hex_clr", 0, "normal highlight foreground (#ffffff)", 6},
+    {"nt_hl_bg", NT_HL_BG, "hex_clr", 0, "normal highlight background (#000000)", 6},
+    {"nt_hl_rev_fg", NT_HL_REV_FG, "hex_clr", 0, "normal highlight reverse foreground (#f00000)", 6},
+    {"nt_hl_rev_bg", NT_HL_REV_BG, "hex_clr", 0, "normal highlight reverse background (#d0d0d0)", 6},
+    {"ln_fg", LN_FG, "hex_clr", 0, "line number foreground (#0000b0)", 6},
+    {"ln_bg", LN_BG, "hex_clr", 0, "line number background (#202020)", 6},
+    {"cmdln_fg", CMDLN_FG, "hex_clr", 0, "line number foreground (#0000b0)", 6},
+    {"cmdln_bg", CMDLN_BG, "hex_clr", 0, "line number background (#202020)", 6},
+    {"title_fg", TITLE_FG, "hex_clr", 0, "title foreground (#d0d0d0)", 6},
+    {"title_bg", TITLE_BG, "hex_clr", 0, "title background (#000000)", 6},
+    {"ran_fg", RAN_FG, "hex_clr", 0, "ran foreground (#d0d0d0)", 6},
+    {"ran_bg", RAN_BG, "hex_clr", 0, "ran background (#000000)", 6},
+    {"blue_gamma", GM_BLUE, "float", 0, "blue_gamma (1.2)", 7},
+    {"gray_gamma", GM_GRAY, "float", 0, "gray gamma (1.2)", 7},
+    {"green_gamma", GM_GREEN, "float", 0, "green gamma (1.2)", 7},
+    {"red_gamma", GM_RED, "float", 0, "red gamma (View)", 7},
+    {"black", XBLACK, "hex_clr", 0, "black (#000000)", 8},
+    {"red", XRED, "hex_clr", 0, "red (#bf0000)", 8},
+    {"green", XGREEN, "hex_clr", 0, "green (#00cf00)", 8},
+    {"yellow", XYELLOW, "hex_clr", 0, "yellow (#efbf00)", 8},
+    {"blue", XBLUE, "hex_clr", 0, "blue (#0000FF)", 8},
+    {"magenta", XMAGENTA, "hex_clr", 0, "magenta (#9f009f)", 8},
+    {"cyan", XCYAN, "hex_clr", 0, "cyan (#00dfdf)", 8},
+    {"white", XWHITE, "hex_clr", 0, "white (#d0d0d0)", 8},
+    {"bblack", XBBLACK, "hex_clr", 0, "bright black (#7f7f7f)", 8},
+    {"bred", XBRED, "hex_clr", 0, "bright red (#FF3737)", 8},
+    {"bgreen", XBGREEN, "hex_clr", 0, "bright green (#00FF7f)", 8},
+    {"byellow", XBYELLOW, "hex_clr", 0, "bright yellow (#FFeF00)", 8},
+    {"bblue", XBBLUE, "hex_clr", 0, "bright blue (#00cfFF)", 8},
+    {"bmagenta", XMAGENTA, "hex_clr", 0, "bright magenta (#FF00FF)", 8},
+    {"bcyan", XBCYAN, "hex_clr", 0, "bright cyan (#00FFFF)", 8},
+    {"bwhite", XBWHITE, "hex_clr", 0, "bright white (#FFFFFF)", 8},
+    {"mapp_data", MAPP_DATA, "directory", 0, "data directory", 9},
+    {"mapp_help", MAPP_HELP, "directory", 0, "help directory", 9},
+    {"mapp_home", MAPP_HOME, "directory", 0, "home directory", 9},
+    {"mapp_msrc", MAPP_MSRC, "directory", 0, "source directory", 9},
+    {"mapp_user", MAPP_USER, "directory", 0, "user directory", 9},
+    {"mapp_theme", MAPP_THEME, "file", 0, "default theme file", 9},
     {0},
 };
 
@@ -253,17 +253,17 @@ parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'l':
         str_to_upper(arg);
-        if (!strcmp(arg, _("SILENT")))
+        if (!strcmp(arg, "SILENT"))
             init->min_log_level = SILENT;
-        else if (!strcmp(arg, _("DEBUG")))
+        else if (!strcmp(arg, "DEBUG"))
             init->min_log_level = DEBUG;
-        else if (!strcmp(arg, _("INFO")))
+        else if (!strcmp(arg, "INFO"))
             init->min_log_level = INFO;
-        else if (!strcmp(arg, _("WARN")))
+        else if (!strcmp(arg, "WARN"))
             init->min_log_level = WARN;
-        else if (!strcmp(arg, _("ERROR")))
+        else if (!strcmp(arg, "ERROR"))
             init->min_log_level = ERROR;
-        else if (!strcmp(arg, _("FATAL")))
+        else if (!strcmp(arg, "FATAL"))
             init->min_log_level = FATAL;
         else
             init->min_log_level = SILENT;
@@ -338,10 +338,10 @@ parse_opt(int key, char *arg, struct argp_state *state) {
             init->p_view_files = str_to_bool(arg);
         break;
     case BG:
-        sscanf(arg, _("#%06x"), &sio->bg);
+        sscanf(arg, "#%06x", &sio->bg);
         break;
     case FG:
-        sscanf(arg, _("#%06x"), &sio->fg);
+        sscanf(arg, "#%06x", &sio->fg);
         break;
     case BORDER:
         char c = arg[0];
@@ -357,76 +357,76 @@ parse_opt(int key, char *arg, struct argp_state *state) {
             sio->border = 'n';
         break;
     case BOX_FG:
-        sscanf(arg, _("#%06x"), &sio->box_fg);
+        sscanf(arg, "#%06x", &sio->box_fg);
         break;
     case BOX_BG:
-        sscanf(arg, _("#%06x"), &sio->box_bg);
+        sscanf(arg, "#%06x", &sio->box_bg);
         break;
     case IND_FG:
-        sscanf(arg, _("#%06x"), &sio->ind_fg);
+        sscanf(arg, "#%06x", &sio->ind_fg);
         break;
     case IND_BG:
-        sscanf(arg, _("#%06x"), &sio->ind_bg);
+        sscanf(arg, "#%06x", &sio->ind_bg);
         break;
     case BRACKETS_FG:
-        sscanf(arg, _("#%06x"), &sio->brackets_fg);
+        sscanf(arg, "#%06x", &sio->brackets_fg);
         break;
     case BRACKETS_BG:
-        sscanf(arg, _("#%06x"), &sio->brackets_bg);
+        sscanf(arg, "#%06x", &sio->brackets_bg);
         break;
     case FILL_CHAR_FG:
-        sscanf(arg, _("#%06x"), &sio->fill_char_fg);
+        sscanf(arg, "#%06x", &sio->fill_char_fg);
         break;
     case FILL_CHAR_BG:
-        sscanf(arg, _("#%06x"), &sio->fill_char_bg);
+        sscanf(arg, "#%06x", &sio->fill_char_bg);
         break;
     case NT_FG:
-        sscanf(arg, _("#%06x"), &sio->nt_fg);
+        sscanf(arg, "#%06x", &sio->nt_fg);
         break;
     case NT_BG:
-        sscanf(arg, _("#%06x"), &sio->nt_bg);
+        sscanf(arg, "#%06x", &sio->nt_bg);
         break;
     case NT_REV_FG:
-        sscanf(arg, _("#%06x"), &sio->nt_rev_fg);
+        sscanf(arg, "#%06x", &sio->nt_rev_fg);
         break;
     case NT_REV_BG:
-        sscanf(arg, _("#%06x"), &sio->nt_rev_bg);
+        sscanf(arg, "#%06x", &sio->nt_rev_bg);
         break;
     case NT_HL_FG:
-        sscanf(arg, _("#%06x"), &sio->nt_hl_fg);
+        sscanf(arg, "#%06x", &sio->nt_hl_fg);
         break;
     case NT_HL_BG:
-        sscanf(arg, _("#%06x"), &sio->nt_hl_bg);
+        sscanf(arg, "#%06x", &sio->nt_hl_bg);
         break;
     case NT_HL_REV_FG:
-        sscanf(arg, _("#%06x"), &sio->nt_hl_rev_fg);
+        sscanf(arg, "#%06x", &sio->nt_hl_rev_fg);
         break;
     case NT_HL_REV_BG:
-        sscanf(arg, _("#%06x"), &sio->nt_hl_rev_bg);
+        sscanf(arg, "#%06x", &sio->nt_hl_rev_bg);
         break;
     case TITLE_FG:
-        sscanf(arg, _("#%06x"), &sio->title_fg);
+        sscanf(arg, "#%06x", &sio->title_fg);
         break;
     case TITLE_BG:
-        sscanf(arg, _("#%06x"), &sio->title_bg);
+        sscanf(arg, "#%06x", &sio->title_bg);
         break;
     case LN_FG:
-        sscanf(arg, _("#%06x"), &sio->ln_fg);
+        sscanf(arg, "#%06x", &sio->ln_fg);
         break;
     case LN_BG:
-        sscanf(arg, _("#%06x"), &sio->ln_bg);
+        sscanf(arg, "#%06x", &sio->ln_bg);
         break;
     case CMDLN_FG:
-        sscanf(arg, _("#%06x"), &sio->cmdln_fg);
+        sscanf(arg, "#%06x", &sio->cmdln_fg);
         break;
     case CMDLN_BG:
-        sscanf(arg, _("#%06x"), &sio->cmdln_bg);
+        sscanf(arg, "#%06x", &sio->cmdln_bg);
         break;
     case RAN_FG:
-        sscanf(arg, _("#%06x"), &sio->ran_fg);
+        sscanf(arg, "#%06x", &sio->ran_fg);
         break;
     case RAN_BG:
-        sscanf(arg, _("#%06x"), &sio->ran_bg);
+        sscanf(arg, "#%06x", &sio->ran_bg);
         break;
     case GM_BLUE:
         sio->blue_gamma = str_to_double(arg);
@@ -499,7 +499,7 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     char term[MAXLEN];
     char tmp_str[MAXLEN];
     char *e;
-    setlocale(LC_ALL, _("en_US.UTF-8"));
+    setlocale(LC_ALL, "en_US.UTF-8");
 
     init->sio = (SIO *)calloc(1, sizeof(SIO));
     if (!init->sio) {
@@ -508,14 +508,14 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     }
     SIO *sio = init->sio;
     if (!init) {
-        ssnprintf(tmp_str, sizeof(tmp_str), _("%s"),
+        ssnprintf(tmp_str, sizeof(tmp_str), "%s",
                   _("init struct not allocated on entry"));
         ui_abend(-1, tmp_str);
         exit(-1);
     }
-    e = getenv(_("CMENU_HOME"));
+    e = getenv("CMENU_HOME");
     if (!e || *e == '\0')
-        strnz__cpy(init->mapp_home, _("~/menuapp"), MAXLEN);
+        strnz__cpy(init->mapp_home, "~/menuapp", MAXLEN);
     else
         strnz__cpy(init->mapp_home, e, MAXLEN);
 
@@ -525,31 +525,31 @@ void mapp_initialization(Init *init, int argc, char **argv) {
             ui_abend(-1, _("MAPP_HOME directory invalid"));
     }
     // CMENU_RC should be an absolute path
-    e = getenv(_("CMENU_RC"));
+    e = getenv("CMENU_RC");
     if (!e || *e == '\0') {
         strnz__cpy(init->minitrc, init->mapp_home, MAXLEN - 1);
-        strnz__cat(init->minitrc, _("/.minitrc"), MAXLEN);
+        strnz__cat(init->minitrc, "/.minitrc", MAXLEN);
     } else
         strnz__cpy(init->minitrc, e, MAXLEN);
     if (init->mapp_user[0] == '\0') {
         strnz__cpy(init->mapp_user, init->mapp_home, MAXLEN - 1);
-        strnz__cat(init->mapp_user, _("/user"), MAXLEN - 1);
+        strnz__cat(init->mapp_user, "/user", MAXLEN - 1);
     }
     if (init->mapp_theme[0] == '\0') {
         strnz__cpy(init->mapp_theme, init->mapp_home, MAXLEN - 1);
-        strnz__cat(init->mapp_theme, _("/themes/default"), MAXLEN - 1);
+        strnz__cat(init->mapp_theme, "/themes/default", MAXLEN - 1);
     }
     if (init->mapp_msrc[0] == '\0') {
         strnz__cpy(init->mapp_msrc, init->mapp_home, MAXLEN - 1);
-        strnz__cat(init->mapp_msrc, _("/msrc"), MAXLEN - 1);
+        strnz__cat(init->mapp_msrc, "/msrc", MAXLEN - 1);
     }
     if (init->mapp_data[0] == '\0') {
         strnz__cpy(init->mapp_data, init->mapp_home, MAXLEN - 1);
-        strnz__cat(init->mapp_data, _("/data"), MAXLEN - 1);
+        strnz__cat(init->mapp_data, "/data", MAXLEN - 1);
     }
     if (init->mapp_help[0] == '\0') {
         strnz__cpy(init->mapp_help, init->mapp_home, MAXLEN - 1);
-        strnz__cat(init->mapp_help, _("/help"), MAXLEN - 1);
+        strnz__cat(init->mapp_help, "/help", MAXLEN - 1);
     }
     init->mapp_spec[0] = '\0'; /**< menu specification file */
     // Set default colors and settings in SIO struct
@@ -583,20 +583,20 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     init->f_erase_remainder = true;               /**< erase remainder on enter */
     init->brackets[0] = '\0';                     /**< field enclosure brackets */
     strnz__cpy(init->fill_char, " ", MAXLEN - 1); /**< field fill character */
-    e = getenv(_("TERM"));
+    e = getenv("TERM");
     if (e == nullptr || *e == '\0')
-        strnz__cpy(term, _("xterm-256color"), MAXLEN);
+        strnz__cpy(term, "xterm-256color", MAXLEN);
     else
         strnz__cpy(term, e, MAXLEN - 1);
-    e = getenv(_("EDITOR"));
+    e = getenv("EDITOR");
     if (e && *e != '\0')
-        strnz__cpy(init->editor, _("vi"), MAXLEN - 1);
+        strnz__cpy(init->editor, "vi", MAXLEN - 1);
     else
         strnz__cpy(init->editor, e, MAXLEN - 1);
     process_config_files(init);
     ui_min_log_level = init->min_log_level;
     ui_log_fp = ui_open_log();
-    ui_log(INFO, _("mapp_initialization"));
+    ui_log(INFO, "mapp_initialization");
     ui_log(INFO, _("config files processed"));
     init->mapp_spec[0] = '\0';
     init->argc = argc;
@@ -666,7 +666,7 @@ void zero_opt_args(Init *init) {
     @details Lines beginning with '#" are comments, discard.
     Copy line to tmp_str removing quotes, spaces, semicolons, and
    newlines.
-    Record structure is _("parse key=value pairs").
+    Record structure is "parse key=value pairs".
     Skip lines without '='.
     Set init struct values based on key.
     Skip unknown keys. */
@@ -674,11 +674,11 @@ int process_config_files(Init *init) {
     char config_file_name[MAXLEN];
     int rc;
     if (!init->minitrc[0]) {
-        char *e = getenv(_("MINITRC"));
+        char *e = getenv("MINITRC");
         if (e)
             strnz__cpy(init->minitrc, e, MAXLEN - 1);
         else
-            strnz__cpy(init->minitrc, _("~/.minitrc"), MAXLEN - 1);
+            strnz__cpy(init->minitrc, "~/.minitrc", MAXLEN - 1);
     }
 
     expand_tilde(init->minitrc, MAXLEN - 1);
@@ -764,49 +764,49 @@ int process_config_file(char *config_file_name, Init *init) {
             continue;
         if (value[0] == '\0')
             continue;
-        if (!strcmp(key, _("include"))) {
+        if (!strcmp(key, "include")) {
             strnz__cpy(include_file_name, value, MAXLEN - 1);
             expand_tilde(include_file_name, MAXLEN - 1);
             process_config_file(include_file_name, init);
             continue;
         }
-        if (!strcmp(key, _("minitrc"))) {
+        if (!strcmp(key, "minitrc")) {
             strnz__cpy(init->minitrc, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("lines"))) {
+        if (!strcmp(key, "lines")) {
             init->lines = atoi(value);
             continue;
         }
-        if (!strcmp(key, _("cols"))) {
+        if (!strcmp(key, "cols")) {
             init->cols = atoi(value);
             continue;
         }
-        if (!strcmp(key, _("begy"))) {
+        if (!strcmp(key, "begy")) {
             init->begy = atoi(value);
             continue;
         }
-        if (!strcmp(key, _("begx"))) {
+        if (!strcmp(key, "begx")) {
             init->begx = atoi(value);
             continue;
         }
-        if (!strcmp(key, _("f_ln"))) {
+        if (!strcmp(key, "f_ln")) {
             init->f_ln = str_to_bool(value);
             continue;
         }
-        if (!strcmp(key, _("f_at_end_remove"))) {
+        if (!strcmp(key, "f_at_end_remove")) {
             init->f_at_end_remove = str_to_bool(value);
             continue;
         }
-        if (!strcmp(key, _("f_erase_remainder"))) {
+        if (!strcmp(key, "f_erase_remainder")) {
             init->f_erase_remainder = str_to_bool(value);
             continue;
         }
-        if (!strcmp(key, _("brackets"))) {
+        if (!strcmp(key, "brackets")) {
             strnz__cpy(init->brackets, value, 2);
             continue;
         }
-        if (!strcmp(key, _("fill_char"))) {
+        if (!strcmp(key, "fill_char")) {
             if (strlen(value) > 1)
                 value[1] = '\0';
             if (wcwidth((int)value[0]) > 1)
@@ -814,79 +814,79 @@ int process_config_file(char *config_file_name, Init *init) {
             strnz__cpy(init->fill_char, value, 4);
             continue;
         }
-        if (!strcmp(key, _("f_ignore_case"))) {
+        if (!strcmp(key, "f_ignore_case")) {
             init->f_ignore_case = str_to_bool(value);
             continue;
         }
-        if (!strcmp(key, _("p_view_files"))) {
+        if (!strcmp(key, "p_view_files")) {
             init->p_view_files = str_to_bool(value);
             continue;
         }
-        if (!strcmp(key, _("f_read_theme"))) {
+        if (!strcmp(key, "f_read_theme")) {
             init->f_read_theme = str_to_bool(value);
             continue;
         }
-        if (!strcmp(key, _("f_squeeze"))) {
+        if (!strcmp(key, "f_squeeze")) {
             init->f_squeeze = str_to_bool(value);
             continue;
         }
-        if (!strcmp(key, _("f_strip_ansi"))) {
+        if (!strcmp(key, "f_strip_ansi")) {
             init->f_strip_ansi = str_to_bool(value);
             continue;
         }
-        if (!strcmp(key, _("f_multiple_cmd_args"))) {
+        if (!strcmp(key, "f_multiple_cmd_args")) {
             init->f_multiple_cmd_args = str_to_bool(value);
             continue;
         }
-        if (!strcmp(key, _("select_max"))) {
+        if (!strcmp(key, "select_max")) {
             init->select_max = atoi(value);
             continue;
         }
-        if (!strcmp(key, _("tab_stop"))) {
+        if (!strcmp(key, "tab_stop")) {
             init->tab_stop = atoi(value);
             continue;
         }
-        if (!strcmp(key, _("timeout_secs"))) {
+        if (!strcmp(key, "timeout_secs")) {
             init->timeout_secs = atoi(value);
             continue;
         }
-        if (!strcmp(key, _("h_shift"))) {
+        if (!strcmp(key, "h_shift")) {
             init->h_shift = atoi(value);
             continue;
         }
-        if (!strcmp(key, _("wrap"))) {
+        if (!strcmp(key, "wrap")) {
             init->wrap = str_to_bool(value);
             continue;
         }
-        if (!strcmp(key, _("title"))) {
+        if (!strcmp(key, "title")) {
             strnz__cpy(init->title, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("cmd"))) {
+        if (!strcmp(key, "cmd")) {
             strnz__cpy(init->cmd, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("cmd_all"))) {
+        if (!strcmp(key, "cmd_all")) {
             strnz__cpy(init->cmd_all, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("parent_cmd"))) {
+        if (!strcmp(key, "parent_cmd")) {
             strnz__cpy(init->parent_cmd, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("provider_cmd"))) {
+        if (!strcmp(key, "provider_cmd")) {
             strnz__cpy(init->provider_cmd, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("receiver_cmd"))) {
+        if (!strcmp(key, "receiver_cmd")) {
             strnz__cpy(init->receiver_cmd, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("editor"))) {
+        if (!strcmp(key, "editor")) {
             strnz__cpy(init->editor, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("border"))) {
+        if (!strcmp(key, "border")) {
             char c = value[0];
             if (c == 'r' || c == 'R')
                 sio->border = 'r';
@@ -900,243 +900,243 @@ int process_config_file(char *config_file_name, Init *init) {
                 sio->border = 'n';
             continue;
         }
-        if (!strcmp(key, _("fg"))) {
-            sscanf(value, _("#%06x"), &sio->fg);
+        if (!strcmp(key, "fg")) {
+            sscanf(value, "#%06x", &sio->fg);
             continue;
         }
-        if (!strcmp(key, _("bg"))) {
-            sscanf(value, _("#%06x"), &sio->bg);
+        if (!strcmp(key, "bg")) {
+            sscanf(value, "#%06x", &sio->bg);
             continue;
         }
-        if (!strcmp(key, _("box_fg"))) {
-            sscanf(value, _("#%06x"), &sio->fg);
+        if (!strcmp(key, "box_fg")) {
+            sscanf(value, "#%06x", &sio->fg);
             continue;
         }
-        if (!strcmp(key, _("box_bg"))) {
-            sscanf(value, _("#%06x"), &sio->box_bg);
+        if (!strcmp(key, "box_bg")) {
+            sscanf(value, "#%06x", &sio->box_bg);
             continue;
         }
-        if (!strcmp(key, _("ind_fg"))) {
-            sscanf(value, _("#%06x"), &sio->ind_fg);
+        if (!strcmp(key, "ind_fg")) {
+            sscanf(value, "#%06x", &sio->ind_fg);
             continue;
         }
-        if (!strcmp(key, _("ind_bg"))) {
-            sscanf(value, _("#%06x"), &sio->ind_bg);
+        if (!strcmp(key, "ind_bg")) {
+            sscanf(value, "#%06x", &sio->ind_bg);
             continue;
         }
-        if (!strcmp(key, _("brackets_fg"))) {
-            sscanf(value, _("#%06x"), &sio->brackets_fg);
+        if (!strcmp(key, "brackets_fg")) {
+            sscanf(value, "#%06x", &sio->brackets_fg);
             continue;
         }
-        if (!strcmp(key, _("brackets_bg"))) {
-            sscanf(value, _("#%06x"), &sio->brackets_bg);
+        if (!strcmp(key, "brackets_bg")) {
+            sscanf(value, "#%06x", &sio->brackets_bg);
             continue;
         }
-        if (!strcmp(key, _("fill_char_fg"))) {
-            sscanf(value, _("#%06x"), &sio->fill_char_fg);
+        if (!strcmp(key, "fill_char_fg")) {
+            sscanf(value, "#%06x", &sio->fill_char_fg);
             continue;
         }
-        if (!strcmp(key, _("fill_char_bg"))) {
-            sscanf(value, _("#%06x"), &sio->fill_char_bg);
+        if (!strcmp(key, "fill_char_bg")) {
+            sscanf(value, "#%06x", &sio->fill_char_bg);
             continue;
         }
-        if (!strcmp(key, _("ln_fg"))) {
-            sscanf(value, _("#%06x"), &sio->ln_fg);
+        if (!strcmp(key, "ln_fg")) {
+            sscanf(value, "#%06x", &sio->ln_fg);
             continue;
         }
-        if (!strcmp(key, _("ln_bg"))) {
-            sscanf(value, _("#%06x"), &sio->ln_bg);
+        if (!strcmp(key, "ln_bg")) {
+            sscanf(value, "#%06x", &sio->ln_bg);
             continue;
         }
-        if (!strcmp(key, _("cmdln_fg"))) {
-            sscanf(value, _("#%06x"), &sio->cmdln_fg);
+        if (!strcmp(key, "cmdln_fg")) {
+            sscanf(value, "#%06x", &sio->cmdln_fg);
             continue;
         }
-        if (!strcmp(key, _("cmdln_bg"))) {
-            sscanf(value, _("#%06x"), &sio->cmdln_bg);
+        if (!strcmp(key, "cmdln_bg")) {
+            sscanf(value, "#%06x", &sio->cmdln_bg);
             continue;
         }
-        if (!strcmp(key, _("nt_fg"))) {
-            sscanf(value, _("#%06x"), &sio->nt_fg);
+        if (!strcmp(key, "nt_fg")) {
+            sscanf(value, "#%06x", &sio->nt_fg);
             continue;
         }
-        if (!strcmp(key, _("nt_bg"))) {
-            sscanf(value, _("#%06x"), &sio->nt_bg);
+        if (!strcmp(key, "nt_bg")) {
+            sscanf(value, "#%06x", &sio->nt_bg);
             continue;
         }
-        if (!strcmp(key, _("nt_rev_fg"))) {
-            sscanf(value, _("#%06x"), &sio->nt_rev_fg);
+        if (!strcmp(key, "nt_rev_fg")) {
+            sscanf(value, "#%06x", &sio->nt_rev_fg);
             continue;
         }
-        if (!strcmp(key, _("nt_rev_bg"))) {
-            sscanf(value, _("#%06x"), &sio->nt_rev_bg);
+        if (!strcmp(key, "nt_rev_bg")) {
+            sscanf(value, "#%06x", &sio->nt_rev_bg);
             continue;
         }
-        if (!strcmp(key, _("nt_hl_fg"))) {
-            sscanf(value, _("#%06x"), &sio->nt_hl_fg);
+        if (!strcmp(key, "nt_hl_fg")) {
+            sscanf(value, "#%06x", &sio->nt_hl_fg);
             continue;
         }
-        if (!strcmp(key, _("nt_hl_bg"))) {
-            sscanf(value, _("#%06x"), &sio->nt_hl_bg);
+        if (!strcmp(key, "nt_hl_bg")) {
+            sscanf(value, "#%06x", &sio->nt_hl_bg);
             continue;
         }
-        if (!strcmp(key, _("nt_hl_rev_fg"))) {
-            sscanf(value, _("#%06x"), &sio->nt_hl_rev_fg);
+        if (!strcmp(key, "nt_hl_rev_fg")) {
+            sscanf(value, "#%06x", &sio->nt_hl_rev_fg);
             continue;
         }
-        if (!strcmp(key, _("nt_hl_rev_bg"))) {
-            sscanf(value, _("#%06x"), &sio->nt_hl_rev_bg);
+        if (!strcmp(key, "nt_hl_rev_bg")) {
+            sscanf(value, "#%06x", &sio->nt_hl_rev_bg);
             continue;
         }
-        if (!strcmp(key, _("title_fg"))) {
-            sscanf(value, _("#%06x"), &sio->title_fg);
+        if (!strcmp(key, "title_fg")) {
+            sscanf(value, "#%06x", &sio->title_fg);
             continue;
         }
-        if (!strcmp(key, _("title_bg"))) {
-            sscanf(value, _("#%06x"), &sio->title_bg);
+        if (!strcmp(key, "title_bg")) {
+            sscanf(value, "#%06x", &sio->title_bg);
             continue;
         }
-        if (!strcmp(key, _("ran_fg"))) {
-            sscanf(value, _("#%06x"), &sio->ran_fg);
+        if (!strcmp(key, "ran_fg")) {
+            sscanf(value, "#%06x", &sio->ran_fg);
             continue;
         }
-        if (!strcmp(key, _("ran_bg"))) {
-            sscanf(value, _("#%06x"), &sio->ran_bg);
+        if (!strcmp(key, "ran_bg")) {
+            sscanf(value, "#%06x", &sio->ran_bg);
             continue;
         }
-        if (!strcmp(key, _("red_gamma"))) {
+        if (!strcmp(key, "red_gamma")) {
             sio->red_gamma = str_to_double(value);
             continue;
         }
-        if (!strcmp(key, _("green_gamma"))) {
+        if (!strcmp(key, "green_gamma")) {
             sio->green_gamma = str_to_double(value);
             continue;
         }
-        if (!strcmp(key, _("blue_gamma"))) {
+        if (!strcmp(key, "blue_gamma")) {
             sio->blue_gamma = str_to_double(value);
             continue;
         }
-        if (!strcmp(key, _("gray_gamma"))) {
+        if (!strcmp(key, "gray_gamma")) {
             sio->gray_gamma = str_to_double(value);
             continue;
         }
-        if (!strcmp(key, _("black"))) {
-            sscanf(value, _("#%06x"), &sio->black);
+        if (!strcmp(key, "black")) {
+            sscanf(value, "#%06x", &sio->black);
             continue;
         }
-        if (!strcmp(key, _("red"))) {
-            sscanf(value, _("#%06x"), &sio->red);
+        if (!strcmp(key, "red")) {
+            sscanf(value, "#%06x", &sio->red);
             continue;
         }
-        if (!strcmp(key, _("green"))) {
-            sscanf(value, _("#%06x"), &sio->green);
+        if (!strcmp(key, "green")) {
+            sscanf(value, "#%06x", &sio->green);
             continue;
         }
-        if (!strcmp(key, _("yellow"))) {
-            sscanf(value, _("#%06x"), &sio->yellow);
+        if (!strcmp(key, "yellow")) {
+            sscanf(value, "#%06x", &sio->yellow);
             continue;
         }
-        if (!strcmp(key, _("blue"))) {
-            sscanf(value, _("#%06x"), &sio->blue);
+        if (!strcmp(key, "blue")) {
+            sscanf(value, "#%06x", &sio->blue);
             continue;
         }
-        if (!strcmp(key, _("magenta"))) {
-            sscanf(value, _("#%06x"), &sio->magenta);
+        if (!strcmp(key, "magenta")) {
+            sscanf(value, "#%06x", &sio->magenta);
             continue;
         }
-        if (!strcmp(key, _("cyan"))) {
-            sscanf(value, _("#%06x"), &sio->cyan);
+        if (!strcmp(key, "cyan")) {
+            sscanf(value, "#%06x", &sio->cyan);
             continue;
         }
-        if (!strcmp(key, _("white"))) {
-            sscanf(value, _("#%06x"), &sio->white);
+        if (!strcmp(key, "white")) {
+            sscanf(value, "#%06x", &sio->white);
             continue;
         }
-        if (!strcmp(key, _("orange"))) {
-            sscanf(value, _("#%06x"), &sio->orange);
+        if (!strcmp(key, "orange")) {
+            sscanf(value, "#%06x", &sio->orange);
             continue;
         }
-        if (!strcmp(key, _("bblack"))) {
-            sscanf(value, _("#%06x"), &sio->bblack);
+        if (!strcmp(key, "bblack")) {
+            sscanf(value, "#%06x", &sio->bblack);
             continue;
         }
-        if (!strcmp(key, _("bred"))) {
-            sscanf(value, _("#%06x"), &sio->bred);
+        if (!strcmp(key, "bred")) {
+            sscanf(value, "#%06x", &sio->bred);
             continue;
         }
-        if (!strcmp(key, _("bgreen"))) {
-            sscanf(value, _("#%06x"), &sio->bgreen);
+        if (!strcmp(key, "bgreen")) {
+            sscanf(value, "#%06x", &sio->bgreen);
             continue;
         }
-        if (!strcmp(key, _("byellow"))) {
-            sscanf(value, _("#%06x"), &sio->byellow);
+        if (!strcmp(key, "byellow")) {
+            sscanf(value, "#%06x", &sio->byellow);
             continue;
         }
-        if (!strcmp(key, _("bblue"))) {
-            sscanf(value, _("#%06x"), &sio->bblue);
+        if (!strcmp(key, "bblue")) {
+            sscanf(value, "#%06x", &sio->bblue);
             continue;
         }
-        if (!strcmp(key, _("bmagenta"))) {
-            sscanf(value, _("#%06x"), &sio->bmagenta);
+        if (!strcmp(key, "bmagenta")) {
+            sscanf(value, "#%06x", &sio->bmagenta);
             continue;
         }
-        if (!strcmp(key, _("bcyan"))) {
-            sscanf(value, _("#%06x"), &sio->bcyan);
+        if (!strcmp(key, "bcyan")) {
+            sscanf(value, "#%06x", &sio->bcyan);
             continue;
         }
-        if (!strcmp(key, _("bwhite"))) {
-            sscanf(value, _("#%06x"), &sio->bwhite);
+        if (!strcmp(key, "bwhite")) {
+            sscanf(value, "#%06x", &sio->bwhite);
             continue;
         }
-        if (!strcmp(key, _("borange"))) {
-            sscanf(value, _("#%06x"), &sio->borange);
+        if (!strcmp(key, "borange")) {
+            sscanf(value, "#%06x", &sio->borange);
             continue;
         }
-        if (!strcmp(key, _("mapp_spec"))) {
+        if (!strcmp(key, "mapp_spec")) {
             strnz__cpy(init->mapp_spec, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("mapp_data"))) {
+        if (!strcmp(key, "mapp_data")) {
             strnz__cpy(init->mapp_data, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("mapp_help"))) {
+        if (!strcmp(key, "mapp_help")) {
             strnz__cpy(init->mapp_help, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("mapp_home"))) {
+        if (!strcmp(key, "mapp_home")) {
             strnz__cpy(init->mapp_home, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("mapp_msrc"))) {
+        if (!strcmp(key, "mapp_msrc")) {
             strnz__cpy(init->mapp_msrc, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("mapp_user"))) {
+        if (!strcmp(key, "mapp_user")) {
             strnz__cpy(init->mapp_user, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("mapp_theme"))) {
+        if (!strcmp(key, "mapp_theme")) {
             strnz__cpy(init->mapp_theme, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("log_file_spec"))) {
+        if (!strcmp(key, "log_file_spec")) {
             strnz__cpy(init->log_file_spec, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, _("log_level"))) {
+        if (!strcmp(key, "log_level")) {
             str_to_upper(value);
-            if (!strcmp(value, _("SILENT")))
+            if (!strcmp(value, "SILENT"))
                 init->min_log_level = SILENT;
-            else if (!strcmp(value, _("DEBUG")))
+            else if (!strcmp(value, "DEBUG"))
                 init->min_log_level = DEBUG;
-            else if (!strcmp(value, _("INFO")))
+            else if (!strcmp(value, "INFO"))
                 init->min_log_level = INFO;
-            else if (!strcmp(value, _("WARN")))
+            else if (!strcmp(value, "WARN"))
                 init->min_log_level = WARN;
-            else if (!strcmp(value, _("ERROR")))
+            else if (!strcmp(value, "ERROR"))
                 init->min_log_level = ERROR;
-            else if (!strcmp(value, _("FATAL")))
+            else if (!strcmp(value, "FATAL"))
                 init->min_log_level = FATAL;
             else
                 init->min_log_level = SILENT;
@@ -1162,19 +1162,19 @@ int write_config(Init *init) {
     char minitrc_dmp[MAXLEN];
     char tmp_str[MAXLEN];
     SIO *sio = init->sio;
-    e = getenv(_("CMENU_HOME"));
+    e = getenv("CMENU_HOME");
     minitrc_dmp[0] = '\0';
     char config_s[MAXLEN];
     if (e) {
         strnz__cpy(minitrc_dmp, e, MAXLEN - 1);
         strnz__cat(minitrc_dmp, "/", MAXLEN - 1);
     }
-    strnz__cat(minitrc_dmp, _("minitrc.dmp"), MAXLEN - 1);
+    strnz__cat(minitrc_dmp, "minitrc.dmp", MAXLEN - 1);
     ui_log(INFO, _("writing config file to: %s"), minitrc_dmp);
     FILE *minitrc_fp = fopen(minitrc_dmp, "w");
     if (minitrc_fp == (FILE *)0) {
         ssnprintf(em0, MAXLEN - 1, _("failed to open file: %s"), minitrc_dmp);
-        ui_log(ERROR, _("em0"));
+        ui_log(ERROR, "em0");
         return (-1);
     }
     (void)fprintf(minitrc_fp, "# %s\n", minitrc_dmp);
@@ -1228,188 +1228,188 @@ int write_config(Init *init) {
     for (int i = 0; doc_tbl[i][0] != '\0'; i++)
         (void)fprintf(minitrc_fp, "%s\n", doc_tbl[i]);
     (void)fprintf(minitrc_fp, "#\n");
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("parent_cmd"), init->parent_cmd);
-    print_argp_doc(minitrc_fp, config_s, _("parent_cmd"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%d"), _("cols"), init->cols);
-    print_argp_doc(minitrc_fp, config_s, _("cols"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%d"), _("lines"), init->lines);
-    print_argp_doc(minitrc_fp, config_s, _("lines"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("title"), init->title);
-    print_argp_doc(minitrc_fp, config_s, _("title"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%d"), _("begx"), init->begx);
-    print_argp_doc(minitrc_fp, config_s, _("begx"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%d"), _("begy"), init->begy);
-    print_argp_doc(minitrc_fp, config_s, _("begy"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("cmd_all"), init->cmd_all);
-    print_argp_doc(minitrc_fp, config_s, _("cmd_all"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("cmd"), init->cmd);
-    print_argp_doc(minitrc_fp, config_s, _("cmd"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("mapp_spec"), init->mapp_spec);
-    print_argp_doc(minitrc_fp, config_s, _("mapp_spec"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("help_spec"), init->help_spec);
-    print_argp_doc(minitrc_fp, config_s, _("help_spec"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("in_spec"), init->in_spec);
-    print_argp_doc(minitrc_fp, config_s, _("in_spec"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("out_spec"), init->out_spec);
-    print_argp_doc(minitrc_fp, config_s, _("out_spec"));
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "parent_cmd", init->parent_cmd);
+    print_argp_doc(minitrc_fp, config_s, "parent_cmd");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%d", "cols", init->cols);
+    print_argp_doc(minitrc_fp, config_s, "cols");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%d", "lines", init->lines);
+    print_argp_doc(minitrc_fp, config_s, "lines");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "title", init->title);
+    print_argp_doc(minitrc_fp, config_s, "title");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%d", "begx", init->begx);
+    print_argp_doc(minitrc_fp, config_s, "begx");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%d", "begy", init->begy);
+    print_argp_doc(minitrc_fp, config_s, "begy");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "cmd_all", init->cmd_all);
+    print_argp_doc(minitrc_fp, config_s, "cmd_all");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "cmd", init->cmd);
+    print_argp_doc(minitrc_fp, config_s, "cmd");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "mapp_spec", init->mapp_spec);
+    print_argp_doc(minitrc_fp, config_s, "mapp_spec");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "help_spec", init->help_spec);
+    print_argp_doc(minitrc_fp, config_s, "help_spec");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "in_spec", init->in_spec);
+    print_argp_doc(minitrc_fp, config_s, "in_spec");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "out_spec", init->out_spec);
+    print_argp_doc(minitrc_fp, config_s, "out_spec");
 
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("log_file_spec"), init->log_file_spec);
-    print_argp_doc(minitrc_fp, config_s, _("log_file_spec"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("log_level"), ui_log_level_s[init->min_log_level]);
-    print_argp_doc(minitrc_fp, config_s, _("log_level"));
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "log_file_spec", init->log_file_spec);
+    print_argp_doc(minitrc_fp, config_s, "log_file_spec");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "log_level", ui_log_level_s[init->min_log_level]);
+    print_argp_doc(minitrc_fp, config_s, "log_level");
 
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("receiver_cmd"), init->receiver_cmd);
-    print_argp_doc(minitrc_fp, config_s, _("receiver_cmd"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("provider_cmd"), init->provider_cmd);
-    print_argp_doc(minitrc_fp, config_s, _("provider_cmd"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("f_erase_remainder"), init->f_erase_remainder ? _("true") : _("false"));
-    print_argp_doc(minitrc_fp, config_s, _("f_erase_remainder"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("fill_char"), init->fill_char);
-    print_argp_doc(minitrc_fp, config_s, _("fill_char"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("f_strip_ansi"), init->f_strip_ansi ? _("true") : _("false"));
-    print_argp_doc(minitrc_fp, config_s, _("f_strip_ansi"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("f_multiple_cmd_args"), init->f_multiple_cmd_args ? _("true") : _("false"));
-    print_argp_doc(minitrc_fp, config_s, _("f_multiple_cmd_args"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%d"), _("select_max"), init->select_max);
-    print_argp_doc(minitrc_fp, config_s, _("select_max"));
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "receiver_cmd", init->receiver_cmd);
+    print_argp_doc(minitrc_fp, config_s, "receiver_cmd");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "provider_cmd", init->provider_cmd);
+    print_argp_doc(minitrc_fp, config_s, "provider_cmd");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_erase_remainder", init->f_erase_remainder ? "true" : "false");
+    print_argp_doc(minitrc_fp, config_s, "f_erase_remainder");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "fill_char", init->fill_char);
+    print_argp_doc(minitrc_fp, config_s, "fill_char");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_strip_ansi", init->f_strip_ansi ? "true" : "false");
+    print_argp_doc(minitrc_fp, config_s, "f_strip_ansi");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_multiple_cmd_args", init->f_multiple_cmd_args ? "true" : "false");
+    print_argp_doc(minitrc_fp, config_s, "f_multiple_cmd_args");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%d", "select_max", init->select_max);
+    print_argp_doc(minitrc_fp, config_s, "select_max");
 
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("f_ln"), init->f_ln ? _("true") : _("false"));
-    print_argp_doc(minitrc_fp, config_s, _("f_ln"));
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_ln", init->f_ln ? "true" : "false");
+    print_argp_doc(minitrc_fp, config_s, "f_ln");
 
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("f_squeeze"), init->f_squeeze ? _("true") : _("false"));
-    print_argp_doc(minitrc_fp, config_s, _("f_squeeze"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%d"), _("tab_stop"), init->tab_stop);
-    print_argp_doc(minitrc_fp, config_s, _("tab_stop"));
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_squeeze", init->f_squeeze ? "true" : "false");
+    print_argp_doc(minitrc_fp, config_s, "f_squeeze");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%d", "tab_stop", init->tab_stop);
+    print_argp_doc(minitrc_fp, config_s, "tab_stop");
 
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%d"), _("timeout_secs"), init->timeout_secs);
-    print_argp_doc(minitrc_fp, config_s, _("timeout_secs"));
+    ssnprintf(config_s, MAXLEN - 1, "%s=%d", "timeout_secs", init->timeout_secs);
+    print_argp_doc(minitrc_fp, config_s, "timeout_secs");
 
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%d"), _("h_shift"), init->h_shift);
-    print_argp_doc(minitrc_fp, config_s, _("h_shift"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("brackets"), init->brackets);
-    print_argp_doc(minitrc_fp, config_s, _("brackets"));
+    ssnprintf(config_s, MAXLEN - 1, "%s=%d", "h_shift", init->h_shift);
+    print_argp_doc(minitrc_fp, config_s, "h_shift");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "brackets", init->brackets);
+    print_argp_doc(minitrc_fp, config_s, "brackets");
 
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("wrap"), init->wrap ? _("true") : _("false"));
-    print_argp_doc(minitrc_fp, config_s, _("wrap"));
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "wrap", init->wrap ? "true" : "false");
+    print_argp_doc(minitrc_fp, config_s, "wrap");
 
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("f_ignore_case"), init->f_ignore_case ? _("true") : _("false"));
-    print_argp_doc(minitrc_fp, config_s, _("f_ignore_case"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("p_view_files"), init->p_view_files ? _("true") : _("false"));
-    print_argp_doc(minitrc_fp, config_s, _("p_view_files"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("f_read_theme"), init->f_read_theme ? _("true") : _("false"));
-    print_argp_doc(minitrc_fp, config_s, _("f_read_theme"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("editor"), init->editor);
-    print_argp_doc(minitrc_fp, config_s, _("editor"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%c"), _("border"), sio->border);
-    print_argp_doc(minitrc_fp, config_s, _("border"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("bg"), sio->bg);
-    print_argp_doc(minitrc_fp, config_s, _("bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%6x"), _("fg"), sio->fg);
-    print_argp_doc(minitrc_fp, config_s, _("fg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("box_fg"), sio->box_fg);
-    print_argp_doc(minitrc_fp, config_s, _("box_fg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("box_bg"), sio->box_bg);
-    print_argp_doc(minitrc_fp, config_s, _("box_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("ind_fg"), sio->ind_fg);
-    print_argp_doc(minitrc_fp, config_s, _("ind_fg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("ind_bg"), sio->ind_bg);
-    print_argp_doc(minitrc_fp, config_s, _("ind_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("brackets_fg"), sio->brackets_fg);
-    print_argp_doc(minitrc_fp, config_s, _("brackets_fg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("brackets_bg"), sio->brackets_bg);
-    print_argp_doc(minitrc_fp, config_s, _("brackets_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("fill_char_fg"), sio->fill_char_fg);
-    print_argp_doc(minitrc_fp, config_s, _("fill_char_fg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("fill_char_bg"), sio->fill_char_bg);
-    print_argp_doc(minitrc_fp, config_s, _("fill_char_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("ln_bg"), sio->ln_bg);
-    print_argp_doc(minitrc_fp, config_s, _("ln_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("ln_fg"), sio->ln_fg);
-    print_argp_doc(minitrc_fp, config_s, _("ln_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("cmdln_bg"), sio->cmdln_bg);
-    print_argp_doc(minitrc_fp, config_s, _("cmdln_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("cmdln_fg"), sio->cmdln_fg);
-    print_argp_doc(minitrc_fp, config_s, _("cmdln_fg"));
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_ignore_case", init->f_ignore_case ? "true" : "false");
+    print_argp_doc(minitrc_fp, config_s, "f_ignore_case");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "p_view_files", init->p_view_files ? "true" : "false");
+    print_argp_doc(minitrc_fp, config_s, "p_view_files");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "f_read_theme", init->f_read_theme ? "true" : "false");
+    print_argp_doc(minitrc_fp, config_s, "f_read_theme");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "editor", init->editor);
+    print_argp_doc(minitrc_fp, config_s, "editor");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%c", "border", sio->border);
+    print_argp_doc(minitrc_fp, config_s, "border");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bg", sio->bg);
+    print_argp_doc(minitrc_fp, config_s, "bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%6x", "fg", sio->fg);
+    print_argp_doc(minitrc_fp, config_s, "fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "box_fg", sio->box_fg);
+    print_argp_doc(minitrc_fp, config_s, "box_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "box_bg", sio->box_bg);
+    print_argp_doc(minitrc_fp, config_s, "box_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ind_fg", sio->ind_fg);
+    print_argp_doc(minitrc_fp, config_s, "ind_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ind_bg", sio->ind_bg);
+    print_argp_doc(minitrc_fp, config_s, "ind_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "brackets_fg", sio->brackets_fg);
+    print_argp_doc(minitrc_fp, config_s, "brackets_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "brackets_bg", sio->brackets_bg);
+    print_argp_doc(minitrc_fp, config_s, "brackets_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "fill_char_fg", sio->fill_char_fg);
+    print_argp_doc(minitrc_fp, config_s, "fill_char_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "fill_char_bg", sio->fill_char_bg);
+    print_argp_doc(minitrc_fp, config_s, "fill_char_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ln_bg", sio->ln_bg);
+    print_argp_doc(minitrc_fp, config_s, "ln_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ln_fg", sio->ln_fg);
+    print_argp_doc(minitrc_fp, config_s, "ln_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "cmdln_bg", sio->cmdln_bg);
+    print_argp_doc(minitrc_fp, config_s, "cmdln_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "cmdln_fg", sio->cmdln_fg);
+    print_argp_doc(minitrc_fp, config_s, "cmdln_fg");
 
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("nt_fg"), sio->nt_fg);
-    print_argp_doc(minitrc_fp, config_s, _("nt_fg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("nt_bg"), sio->nt_bg);
-    print_argp_doc(minitrc_fp, config_s, _("nt_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("nt_hl_fg"), sio->nt_hl_fg);
-    print_argp_doc(minitrc_fp, config_s, _("nt_hl_fg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("nt_hl_bg"), sio->nt_hl_bg);
-    print_argp_doc(minitrc_fp, config_s, _("nt_hl_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("nt_rev_fg"), sio->nt_rev_fg);
-    print_argp_doc(minitrc_fp, config_s, _("nt_rev_fg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("nt_rev_bg"), sio->nt_rev_bg);
-    print_argp_doc(minitrc_fp, config_s, _("nt_rev_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("nt_hl_rev_fg"), sio->nt_hl_rev_fg);
-    print_argp_doc(minitrc_fp, config_s, _("nt_hl_rev_fg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("nt_hl_rev_bg"), sio->nt_hl_rev_bg);
-    print_argp_doc(minitrc_fp, config_s, _("nt_hl_rev_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("title_fg"), sio->title_fg);
-    print_argp_doc(minitrc_fp, config_s, _("title_fg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("title_bg"), sio->title_bg);
-    print_argp_doc(minitrc_fp, config_s, _("title_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("ran_fg"), sio->ran_fg);
-    print_argp_doc(minitrc_fp, config_s, _("ran_fg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("ran_bg"), sio->ran_bg);
-    print_argp_doc(minitrc_fp, config_s, _("ran_bg"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%0.2f"), _("blue_gamma"), sio->blue_gamma);
-    print_argp_doc(minitrc_fp, config_s, _("blue_gamma"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%0.2f"), _("gray_gamma"), sio->gray_gamma);
-    print_argp_doc(minitrc_fp, config_s, _("gray_gamma"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%0.2f"), _("green_gamma"), sio->green_gamma);
-    print_argp_doc(minitrc_fp, config_s, _("green_gamma"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%0.2f"), _("red_gamma"), sio->red_gamma);
-    print_argp_doc(minitrc_fp, config_s, _("red_gamma"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("black"), sio->black);
-    print_argp_doc(minitrc_fp, config_s, _("black"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("red"), sio->red);
-    print_argp_doc(minitrc_fp, config_s, _("red"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("green"), sio->green);
-    print_argp_doc(minitrc_fp, config_s, _("green"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("yellow"), sio->yellow);
-    print_argp_doc(minitrc_fp, config_s, _("yellow"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("blue"), sio->blue);
-    print_argp_doc(minitrc_fp, config_s, _("blue"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("magenta"), sio->magenta);
-    print_argp_doc(minitrc_fp, config_s, _("magenta"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("cyan"), sio->cyan);
-    print_argp_doc(minitrc_fp, config_s, _("cyan"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("white"), sio->white);
-    print_argp_doc(minitrc_fp, config_s, _("white"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("bblack"), sio->bblack);
-    print_argp_doc(minitrc_fp, config_s, _("bblack"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("bred"), sio->bred);
-    print_argp_doc(minitrc_fp, config_s, _("bred"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("bgreen"), sio->bgreen);
-    print_argp_doc(minitrc_fp, config_s, _("bgreen"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("byellow"), sio->byellow);
-    print_argp_doc(minitrc_fp, config_s, _("byellow"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("bblue"), sio->bblue);
-    print_argp_doc(minitrc_fp, config_s, _("bblue"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("bmagenta"), sio->bmagenta);
-    print_argp_doc(minitrc_fp, config_s, _("bmagenta"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("bcyan"), sio->bcyan);
-    print_argp_doc(minitrc_fp, config_s, _("bcyan"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=#%06x"), _("bwhite"), sio->bwhite);
-    print_argp_doc(minitrc_fp, config_s, _("bwhite"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("mapp_data"), init->mapp_data);
-    print_argp_doc(minitrc_fp, config_s, _("mapp_data"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("mapp_help"), init->mapp_help);
-    print_argp_doc(minitrc_fp, config_s, _("mapp_help"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("mapp_home"), init->mapp_home);
-    print_argp_doc(minitrc_fp, config_s, _("mapp_home"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("mapp_msrc"), init->mapp_msrc);
-    print_argp_doc(minitrc_fp, config_s, _("mapp_msrc"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("mapp_user"), init->mapp_user);
-    print_argp_doc(minitrc_fp, config_s, _("mapp_user"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("mapp_theme"), init->mapp_theme);
-    print_argp_doc(minitrc_fp, config_s, _("mapp_theme"));
-    ssnprintf(config_s, MAXLEN - 1, _("%s=%s"), _("include"), init->mapp_theme);
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_fg", sio->nt_fg);
+    print_argp_doc(minitrc_fp, config_s, "nt_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_bg", sio->nt_bg);
+    print_argp_doc(minitrc_fp, config_s, "nt_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_hl_fg", sio->nt_hl_fg);
+    print_argp_doc(minitrc_fp, config_s, "nt_hl_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_hl_bg", sio->nt_hl_bg);
+    print_argp_doc(minitrc_fp, config_s, "nt_hl_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_rev_fg", sio->nt_rev_fg);
+    print_argp_doc(minitrc_fp, config_s, "nt_rev_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_rev_bg", sio->nt_rev_bg);
+    print_argp_doc(minitrc_fp, config_s, "nt_rev_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_hl_rev_fg", sio->nt_hl_rev_fg);
+    print_argp_doc(minitrc_fp, config_s, "nt_hl_rev_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "nt_hl_rev_bg", sio->nt_hl_rev_bg);
+    print_argp_doc(minitrc_fp, config_s, "nt_hl_rev_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "title_fg", sio->title_fg);
+    print_argp_doc(minitrc_fp, config_s, "title_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "title_bg", sio->title_bg);
+    print_argp_doc(minitrc_fp, config_s, "title_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ran_fg", sio->ran_fg);
+    print_argp_doc(minitrc_fp, config_s, "ran_fg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "ran_bg", sio->ran_bg);
+    print_argp_doc(minitrc_fp, config_s, "ran_bg");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%0.2f", "blue_gamma", sio->blue_gamma);
+    print_argp_doc(minitrc_fp, config_s, "blue_gamma");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%0.2f", "gray_gamma", sio->gray_gamma);
+    print_argp_doc(minitrc_fp, config_s, "gray_gamma");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%0.2f", "green_gamma", sio->green_gamma);
+    print_argp_doc(minitrc_fp, config_s, "green_gamma");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%0.2f", "red_gamma", sio->red_gamma);
+    print_argp_doc(minitrc_fp, config_s, "red_gamma");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "black", sio->black);
+    print_argp_doc(minitrc_fp, config_s, "black");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "red", sio->red);
+    print_argp_doc(minitrc_fp, config_s, "red");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "green", sio->green);
+    print_argp_doc(minitrc_fp, config_s, "green");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "yellow", sio->yellow);
+    print_argp_doc(minitrc_fp, config_s, "yellow");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "blue", sio->blue);
+    print_argp_doc(minitrc_fp, config_s, "blue");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "magenta", sio->magenta);
+    print_argp_doc(minitrc_fp, config_s, "magenta");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "cyan", sio->cyan);
+    print_argp_doc(minitrc_fp, config_s, "cyan");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "white", sio->white);
+    print_argp_doc(minitrc_fp, config_s, "white");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bblack", sio->bblack);
+    print_argp_doc(minitrc_fp, config_s, "bblack");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bred", sio->bred);
+    print_argp_doc(minitrc_fp, config_s, "bred");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bgreen", sio->bgreen);
+    print_argp_doc(minitrc_fp, config_s, "bgreen");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "byellow", sio->byellow);
+    print_argp_doc(minitrc_fp, config_s, "byellow");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bblue", sio->bblue);
+    print_argp_doc(minitrc_fp, config_s, "bblue");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bmagenta", sio->bmagenta);
+    print_argp_doc(minitrc_fp, config_s, "bmagenta");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bcyan", sio->bcyan);
+    print_argp_doc(minitrc_fp, config_s, "bcyan");
+    ssnprintf(config_s, MAXLEN - 1, "%s=#%06x", "bwhite", sio->bwhite);
+    print_argp_doc(minitrc_fp, config_s, "bwhite");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "mapp_data", init->mapp_data);
+    print_argp_doc(minitrc_fp, config_s, "mapp_data");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "mapp_help", init->mapp_help);
+    print_argp_doc(minitrc_fp, config_s, "mapp_help");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "mapp_home", init->mapp_home);
+    print_argp_doc(minitrc_fp, config_s, "mapp_home");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "mapp_msrc", init->mapp_msrc);
+    print_argp_doc(minitrc_fp, config_s, "mapp_msrc");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "mapp_user", init->mapp_user);
+    print_argp_doc(minitrc_fp, config_s, "mapp_user");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "mapp_theme", init->mapp_theme);
+    print_argp_doc(minitrc_fp, config_s, "mapp_theme");
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "include", init->mapp_theme);
     (void)fprintf(minitrc_fp, "%-34s # default theme file\n", config_s);
-    strnz__cpy(tmp_str, _("Configuration written to file: "), MAXLEN - 1);
+    strnz__cpy(tmp_str, "Configuration written to file: ", MAXLEN - 1);
     strnz__cat(tmp_str, minitrc_dmp, MAXLEN - 1);
     ui_perror(tmp_str);
     return 0;
@@ -1445,11 +1445,11 @@ bool derive_file_spec(char *file_spec, char *dir, char *file_name) {
     if (dir) {
         strnz__cpy(tmp_str, dir, MAXLEN - 1);
     } else {
-        e = getenv(_("MAPP_DIR"));
+        e = getenv("MAPP_DIR");
         if (e) {
             strnz__cpy(tmp_str, e, MAXLEN - 1);
         } else {
-            strnz__cpy(tmp_str, _("~/menuapp"), MAXLEN - 1);
+            strnz__cpy(tmp_str, "~/menuapp", MAXLEN - 1);
         }
     }
     trim_path(tmp_str);
@@ -1472,8 +1472,8 @@ void display_version() {
 }
 /** @brief Print an option and its value in a formatted manner
     @ingroup init
-    @param o - option flag (e.g., _("-a:"))
-    @param name - option name (e.g., _("--minitrc"))
+    @param o - option flag (e.g., "-a:")
+    @param name - option name (e.g., "--minitrc")
     @param value - option value to print
     @details This function is used to display the current configuration options
    and their values in a readable format. */
@@ -1483,8 +1483,8 @@ void opt_prt_char(const char *o, const char *name, const char *value) {
 /** @brief Print an option and its value in a formatted manner for integer
    values
     @ingroup init
-    @param o - option flag (e.g., _("-C:"))
-    @param name - option name (e.g., _("--cols"))
+    @param o - option flag (e.g., "-C:")
+    @param name - option name (e.g., "--cols")
     @param value - integer option value to print
     @details This function is used to display the current configuration options
    and their integer values in a readable format. */
@@ -1494,8 +1494,8 @@ void opt_prt_str(const char *o, const char *name, const char *value) {
 /** @brief Print an option and its value in a formatted manner for integer
    values
     @ingroup init
-    @param o - option flag (e.g., _("-C:"))
-    @param name - option name (e.g., _("--cols"))
+    @param o - option flag (e.g., "-C:")
+    @param name - option name (e.g., "--cols")
     @param value - integer option value to print
     @details This function is used to display the current configuration options
    and their integer values in a readable format. */
@@ -1505,8 +1505,8 @@ void opt_prt_int(const char *o, const char *name, int value) {
 /** @brief Print an option and its value in a formatted manner for double
    values
     @ingroup init
-    @param o - option flag (e.g., _("-r:"))
-    @param name - option name (e.g., _("red_gamma"))
+    @param o - option flag (e.g., "-r:")
+    @param name - option name (e.g., "red_gamma")
     @param value - double option value to print
     @details This function is used to display the current configuration options
    and their double values in a readable format. */
@@ -1516,12 +1516,12 @@ void opt_prt_double(const char *o, const char *name, double value) {
 /** @brief Print an option and its value in a formatted manner for boolean
    values
     @ingroup init
-    @param o - option flag (e.g., _("-z"))
-    @param name - option name (e.g., _("f_squeeze"))
+    @param o - option flag (e.g., "-z")
+    @param name - option name (e.g., "f_squeeze")
     @param value - boolean option value to print
     @details This function is used to display the current configuration options
-   and their boolean values in a readable format, printing _("true") or _("false")
+   and their boolean values in a readable format, printing "true" or "false"
    based on the value. */
 void opt_prt_bool(const char *o, const char *name, bool value) {
-    fprintf(stdout, "%3s %-15s: %s\n_(", o, name, value ? ")true_(" : ")false");
+    fprintf(stdout, "%3s %-15s: %s\n", o, name, value ? "true" : "false");
 }

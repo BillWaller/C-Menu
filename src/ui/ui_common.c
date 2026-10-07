@@ -12,7 +12,6 @@
 #include "ui_notcurses_internal.h"
 #include <notcurses/notcurses.h>
 #endif
-#include <locale.h>
 #include <poll.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -351,133 +350,6 @@ wchar_t *ui_mbstr_to_wcstr(const char *mb_str) {
    position in the output buffer, and the function ensures that it does not exceed
    the maximum length specified by atmost.
 */
-#ifdef NCURSES_UI
-/** ui__mbstr_to_cellstr
-    @brief Convert multibyte string to complex character array (NCurses version)
-    @ingroup UiChyron
-    @param cmplx_buf Output buffer for complex characters
-    @param str Input multibyte string
-    @param cell_base Base cell for attributes and color pair
-    @param p Pointer to current position in the output buffer, updated as
-   characters are added
-    @param atmost Maximum length of the output buffer
-    @return Number of bytes processed from the input string
-    @details This function is a specialized version of ui_mbstr_to_cellstr for use
-   with NCurses. It converts a multibyte string to an array of complex characters
-   (cchar_t) that can be used with NCurses functions. It handles multibyte
-   characters and applies the attributes and color pair from the base cell to each
-   character. The p parameter is updated to reflect the current position in the
-   output buffer, and the function ensures that it does not exceed the maximum
-   length specified by atmost.
-*/
-uint ui__mbstr_to_cellstr(UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
-    attr_t attrs;
-    short cp;
-    uint p1 = 0;
-    uint *pos = &p1;
-    if (p)
-        pos = p;
-    else
-        pos = &p1;
-    uint i = 0, len = 0;
-    const char *s;
-    UiCell cc = {};
-    wchar_t wstr[5];
-    getcchar(cell_base, &wstr[0], &attrs, &cp, nullptr);
-    mbstate_t mbstate;
-    memset(&mbstate, 0, sizeof(mbstate));
-    if (pos && *pos >= atmost - 1)
-        return 0;
-    while (str[i] != '\0') {
-        s = &str[i];
-        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
-        if (len <= 0) {
-            wstr[0] = L'?';
-            wstr[1] = L'\0';
-            len = 1;
-        }
-        wstr[1] = L'\0';
-        if (*pos > atmost)
-            break;
-        if (setcchar(&cc, wstr, attrs, cp, nullptr) != ERR) {
-            if (len > 0 && (*pos + len) < atmost)
-                cmplx_buf[(*pos)++] = cc;
-        }
-        i += len;
-    }
-    wstr[0] = L'\0';
-    wstr[1] = L'\0';
-    setcchar(&cc, wstr, attrs, cp, nullptr);
-    cmplx_buf[*pos] = cc;
-    return *pos;
-}
-void ui_destroy_curses() {
-    if (!f_ncurses_open && !f_notcurses_open)
-        return;
-    ui_shutdown();
-    f_ncurses_open = false;
-    restore_shell_tioctl();
-    sig_dfl_mode();
-    return;
-}
-#else
-/** ui__mbstr_to_cellstr
-    @brief Convert multibyte string to complex character array (Notcurses version)
-    @ingroup UiChyron
-    @param cmplx_buf Output buffer for complex characters
-    @param str Input multibyte string
-    @param cell_base Base cell for attributes and color pair
-    @param p Pointer to current position in the output buffer, updated as
-   characters are added
-    @param atmost Maximum length of the output buffer
-    @return Number of bytes processed from the input string
-    @details This function is a specialized version of ui_mbstr_to_cellstr for use
-   with NCurses. It converts a multibyte string to an array of complex characters
-   (cchar_t) that can be used with NCurses functions. It handles multibyte
-   characters and applies the attributes and color pair from the base cell to each
-   character. The p parameter is updated to reflect the current position in the
-   output buffer, and the function ensures that it does not exceed the maximum
-   length specified by atmost. */
-uint ui_mbstr_to_cellstr(UiSurface *sfc, ss_t w, UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
-    short cp;
-    uint p1 = 0;
-    uint *pos = &p1;
-    if (p)
-        pos = p;
-    uint i = 0, len = 0;
-    const char *s;
-    attr_t style;
-    UiCell cc;
-    wchar_t wstr[5];
-    ui_get_nccell(sfc, w, cell_base, &wstr[0], &style, &cp);
-    mbstate_t mbstate;
-    memset(&mbstate, 0, sizeof(mbstate));
-    if (pos && *pos >= atmost - 1)
-        return 0;
-    while (str[i] != '\0') {
-        s = &str[i];
-        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
-        if (len <= 0) {
-            wstr[0] = L'?';
-            wstr[1] = L'\0';
-            len = 1;
-        }
-        wstr[1] = L'\0';
-        if (*pos > atmost)
-            break;
-        if (ui_set_nccell(sfc, w, &cc, wstr, style, cp) != ERR) {
-            if (len > 0 && (*pos + len) < atmost)
-                cmplx_buf[(*pos)++] = cc;
-        }
-        i += len;
-    }
-    wstr[0] = L'\0';
-    wstr[1] = L'\0';
-    ui_set_nccell(sfc, w, &cc, wstr, style, cp);
-    cmplx_buf[*pos] = cc;
-    return *pos;
-}
-#endif
 /** ui_abend
     @brief Handle abnormal termination of the program
     @ingroup window_support
@@ -662,7 +534,6 @@ int ui_border_ysplit_text(UiSurface *sfc, char *text_in, uint separator_line) {
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
-
     strnz__cpy(text, text_in, maxx - 7);
     wchar_t *text_wc;
     text_wc = ui_mbstr_to_wcstr(text);
@@ -674,7 +545,6 @@ int ui_border_ysplit_text(UiSurface *sfc, char *text_in, uint separator_line) {
     free(text_wc);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_lt, 1);
-
     while (x < maxx - 1)
         ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
@@ -965,6 +835,7 @@ void ui_compile_chyron(UiChyron *chyron) {
    input.
  */
 void ui_display_chyron(UiSurface *sfc, ss_t w, UiChyron *chyron, uint line, uint col) {
+    chyron->y = line;
     ui_wmove(sfc, w, line, 0);
     ui_wclrtoeol(sfc, w);
     ui_wmove(sfc, w, line, 0);
@@ -1148,66 +1019,9 @@ int ui_answer_yn(char *msg0, char *msg1, char *msg2, char *msg3) {
     ui_destroy_chyron(chyron);
     return (cmd_key);
 }
-/** ui_display_error
-    @brief Display an error message window or print to stderr
-    @ingroup error_handling
-    @param msg0 First error message line
-    @param msg1 Second error message line
-    @param msg2 Third error message line
-    @param msg3 Fourth error message line
-    @return Key code of user command */
-int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
-    char title[MAXLEN];
-    uint line, pos, msg_l, msg0_l, msg1_l, msg2_l, msg3_l;
-    if (!f_ncurses_open && !f_notcurses_open) {
-        fprintf(stderr, "\n\n%s\n", msg0);
-        fprintf(stderr, "%s\n", msg1);
-        fprintf(stderr, "%s\n", msg2);
-        fprintf(stderr, "%s\n\n", msg3);
-        return 1;
-    }
-    uint maxy, maxx;
-    ui_get_screen_size(&maxy, &maxx);
-    msg0_l = strlen(msg0);
-    msg1_l = strlen(msg1);
-    msg2_l = strlen(msg2);
-    msg3_l = strlen(msg3);
-    msg_l = max(msg0_l, msg1_l);
-    msg_l = max(msg_l, msg2_l);
-    msg_l = max(msg_l, msg3_l);
-    msg_l = max(msg_l, 50);
-    msg_l = min(msg_l, maxx - 4);
-
-    pos = ((maxx - msg_l) - 4) / 2;
-    line = (maxy - 6) / 2;
-    strnz__cpy(title, _("Notification"), MAXLEN - 1);
-    if (ui_tracked_sfc_box(5, msg_l, line, pos, title)) {
-        ssnprintf(title, MAXLEN - 1, _("ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed"), 5,
-                  msg_l + 2, line, pos, title);
-        ui_abend(-1, title);
-    }
-    UiSurface *sfc = ui_surface[sfc_ptr];
-    UiChyron *chyron = ui_new_chyron(sfc, WIN);
-    ui_set_chyron_key(chyron, 1, _("F1 Help"), UIKEY_F01);
-    ui_set_chyron_key(chyron, 9, _("F9 Cancel"), UIKEY_F09);
-    ui_set_chyron_key(chyron, 10, _("F10 Continue"), UIKEY_F10);
-    ui_compile_chyron(chyron);
-    UiEvent event;
-    ui_draw_text(sfc, WIN, 0, 1, msg0);
-    ui_draw_text(sfc, WIN, 1, 1, msg1);
-    ui_draw_text(sfc, WIN, 2, 1, msg2);
-    ui_draw_text(sfc, WIN, 3, 1, msg3);
-    ui_display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
-    do {
-        event.y = event.x = -1;
-        cmd_key = ui_get_event(sfc, WIN, chyron, &event, -1);
-        if (cmd_key == UIKEY_F09 || cmd_key == UIKEY_F10 || cmd_key == 'q' || cmd_key == 'Q')
-            break;
-    } while (1);
-    ui_cm_surface_destroy(sfc);
-    ui_destroy_chyron(chyron);
-    return (cmd_key);
-}
+// -----------------------------------------------------------------------
+// Multiplexed Input
+// -----------------------------------------------------------------------
 /** ui_timeout_prompt
     @brief Display a timeout prompt window or print to stderr
     @ingroup error_handling
@@ -1290,7 +1104,42 @@ int ui_update_timeout_prompt(UiSurface *sfc, ss_t w, uint timeout_ms) {
     ui_render();
     return 0;
 }
-
+/** ui_register_read_fd
+    @brief Register an external file descriptor for polling
+    @ingroup error_handling
+    @param fd File descriptor to register
+    @param token_id Token ID associated with the file descriptor
+    @details This function registers an external file descriptor for polling. It
+   adds the file descriptor and its associated token ID to the list of registered
+   external file descriptors. If the maximum number of registered file descriptors
+   is reached, it does not register the new file descriptor.
+ */
+void ui_register_read_fd(int fd, int token_id) {
+    char tmp_str[MAXLEN];
+    if (ui_ctx.ext_nfds < MAX_EXT_FDS) {
+        ui_ctx.ext_fds[ui_ctx.ext_nfds] = (ext_fd_reg_t){fd, token_id};
+        ui_ctx.ext_nfds++;
+        ssnprintf(tmp_str, MAXLEN - 1, "ui_ctx.ext_nfds = %ld", ui_ctx.ext_nfds);
+    }
+}
+/** ui_unregister_read_fd
+    @brief Unregister an external file descriptor from polling
+    @ingroup error_handling
+    @param fd File descriptor to unregister
+    @details This function unregisters an external file descriptor from polling.
+   It removes the file descriptor and its associated token ID from the list of
+   registered external file descriptors. If the file descriptor is not found in
+   the list, it does nothing.
+ */
+void ui_unregister_read_fd(int fd) {
+    for (nfds_t i = 0; i < ui_ctx.ext_nfds; i++) {
+        if (ui_ctx.ext_fds[i].fd == fd) {
+            ui_ctx.ext_fds[i] = ui_ctx.ext_fds[ui_ctx.ext_nfds - 1];
+            ui_ctx.ext_nfds--;
+            break;
+        }
+    }
+}
 /** ui_poll_reg_read_fd
     @brief Poll for input on registered external files
     @ingroup error_handling
@@ -1337,7 +1186,69 @@ int ui_poll_reg_read_fd(int timeout_ms) {
     }
     return 0;
 }
+// -----------------------------------------------------------------------
+// Error handling
+// -----------------------------------------------------------------------
+/** ui_display_error
+    @brief Display an error message window or print to stderr
+    @ingroup error_handling
+    @param msg0 First error message line
+    @param msg1 Second error message line
+    @param msg2 Third error message line
+    @param msg3 Fourth error message line
+    @return Key code of user command */
+int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
+    char title[MAXLEN];
+    uint line, pos, msg_l, msg0_l, msg1_l, msg2_l, msg3_l;
+    if (!f_ncurses_open && !f_notcurses_open) {
+        fprintf(stderr, "\n\n%s\n", msg0);
+        fprintf(stderr, "%s\n", msg1);
+        fprintf(stderr, "%s\n", msg2);
+        fprintf(stderr, "%s\n\n", msg3);
+        return 1;
+    }
+    uint maxy, maxx;
+    ui_get_screen_size(&maxy, &maxx);
+    msg0_l = strlen(msg0);
+    msg1_l = strlen(msg1);
+    msg2_l = strlen(msg2);
+    msg3_l = strlen(msg3);
+    msg_l = max(msg0_l, msg1_l);
+    msg_l = max(msg_l, msg2_l);
+    msg_l = max(msg_l, msg3_l);
+    msg_l = max(msg_l, 50);
+    msg_l = min(msg_l, maxx - 4);
 
+    pos = ((maxx - msg_l) - 4) / 2;
+    line = (maxy - 6) / 2;
+    strnz__cpy(title, _("Notification"), MAXLEN - 1);
+    if (ui_tracked_sfc_box(5, msg_l, line, pos, title)) {
+        ssnprintf(title, MAXLEN - 1, _("ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed"), 5,
+                  msg_l + 2, line, pos, title);
+        ui_abend(-1, title);
+    }
+    UiSurface *sfc = ui_surface[sfc_ptr];
+    UiChyron *chyron = ui_new_chyron(sfc, WIN);
+    ui_set_chyron_key(chyron, 1, _("F1 Help"), UIKEY_F01);
+    ui_set_chyron_key(chyron, 9, _("F9 Cancel"), UIKEY_F09);
+    ui_set_chyron_key(chyron, 10, _("F10 Continue"), UIKEY_F10);
+    ui_compile_chyron(chyron);
+    UiEvent event;
+    ui_draw_text(sfc, WIN, 0, 1, msg0);
+    ui_draw_text(sfc, WIN, 1, 1, msg1);
+    ui_draw_text(sfc, WIN, 2, 1, msg2);
+    ui_draw_text(sfc, WIN, 3, 1, msg3);
+    ui_display_chyron(sfc, WIN, chyron, 4, chyron->l + 1);
+    do {
+        event.y = event.x = -1;
+        cmd_key = ui_get_event(sfc, WIN, chyron, &event, -1);
+        if (cmd_key == UIKEY_F09 || cmd_key == UIKEY_F10 || cmd_key == 'q' || cmd_key == 'Q')
+            break;
+    } while (1);
+    ui_cm_surface_destroy(sfc);
+    ui_destroy_chyron(chyron);
+    return (cmd_key);
+}
 /** ui_perror
     @brief Display a simple error message window or print to stderr
     @ingroup error_handling
@@ -1489,7 +1400,11 @@ FILE *ui_open_log() {
             strnz__cpy(ui_log_file_name, "/tmp/ui_default.log", MAXLEN - 1);
         ui_log_fp = fopen(ui_log_file_name, "w");
         if (!ui_log_fp) {
-            fprintf(stderr, _("Failed to open log file: %s\n"), ui_log_file_name);
+            ssnprintf(em0, MAXLEN - 1, _("Failed to open log file: %s"), ui_log_file_name);
+            ssnprintf(em1, MAXLEN - 1, _("Error: %s"), strerror(errno));
+            ssnprintf(em2, MAXLEN - 1, "%s: line: %d", __FILE__, __LINE__ - 4);
+            ssnprintf(em3, MAXLEN - 1, _("remedy: delete %s and try again"), ui_log_file_name);
+            fprintf(stderr, "%s\n%s\n%s\n%s\n", em0, em1, em2, em3);
             exit(EXIT_FAILURE);
         }
         setvbuf(ui_log_fp, NULL, _IOLBF, BUFSIZ);
@@ -1504,28 +1419,6 @@ FILE *ui_open_log() {
     ui_log(INFO, "%s:", em0);
     return ui_log_fp;
 }
-/* -------------------------------------------------------------------------
-   Multiplexed input
-   ------------------------------------------------------------------------- */
-void ui_register_read_fd(int fd, int token_id) {
-    char tmp_str[MAXLEN];
-    if (ui_ctx.ext_nfds < MAX_EXT_FDS) {
-        ui_ctx.ext_fds[ui_ctx.ext_nfds] = (ext_fd_reg_t){fd, token_id};
-        ui_ctx.ext_nfds++;
-        ssnprintf(tmp_str, MAXLEN - 1, "ui_ctx.ext_nfds = %ld", ui_ctx.ext_nfds);
-    }
-}
-
-void ui_unregister_read_fd(int fd) {
-    for (nfds_t i = 0; i < ui_ctx.ext_nfds; i++) {
-        if (ui_ctx.ext_fds[i].fd == fd) {
-            ui_ctx.ext_fds[i] = ui_ctx.ext_fds[ui_ctx.ext_nfds - 1];
-            ui_ctx.ext_nfds--;
-            break;
-        }
-    }
-}
-
 /* -------------------------------------------------------------------------
    Formatting
    ------------------------------------------------------------------------- */

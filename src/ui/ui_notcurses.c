@@ -102,6 +102,7 @@ UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
         free(ui);
         return NULL;
     }
+    ui_min_log_level = cfg->log_level;
     NotCursesOptions nc_opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS |
                  NCOPTION_NO_QUIT_SIGHANDLERS,
@@ -1537,4 +1538,63 @@ NcPlane *ui_notcurses_surface_get_plane(const UiSurface *s, ss_t w) {
     if (!s)
         return NULL;
     return s->mplane[w];
+}
+// -------------------------------------------------------------------------
+// Multibyte conversion
+// -------------------------------------------------------------------------
+/** ui__mbstr_to_cellstr
+    @brief Convert multibyte string to complex character array (Notcurses version)
+    @ingroup UiChyron
+    @param cmplx_buf Output buffer for complex characters
+    @param str Input multibyte string
+    @param cell_base Base cell for attributes and color pair
+    @param p Pointer to current position in the output buffer, updated as
+   characters are added
+    @param atmost Maximum length of the output buffer
+    @return Number of bytes processed from the input string
+    @details This function is a specialized version of ui_mbstr_to_cellstr for use
+   with NCurses. It converts a multibyte string to an array of complex characters
+   (cchar_t) that can be used with NCurses functions. It handles multibyte
+   characters and applies the attributes and color pair from the base cell to each
+   character. The p parameter is updated to reflect the current position in the
+   output buffer, and the function ensures that it does not exceed the maximum
+   length specified by atmost. */
+uint ui_mbstr_to_cellstr(UiSurface *sfc, ss_t w, UiCell *cmplx_buf, const char *str, const UiCell *cell_base, uint *p, const uint atmost) {
+    short cp;
+    uint p1 = 0;
+    uint *pos = &p1;
+    if (p)
+        pos = p;
+    uint i = 0, len = 0;
+    const char *s;
+    attr_t style;
+    UiCell cc;
+    wchar_t wstr[5];
+    ui_get_nccell(sfc, w, cell_base, &wstr[0], &style, &cp);
+    mbstate_t mbstate;
+    memset(&mbstate, 0, sizeof(mbstate));
+    if (pos && *pos >= atmost - 1)
+        return 0;
+    while (str[i] != '\0') {
+        s = &str[i];
+        len = mbrtowc(wstr, s, MB_CUR_MAX, &mbstate);
+        if (len <= 0) {
+            wstr[0] = L'?';
+            wstr[1] = L'\0';
+            len = 1;
+        }
+        wstr[1] = L'\0';
+        if (*pos > atmost)
+            break;
+        if (ui_set_nccell(sfc, w, &cc, wstr, style, cp) != ERR) {
+            if (len > 0 && (*pos + len) < atmost)
+                cmplx_buf[(*pos)++] = cc;
+        }
+        i += len;
+    }
+    wstr[0] = L'\0';
+    wstr[1] = L'\0';
+    ui_set_nccell(sfc, w, &cc, wstr, style, cp);
+    cmplx_buf[*pos] = cc;
+    return *pos;
 }

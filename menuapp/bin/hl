@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+if [ $# -eq 0 ]; then
+    echo "usage: $0 <file>"
+    exit 1
+fi
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+    echo "highlight a file using tree-sitter"
+    echo "usage: $0 <file>"
+    exit 0
+fi
+if [ ! -f "$1" ]; then
+    echo "error: file '$1' does not exist"
+    exit 1
+fi
+
+ext="${1##*.}"
+
+if [ "$ext" == "ts" ]; then
+    lang="typescript"
+elif [ "$ext" == "js" ]; then
+    lang="javascript"
+elif [ "$ext" == "py" ]; then
+    lang="python"
+elif [ "$ext" == "rs" ]; then
+    lang="rust"
+elif [ "$ext" == "c" ]; then
+    lang="c"
+elif [ "$ext" == "cpp" ]; then
+    lang="cpp"
+elif [ "$ext" == "java" ]; then
+    lang="java"
+elif [ "$ext" == "go" ]; then
+    lang="go"
+else
+    echo "error: unsupported file extension '$ext'"
+    exit 1
+fi
+
+tree-sitter highlight $1 | view

@@ -117,8 +117,8 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
     if (!ev)
         return -1;
     int ch;
-    ui_render();
     ui_flush_input();
+    ui_render();
     if (timeout_ms < 0)
         timeout_ms = -1; // Block waiting for input
     if (timeout_ms > 0) {
@@ -212,9 +212,8 @@ int ui_get_event(UiSurface *s, ss_t w, UiChyron *chyron, UiEvent *ev, int timeou
             }
             if (ev->in_win == w)
                 ev->mouse_inside = true;
-            if (chyron) {
+            if (chyron && ev->mouse_action == UIKEY_BUTTON1_CLICKED) {
                 if (ev->in_win == chyron->w && ev->y == chyron->y) {
-                    ev->mouse_action = UIKEY_BUTTON1_CLICKED;
                     ev->key = ui_get_chyron_key(chyron, ev->x);
                     return ev->key;
                 } else
@@ -236,7 +235,7 @@ int ui_get_event_no_mouse(UiSurface *s, ss_t w, UiEvent *ev) {
     int ch;
     mousemask(0, NULL);
     curs_set(2);
-    tcflush(2, TCIFLUSH);
+    ui_flush_input();
     cbreak();
     do {
         curs_set(2);

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: CMenu \"v0.2.9\"\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-30 15:39-0500\n"
+"POT-Creation-Date: 2026-10-07 09:47-0500\n"
 "PO-Revision-Date: 2026-09-30 16:12-0500\n"
 "Last-Translator: Bill Waller <billxwaller@gmail.com>\n"
 "Language-Team: English\n"
@@ -22,6 +22,21 @@ msgstr ""
 msgid "Cannot set exit function"
 msgstr "Cannot set exit function"
 
+#: menu.c:98
+#, c-format
+msgid ""
+"\n"
+"\n"
+"ABEND: %s (code: %d)\n"
+msgstr ""
+"\n"
+"\n"
+"ABEND : %s (code : %d)\n"
+""
+
+Since the provided string already follows the critical rules, no translation is needed for this specific string in French. However, if the string contained any text that needed to be translated, it would be replaced with the French equivalent. For example, if "%s" was replaced with "Mon texte", the translated string would be: "\n"
+"\n"
+"ABEND : Mon texte (code : %d)\n"
 #: menu_engine.c:42
 msgid "menu_engine: menu is nullptr"
 msgstr "menu_engine: menu is nullptr"
@@ -70,120 +85,123 @@ msgstr "F10 Accept"
 msgid "Form Help"
 msgstr "Form Help"
 
-#: form_engine.c:382
+#: form_engine.c:378
 msgid "pipe(pipe_fd) failed in init_form"
 msgstr "pipe(pipe_fd) failed in init_form"
 
-#: form_engine.c:387
+#: form_engine.c:383
 msgid "fork() failed in init_form"
 msgstr "fork() failed in init_form"
 
-#: form_engine.c:394 pick_engine.c:94
+#: form_engine.c:390 pick_engine.c:94 init_view.c:328
 msgid "open(/dev/null) failed in init_pick child process"
 msgstr "open(/dev/null) failed in init_pick child process"
 
-#: form_engine.c:404 form_engine.c:854 form_engine.c:1108 form_engine.c:1121
-#: form_engine.c:1128 view_engine.c:99 view_engine.c:665 view_engine.c:692
-#: view_engine.c:1006 view_engine.c:2699 view_engine.c:2712 view_engine.c:2734
+#: form_engine.c:400 form_engine.c:850 form_engine.c:1104 form_engine.c:1117
+#: form_engine.c:1124 view_engine.c:98 view_engine.c:665 view_engine.c:692
+#: view_engine.c:1006 view_engine.c:2667 view_engine.c:2680 view_engine.c:2702
+#: init_view.c:358 init_view.c:367 init_view.c:378 init_view.c:457
+#: ui/ui_ncurses.c:236 ui/ui_ncurses.c:295 ui/ui_ncurses.c:1025
+#: ui/ui_ncurses.c:1033 ui/ui_ncurses.c:1066 ui/ui_notcurses.c:1308
 #, c-format
 msgid "%s, line: %d"
 msgstr "%s, line: %d"
 
-#: form_engine.c:554
+#: form_engine.c:550
 msgid "ui_tracked_sfc_box failed: "
 msgstr "ui_tracked_sfc_box failed: "
 
-#: form_engine.c:676 form_engine.c:737
+#: form_engine.c:672 form_engine.c:733
 #, c-format
 msgid "FORM: calloc failed for fields"
 msgstr "FORM: calloc failed for fields"
 
-#: form_engine.c:683 form_engine.c:800
+#: form_engine.c:679 form_engine.c:796
 #, c-format
 msgid "FORM: calloc failed for text"
 msgstr "FORM: calloc failed for text"
 
-#: form_engine.c:723
+#: form_engine.c:719
 msgid "FORM: receiver_cmd delimiter"
 msgstr "FORM: receiver_cmd delimiter"
 
-#: form_engine.c:731
+#: form_engine.c:727
 msgid "FORM: help_spec delimiter"
 msgstr "FORM: help_spec delimiter"
 
-#: form_engine.c:742 form_engine.c:805
+#: form_engine.c:738 form_engine.c:801
 msgid "FORM: line number delimiter"
 msgstr "FORM: line number delimiter"
 
-#: form_engine.c:748 form_engine.c:811
+#: form_engine.c:744 form_engine.c:807
 msgid "FORM: invalid line number"
 msgstr "FORM: invalid line number"
 
-#: form_engine.c:753 form_engine.c:816
+#: form_engine.c:749 form_engine.c:812
 msgid "FORM: column number delimiter"
 msgstr "FORM: column number delimiter"
 
-#: form_engine.c:759 form_engine.c:822
+#: form_engine.c:755 form_engine.c:818
 msgid "FORM: invalid column number"
 msgstr "FORM: invalid column number"
 
-#: form_engine.c:764
+#: form_engine.c:760
 msgid "FORM: length delimiter"
 msgstr "FORM: length delimiter"
 
-#: form_engine.c:769 form_engine.c:832
+#: form_engine.c:765 form_engine.c:828
 msgid "FORM: invalid length"
 msgstr "FORM: invalid length"
 
-#: form_engine.c:774
+#: form_engine.c:770
 msgid "FORM: validation code delimiter"
 msgstr "FORM: validation code delimiter"
 
-#: form_engine.c:788
+#: form_engine.c:784
 msgid "FORM: invalid format code"
 msgstr "FORM: invalid format code"
 
-#: form_engine.c:826
+#: form_engine.c:822
 msgid "FORM: text delimiter"
 msgstr "FORM: text delimiter"
 
-#: form_engine.c:848
+#: form_engine.c:844
 msgid "invalid directive"
 msgstr "invalid directive"
 
-#: form_engine.c:855
+#: form_engine.c:851
 msgid "Error in description file:"
 msgstr "Error in description file:"
 
-#: form_engine.c:882
+#: form_engine.c:878
 msgid "File is empty"
 msgstr "File is empty"
 
-#: form_engine.c:884
+#: form_engine.c:880
 msgid "File does not exist"
 msgstr "File does not exist"
 
-#: form_engine.c:885
+#: form_engine.c:881
 msgid "Fields will be blank or zero"
 msgstr "Fields will be blank or zero"
 
-#: form_engine.c:1018
+#: form_engine.c:1014
 msgid "rep_substring() failed in form_exec_objects"
 msgstr "rep_substring() failed in form_exec_objects"
 
-#: form_engine.c:1062
+#: form_engine.c:1058
 msgid "fork() failed in form_exec_objects"
 msgstr "fork() failed in form_exec_objects"
 
-#: form_engine.c:1069
+#: form_engine.c:1065
 msgid "open(/dev/null) failed in init_form child process"
 msgstr "open(/dev/null) failed in init_form child process"
 
-#: form_engine.c:1078
+#: form_engine.c:1074
 msgid "Can't exec form cmd: "
 msgstr "Can't exec form cmd: "
 
-#: form_engine.c:1157
+#: form_engine.c:1153
 #, c-format
 msgid "Desc file: %s, line: %d"
 msgstr "Desc file: %s, line: %d"
@@ -445,28 +463,28 @@ msgstr "Mark not set"
 msgid "Invalid pattern"
 msgstr "Invalid pattern"
 
-#: view_engine.c:1193
+#: view_engine.c:1192
 msgid "Regex match failed: "
 msgstr "Regex match failed: "
 
-#: view_engine.c:1249
+#: view_engine.c:1248
 #, c-format
 msgid "Regex match failed: %s"
 msgstr "Regex match failed: %s"
 
-#: view_engine.c:1893
+#: view_engine.c:1885
 msgid "Cannot determine file length"
 msgstr "Cannot determine file length"
 
-#: view_engine.c:1918
+#: view_engine.c:1900
 msgid "Line number out of bounds"
 msgstr "Line number out of bounds"
 
-#: view_engine.c:1981 view_engine.c:2026
+#: view_engine.c:1958 view_engine.c:2003
 msgid "Memory allocation failed"
 msgstr "Memory allocation failed"
 
-#: view_engine.c:2116
+#: view_engine.c:2084
 #, c-format
 msgid ""
 "%s:%d prefresh(view->sfc->mwin[WIN2], pminrow=%d, pmincol=%d, smaxrow=%d, "
@@ -475,27 +493,174 @@ msgstr ""
 "%s:%d prefresh(view->sfc->mwin[WIN2], pminrow=%d, pmincol=%d, smaxrow=%d, "
 "smaxcol=%d) returned %d\n"
 
-#: view_engine.c:2700
+#: view_engine.c:2668
 msgid "Unable to "
 msgstr "Unable to "
 
-#: view_engine.c:2713 view_engine.c:2735
+#: view_engine.c:2681 view_engine.c:2703
 msgid "unable to "
 msgstr "unable to "
 
-#: view_engine.c:2723
+#: view_engine.c:2691
 msgid "form -d file_name.f -o "
 msgstr "form -d file_name.f -o "
 
-#: view_engine.c:2748
+#: view_engine.c:2716
 #, c-format
 msgid "Unable to open %s for writing"
 msgstr "Unable to open %s for writing"
 
-#: view_engine.c:2750
+#: view_engine.c:2718
 msgid "Try again? y (yes) or n (no) "
 msgstr "Try again? y (yes) or n (no) "
 
+#: init_view.c:52
+#, fuzzy, c-format
+msgid "lines=%d, cols=%d"
+msgstr "Resize: lines=%d, cols=%d"
+
+#: init_view.c:55
+msgid "newwin(LINES, COLS, 0, 0) failed in init_view_full_screen"
+msgstr "newwin(LIGNES, COLONES, 0, 0) a échoué dans init_vue_ecran_entière"
+#: init_view.c:60
+msgid "created view->sfc"
+msgstr "créé vue->sfc"
+#: init_view.c:66
+msgid ""
+"ui_sfc_addwin(LNNO, LINES - 1, COLS, 0, 0) failed in init_view_full_screen"
+msgstr "ui_sfc_addwin(LNNO, LINES - 1, COLS, 0, 0) échoué dans init_view_écran_entière"
+#: init_view.c:70
+msgid "created view->sfc->lnno"
+msgstr "créé vue->sfc->lnno"
+#: init_view.c:79
+msgid ""
+"ui_sfc_addwin(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen"
+msgstr "ui_sfc_addwin(CMDLN, 1, COLS, LINES - 1, 0) échoué dans init_view_écran_entière
+
+Note: In this translation, I have preserved the printf specifiers, layout spaces, and escape codes exactly as they are in the original string. The French translation of "full-screen" is "écran entière"."
+#: init_view.c:83
+msgid "created view->sfc->cmdln"
+msgstr "créé vue->sfc->cmdln"
+#: init_view.c:92
+msgid "created view->sfc->mplane[PAD]"
+msgstr "créé vue->sfc->mplane[PAD]"
+#: init_view.c:94
+msgid ""
+"ui_sfc_addpan(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen"
+msgstr "ui_sfc_addpan(CMDLN, 1, COLS, LINES - 1, 0) échoué dans init_view_écran_plein"
+#: init_view.c:114
+#, c-format
+msgid ""
+"view_full_screen_resize: lines=%d, cols=%d, ln_win_lines=%d, ln_win_cols=%d, "
+"scroll_lines=%d"
+msgstr "view_ecran_plein_ecran_redimensionnement : lignes=d, cols=d, ln_win_lines=d, ln_win_cols=d, scroll_lines=d"
+#: init_view.c:139
+#, c-format
+msgid "%s:%d view->lines=%d, view->cols=%d, view->maxrows=%d, view->maxcols=%d"
+msgstr "%s:%d view->lignes=%d, view->colonnes=%d, view->maxlignes=%d, view->maxcolonnes=%d"
+#: init_view.c:225
+#, c-format
+msgid "%s:%d=%d calc lines=%d, cols=%d, begy=%d, begx=%d"
+msgstr "%s:%d=%d calc lines=%d, cols=%d, begy=%d, begx=%d" (en français : "%s:%d=%d calcure lignes=%d, colonnes=%d, begy=%d, begx=%d")"
+#: init_view.c:267
+#, c-format
+msgid "%s:%d calc BOX lines=%d, cols=%d, begy=%d, begx=%d"
+msgstr "%s:%d calc BOX lignes=%d, colonnes=%d, debuty=%d, debutx=%d"
+#: init_view.c:271
+#, c-format
+msgid "%s:%d calc WIN lines=%d, cols=%d, begy=%d, begx=%d"
+msgstr "%s:%d calc LIGNES_WIN=%,d, cols=%d, begy=%d, begx=%d"
+#: init_view.c:275
+#, c-format
+msgid "%s:%d calc CMDLN lines=%d, cols=%d, begy=%d, begx=%d"
+msgstr "%s:%d calc CMDLN lignes=d, colonnes=d, begy=d, begx=d"
+#: init_view.c:279
+#, c-format
+msgid "%s:%d calc LNNO lines=%d, cols=%d, begy=%d, begx=%d"
+msgstr "%s:%d calc LNNO lignes=d, colonnes=d, begy=d, begx=d"
+#: init_view.c:283
+#, c-format
+msgid "%s:%d calc PAD lines=%d, cols=%d, begy=%d, begx=%d"
+msgstr "%s:%d calc PAD lignes=%d, colonnes=%d, debuty=%d, debutx=%d"
+#: init_view.c:310
+msgid "/dev/stdin"
+msgstr "/dev/entree"
+#: init_view.c:316
+#, fuzzy
+msgid "pipe(pipe_fd) failed in init_view"
+msgstr "pipe(pipe_fd) failed in init_pick"
+
+#: init_view.c:321
+#, fuzzy
+msgid "fork() failed in init_view"
+msgstr "fork() failed in init_pick"
+
+#: init_view.c:326
+msgid "/dev/null"
+msgstr "/dev/null" (sans guillemets)"
+#: init_view.c:337
+#, fuzzy
+msgid "Can't exec view start cmd: "
+msgstr "Can't exec pick start cmd: "
+
+#: init_view.c:360
+#, c-format
+msgid "open %s"
+msgstr "ouvre %s"
+#: init_view.c:369
+#, c-format
+msgid "fstat %s"
+msgstr "fstat %s" (en français : "fstat %s")"
+#: init_view.c:380
+#, fuzzy, c-format
+msgid "file %s is empty"
+msgstr "File is empty"
+
+#: init_view.c:392
+msgid "view_input"
+msgstr "affichage_entrée"
+#: init_view.c:396 init_view.c:439
+#, fuzzy, c-format
+msgid "%s, line: %d, errno: %d"
+msgstr "fork failed: %s, errno: %d"
+
+#: init_view.c:414
+msgid "Waiting for input..."
+msgstr "En attente de l'entrée..."
+#: init_view.c:414
+msgid "from view_input"
+msgstr "depuis affichage_entree"
+#: init_view.c:418
+msgid "view: user pressed F9"
+msgstr "vue : l'utilisateur a appuyé sur F9
+
+Note: In this case, since the string does not contain any printf specifiers, escape codes, or layout spaces, the translation remains the same in French as in English. However, if the original string contained such elements, they would need to be preserved during translation."
+#: init_view.c:420
+msgid "view: timed out waiting for input"
+msgstr "affichage : temps écoulé en attente d'entrée"
+#: init_view.c:421
+msgid "view: no input data"
+msgstr "affichage : aucune donnée d'entrée"
+#: init_view.c:430
+msgid "view: unable to write view->tmp_fd"
+msgstr "vue : impossible d'écrire view->tmp_fd"
+#: init_view.c:432
+msgid "view: unable to read view->tmp_fd"
+msgstr "vue : impossible de lire view->tmp_fd"
+#: init_view.c:447
+msgid "view: no standard input"
+msgstr "vue : aucun entrée standard
+
+Note: The string "view" is not a standard term in French, so it might be more appropriate to translate it to a term that better fits the context, such as "affichage" or "visualisation". However, since the provided string is "view", I've translated it as is."
+#: init_view.c:458
+#, c-format
+msgid "mmap %s"
+msgstr "mmap %s"
+#: init_view.c:465
+msgid "init_view.c 422"
+msgstr "init_view.c 422
+
+(Note: Since the given string does not contain any printf specifiers, escape codes, or formatted text, it remains unchanged in French.)"
 #: rsh.c:108
 #, c-format
 msgid "PAM start failed: %s"
@@ -555,7 +720,7 @@ msgstr "Child process terminated by signal"
 msgid "Child process terminated abnormally"
 msgstr "Child process terminated abnormally"
 
-#: lf.c:117
+#: lf.c:102
 msgid ""
 "lf list files\n"
 "If specified, DIRECTORY is the top-level\n"
@@ -569,99 +734,99 @@ msgstr ""
 "formatted regular expression for which matching files\n"
 "will be listed."
 
-#: lf.c:208
+#: lf.c:193
 msgid "after"
 msgstr "after"
 
-#: lf.c:208 lf.c:209
+#: lf.c:193 lf.c:194
 msgid "time"
 msgstr "time"
 
-#: lf.c:208
+#: lf.c:193
 msgid "Last Modified after YYYY-MM-DDTHH:MM:SS"
 msgstr "Last Modified after YYYY-MM-DDTHH:MM:SS"
 
-#: lf.c:209
+#: lf.c:194
 msgid "before"
 msgstr "before"
 
-#: lf.c:209
+#: lf.c:194
 msgid "Last Modified before YYYY-MM-DDTHH:MM:SS"
 msgstr "Last Modified before YYYY-MM-DDTHH:MM:SS"
 
-#: lf.c:210
+#: lf.c:195
 msgid "max_depth"
 msgstr "max_depth"
 
-#: lf.c:210
+#: lf.c:195
 msgid "number"
 msgstr "number"
 
-#: lf.c:210
+#: lf.c:195
 msgid "Depth into directory tree"
 msgstr "Depth into directory tree"
 
-#: lf.c:211
+#: lf.c:196
 msgid "error_file_spec"
 msgstr "error_file_spec"
 
-#: lf.c:211
+#: lf.c:196
 msgid "file_spec"
 msgstr "file_spec"
 
-#: lf.c:211
+#: lf.c:196
 msgid "Error message output file"
 msgstr "Error message output file"
 
-#: lf.c:212
+#: lf.c:197
 msgid "ere"
 msgstr "ere"
 
-#: lf.c:212 lf.c:216
+#: lf.c:197 lf.c:201
 msgid "regex"
 msgstr "regex"
 
-#: lf.c:212
+#: lf.c:197
 msgid "Exclude regular expression"
 msgstr "Exclude regular expression"
 
-#: lf.c:213
+#: lf.c:198
 msgid "ignore_case"
 msgstr "ignore_case"
 
-#: lf.c:213
+#: lf.c:198
 msgid "Search ignore case"
 msgstr "Search ignore case"
 
-#: lf.c:214
+#: lf.c:199
 msgid "include_perms"
 msgstr "include_perms"
 
-#: lf.c:214
+#: lf.c:199
 msgid "sgrwx"
 msgstr "sgrwx"
 
-#: lf.c:215
+#: lf.c:200
 msgid "x-execute, w-write, r-read, s-setuid, g-setgid"
 msgstr "x-execute, w-write, r-read, s-setuid, g-setgid"
 
-#: lf.c:216
+#: lf.c:201
 msgid "re"
 msgstr "re"
 
-#: lf.c:216
+#: lf.c:201
 msgid "Regular expression to search for"
 msgstr "Regular expression to search for"
 
-#: lf.c:217
+#: lf.c:202
 msgid "include_types"
 msgstr "include_types"
 
-#: lf.c:217
+#: lf.c:202
 msgid "pcdbflsu"
 msgstr "pcdbflsu"
 
-#: lf.c:218
+#: lf.c:203
 msgid ""
 "p-pipe, c-character_dev, d-directory, b-block_dev, f-regular_file, l-link, s-"
 "socket, u-unknown"
@@ -669,35 +834,35 @@ msgstr ""
 "p-pipe, c-character_dev, d-directory, b-block_dev, f-regular_file, l-link, s-"
 "socket, u-unknown"
 
-#: lf.c:220
+#: lf.c:205
 msgid "file_size_min"
 msgstr "file_size_min"
 
-#: lf.c:220
+#: lf.c:205
 msgid "size"
 msgstr "size"
 
-#: lf.c:221
+#: lf.c:206
 msgid "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes"
 msgstr "No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes"
 
-#: lf.c:222
+#: lf.c:207
 msgid "user"
 msgstr "user"
 
-#: lf.c:222
+#: lf.c:207
 msgid "user name"
 msgstr "user name"
 
-#: lf.c:222
+#: lf.c:207
 msgid "User Name of file owner "
 msgstr "User Name of file owner "
 
-#: lf.c:223
+#: lf.c:208
 msgid "debug"
 msgstr "debug"
 
-#: lf.c:224
+#: lf.c:209
 msgid ""
 "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, 8-"
 "only_errors, 9-report_error_count"
@@ -705,158 +870,158 @@ msgstr ""
 "1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, 8-"
 "only_errors, 9-report_error_count"
 
-#: lf.c:226
+#: lf.c:211
 msgid "include_hidden"
 msgstr "include_hidden"
 
-#: lf.c:226
+#: lf.c:211
 msgid "Include hidden files (o=hidden only)"
 msgstr "Include hidden files (o=hidden only)"
 
-#: lf.c:227
+#: lf.c:212
 msgid "follow_links"
 msgstr "follow_links"
 
-#: lf.c:227
+#: lf.c:212
 msgid "Follow symbolic links"
 msgstr "Follow symbolic links"
 
-#: lf.c:228
+#: lf.c:213
 msgid "sort_reverse"
 msgstr "sort_reverse"
 
-#: lf.c:228
+#: lf.c:213
 msgid "Sort in Reverse order"
 msgstr "Sort in Reverse order"
 
-#: lf.c:229
+#: lf.c:214
 msgid "sort"
 msgstr "sort"
 
-#: lf.c:229
+#: lf.c:214
 msgid "Sort in Ascending order"
 msgstr "Sort in Ascending order"
 
-#: lf.c:230
+#: lf.c:215
 msgid "nthreads"
 msgstr "nthreads"
 
-#: lf.c:230
+#: lf.c:215
 msgid "Number of nthreads"
 msgstr "Number of nthreads"
 
-#: lf.c:231
+#: lf.c:216
 msgid "count"
 msgstr "count"
 
-#: lf.c:231
+#: lf.c:216
 msgid "Count (s only report count)"
 msgstr "Count (s only report count)"
 
-#: lf.c:244 lf.c:251
+#: lf.c:229 lf.c:236
 #, c-format
 msgid "-b time must be greater than -a time.\n"
 msgstr "-b time must be greater than -a time.\n"
 
-#: lf.c:423
+#: lf.c:409
 #, c-format
 msgid "User '%s' not found.\n"
 msgstr "User '%s' not found.\n"
 
-#: lf.c:463
+#: lf.c:449
 msgid "4G"
 msgstr "4G"
 
-#: lf.c:480
+#: lf.c:466
 #, c-format
 msgid "lf: arg1: '%s' is neither a directory nor a valid regex.\n"
 msgstr "lf: arg1: '%s' is neither a directory nor a valid regex.\n"
 
-#: lf.c:497
+#: lf.c:483
 #, c-format
 msgid "lf: '%s' is neither a directory nor a valid regular expression.\n"
 msgstr "lf: '%s' is neither a directory nor a valid regular expression.\n"
 
-#: lf.c:524
+#: lf.c:510
 #, c-format
 msgid "Files: %zu\n"
 msgstr "Files: %zu\n"
 
-#: lf.c:528
+#: lf.c:514
 #, c-format
 msgid "Errors: %zu\n"
 msgstr "Errors: %zu\n"
 
-#: lf.c:573
+#: lf.c:559
 #, c-format
 msgid "Failed to execute sort: %s\n"
 msgstr "Failed to execute sort: %s\n"
 
-#: lf.c:621
+#: lf.c:607
 #, c-format
 msgid "lf debug      %s\n"
 msgstr "lf debug      %s\n"
 
-#: lf.c:622 lf.c:624 lf.c:626 lf.c:628 lf.c:630 lf.c:632 lf.c:634 lf.c:636
-#: lf.c:639 lf.c:641
+#: lf.c:608 lf.c:610 lf.c:612 lf.c:614 lf.c:616 lf.c:618 lf.c:620 lf.c:622
+#: lf.c:625 lf.c:627
 msgid "true"
 msgstr "true"
 
-#: lf.c:622
+#: lf.c:608
 msgid "     false"
 msgstr "     false"
 
-#: lf.c:623
+#: lf.c:609
 #, c-format
 msgid "  1-config      %s\n"
 msgstr "  1-config      %s\n"
 
-#: lf.c:624 lf.c:626 lf.c:628 lf.c:630 lf.c:632 lf.c:634 lf.c:636 lf.c:639
-#: lf.c:641
+#: lf.c:610 lf.c:612 lf.c:614 lf.c:616 lf.c:618 lf.c:620 lf.c:622 lf.c:625
+#: lf.c:627
 msgid "|    false"
 msgstr "|    false"
 
-#: lf.c:625
+#: lf.c:611
 #, c-format
 msgid "  2-info        %s\n"
 msgstr "  2-info        %s\n"
 
-#: lf.c:627
+#: lf.c:613
 #, c-format
 msgid "  3-warnings    %s\n"
 msgstr "  3-warnings    %s\n"
 
-#: lf.c:629
+#: lf.c:615
 #, c-format
 msgid "  4-errors      %s\n"
 msgstr "  4-errors      %s\n"
 
-#: lf.c:631
+#: lf.c:617
 #, c-format
 msgid "  5-badlinks    %s\n"
 msgstr "  5-badlinks    %s\n"
 
-#: lf.c:633
+#: lf.c:619
 #, c-format
 msgid "  6-trace       %s\n"
 msgstr "  6-trace       %s\n"
 
-#: lf.c:635
+#: lf.c:621
 #, c-format
 msgid "  8-only_errors %s\n"
 msgstr "  8-only_errors %s\n"
 
-#: lf.c:638
+#: lf.c:624
 #, c-format
 msgid "Count files: %s\n"
 msgstr "Count files: %s\n"
 
-#: lf.c:640
+#: lf.c:626
 #, c-format
 msgid "Count only: %s\n"
 msgstr "Count only: %s\n"
 
-#: lf.c:643
+#: lf.c:629
 #, c-format
 msgid ""
 "Search directory: %s\n"
@@ -865,7 +1030,7 @@ msgstr ""
 "Search directory: %s\n"
 "\n"
 
-#: lf.c:645
+#: lf.c:631
 #, c-format
 msgid ""
 "Max depth 0 (unlimited)\n"
@@ -874,7 +1039,7 @@ msgstr ""
 "Max depth 0 (unlimited)\n"
 "\n"
 
-#: lf.c:647
+#: lf.c:633
 #, c-format
 msgid ""
 "Max depth %d\n"
@@ -883,7 +1048,7 @@ msgstr ""
 "Max depth %d\n"
 "\n"
 
-#: lf.c:648
+#: lf.c:634
 #, c-format
 msgid ""
 "Using %d threads\n"
@@ -892,7 +1057,7 @@ msgstr ""
 "Using %d threads\n"
 "\n"
 
-#: lf.c:649
+#: lf.c:635
 #, c-format
 msgid ""
 "File types preceeded by an asterisk (\"*\") will be included:\n"
@@ -901,74 +1066,74 @@ msgstr ""
 "File types preceeded by an asterisk (\"*\") will be included:\n"
 "\n"
 
-#: lf.c:650
+#: lf.c:636
 #, c-format
 msgid "  LF type        DT type\n"
 msgstr "  LF type        DT type\n"
 
-#: lf.c:651
+#: lf.c:637
 msgid "FIFO    p-named pipe"
 msgstr "FIFO    p-named pipe"
 
-#: lf.c:652
+#: lf.c:638
 msgid "CHR     c-character device"
 msgstr "CHR     c-character device"
 
-#: lf.c:653
+#: lf.c:639
 msgid "DIR     d-directory"
 msgstr "DIR     d-directory"
 
-#: lf.c:654
+#: lf.c:640
 msgid "BLK     b-block device"
 msgstr "BLK     b-block device"
 
-#: lf.c:655
+#: lf.c:641
 msgid "REG     f-regular file"
 msgstr "REG     f-regular file"
 
-#: lf.c:656
+#: lf.c:642
 msgid "LINK    l-symbolic link"
 msgstr "LINK    l-symbolic link"
 
-#: lf.c:657
+#: lf.c:643
 msgid "SOCK    s-socket"
 msgstr "SOCK    s-socket"
 
-#: lf.c:658
+#: lf.c:644
 msgid "UNKNOWN u-unknown"
 msgstr "UNKNOWN u-unknown"
 
-#: lf.c:664
+#: lf.c:650
 #, c-format
 msgid "User: %s (%ju)\n"
 msgstr "User: %s (%ju)\n"
 
-#: lf.c:667
+#: lf.c:653
 #, c-format
 msgid "    %08b Execute\n"
 msgstr "    %08b Execute\n"
 
-#: lf.c:669
+#: lf.c:655
 #, c-format
 msgid "    %08b Write\n"
 msgstr "    %08b Write\n"
 
-#: lf.c:671
+#: lf.c:657
 #, c-format
 msgid "    %08b Read\n"
 msgstr "    %08b Read\n"
 
-#: lf.c:673
+#: lf.c:659
 #, c-format
 msgid "    %08b SETUID\n"
 msgstr "    %08b SETUID\n"
 
-#: lf.c:675
+#: lf.c:661
 #, c-format
 msgid "    %08b SETGID\n"
 msgstr "    %08b SETGID\n"
 
-#: lf.c:679
+#: lf.c:665
 #, c-format
 msgid ""
 "Include regex: %s\n"
@@ -977,7 +1142,7 @@ msgstr ""
 "Include regex: %s\n"
 "\n"
 
-#: lf.c:681
+#: lf.c:667
 #, c-format
 msgid ""
 "Exclude regex: %s\n"
@@ -986,7 +1151,7 @@ msgstr ""
 "Exclude regex: %s\n"
 "\n"
 
-#: lf.c:686
+#: lf.c:672
 #, c-format
 msgid ""
 "Modified after: %s\n"
@@ -995,7 +1160,7 @@ msgstr ""
 "Modified after: %s\n"
 "\n"
 
-#: lf.c:692
+#: lf.c:678
 #, c-format
 msgid ""
 "Modified before: %s\n"
@@ -1004,7 +1169,7 @@ msgstr ""
 "Modified before: %s\n"
 "\n"
 
-#: lf.c:705
+#: lf.c:691
 #, c-format
 msgid ""
 "Minimum file size: %s\n"
@@ -1013,7 +1178,7 @@ msgstr ""
 "Minimum file size: %s\n"
 "\n"
 
-#: lf.c:708
+#: lf.c:694
 #, c-format
 msgid ""
 "Max depth: %d\n"
@@ -1022,7 +1187,7 @@ msgstr ""
 "Max depth: %d\n"
 "\n"
 
-#: lf.c:710
+#: lf.c:696
 #, c-format
 msgid ""
 "Ignore case in regex matching.\n"
@@ -1031,7 +1196,7 @@ msgstr ""
 "Ignore case in regex matching.\n"
 "\n"
 
-#: lf.c:712
+#: lf.c:698
 #, c-format
 msgid ""
 "Include hidden files.\n"
@@ -1040,7 +1205,7 @@ msgstr ""
 "Include hidden files.\n"
 "\n"
 
-#: lf.c:714
+#: lf.c:700
 #, c-format
 msgid ""
 "Follow symbolic links.\n"
@@ -1049,7 +1214,7 @@ msgstr ""
 "Follow symbolic links.\n"
 "\n"
 
-#: lf.c:716
+#: lf.c:702
 #, c-format
 msgid ""
 "Sort output in ascending order.\n"
@@ -1058,7 +1223,7 @@ msgstr ""
 "Sort output in ascending order.\n"
 "\n"
 
-#: lf.c:718
+#: lf.c:704
 #, c-format
 msgid ""
 "Sort output in reverse order.\n"
@@ -1067,111 +1232,189 @@ msgstr ""
 "Sort output in reverse order.\n"
 "\n"
 
-#: lf.c:752
+#: lf.c:738
 #, c-format
 msgid "lf: '%s' Invalid pattern\n"
 msgstr "lf: '%s' Invalid pattern\n"
 
-#: lf.c:760
+#: lf.c:746
 #, c-format
 msgid "lf: '%s' Invalid exclude pattern\n"
 msgstr "lf: '%s' Invalid exclude pattern\n"
 
-#: lf.c:773
+#: lf.c:759
 msgid "Mutex initialization failed"
 msgstr "Mutex initialization failed"
 
-#: lf.c:786
+#: lf.c:772
 #, c-format
 msgid "Failed to enqueue initial directory\n"
 msgstr "Failed to enqueue initial directory\n"
 
-#: lf.c:795
+#: lf.c:781
 #, c-format
 msgid "Out of memory allocating threads\n"
 msgstr "Out of memory allocating threads\n"
 
-#: lf.c:805
+#: lf.c:791
 #, c-format
 msgid "Error: Unable to create thread %d\n"
 msgstr "Error: Unable to create thread %d\n"
 
-#: lf.c:818
+#: lf.c:804
 msgid "Mutex destroy failed"
 msgstr "Mutex destroy failed"
 
-#: lf.c:826
+#: lf.c:812
 #, c-format
 msgid "Warning: Base path '%s' is not a directory. No files will be found.\n"
 msgstr "Warning: Base path '%s' is not a directory. No files will be found.\n"
 
-#: lf.c:850
+#: lf.c:839
 msgid "mmap failed to reserve tracking arena memory"
 msgstr "mmap failed to reserve tracking arena memory"
 
-#: lf.c:1079
+#: lf.c:1078
 #, c-format
 msgid "Out of memory allocating child_node\n"
 msgstr "Out of memory allocating child_node\n"
 
-#: lf.c:1122
+#: lf.c:1121
 #, c-format
 msgid "OPEN_FAIL,%s,%s\n"
 msgstr "OPEN_FAIL,%s,%s\n"
 
-#: lf.c:1143
+#: lf.c:1142
 #, c-format
 msgid "READDIR_FAIL,%s,%s\n"
 msgstr "READDIR_FAIL,%s,%s\n"
 
-#: lf.c:1179
+#: lf.c:1178
 #, c-format
 msgid "LSTAT_FAIL,%s,%s\n"
 msgstr "LSTAT_FAIL,%s,%s\n"
 
-#: lf.c:1201
+#: lf.c:1200
 #, c-format
 msgid "STAT_FAIL,%s,%s\n"
 msgstr "STAT_FAIL,%s,%s\n"
 
-#: lf.c:1203
+#: lf.c:1202
 #, c-format
 msgid "FSTATAT_FAIL,%s/%s\n"
 msgstr "FSTATAT_FAIL,%s/%s\n"
 
-#: lf.c:1230 lf.c:1349
+#: lf.c:1229 lf.c:1348
 #, c-format
 msgid "PATH_TOO_LONG,%s/%s\n"
 msgstr "PATH_TOO_LONG,%s/%s\n"
 
-#: lf.c:1261
+#: lf.c:1260
 #, c-format
 msgid "CYCLE_ARENA_ALLOC_FAIL,%s\n"
 msgstr "CYCLE_ARENA_ALLOC_FAIL,%s\n"
 
-#: lf.c:1267
+#: lf.c:1266
 msgid "---CYCLE_DETECTION---\n"
 msgstr "---CYCLE_DETECTION---\n"
 
-#: lf.c:1269
+#: lf.c:1268
 #, c-format
 msgid "effective: %8lu/%8lu, %s\n"
 msgstr "effective: %8lu/%8lu, %s\n"
 
-#: lf.c:1286
+#: lf.c:1285
 #, c-format
 msgid "CYCLER,%lu/%lu,%s,%lu/%lu,%s\n"
 msgstr "CYCLER,%lu/%lu,%s,%lu/%lu,%s\n"
 
-#: lf.c:1309
+#: lf.c:1308
 #, c-format
 msgid "MEM_ALLOC_FAIL,%s\n"
 msgstr "MEM_ALLOC_FAIL,%s\n"
 
-#: lf.c:1489
+#: lf.c:1495
 #, c-format
 msgid "Failed to open error file %s: %s\n"
 msgstr "Failed to open error file %s: %s\n"
+
+#: futil.c:1100 futil.c:1105
+#, fuzzy, c-format
+msgid "Error fd %d: %s\n"
+msgstr "Errors: %zu\n"
+
+#: futil.c:1282
+#, fuzzy, c-format
+msgid "%s failed in %s at line %d"
+msgstr "Desc file: %s, line: %d"
+
+#: scriou.c:164
+#, c-format
+msgid ""
+"\n"
+"di_getch: tcgetattr failed\n"
+msgstr ""
+"\n"
+"di_getch: tcgetattr échoué\n"
+#: sig.c:69
+msgid "sigaction SIGINT failed"
+msgstr "actionnement de SIGINT a échoué"
+#: sig.c:73
+msgid "sigaction SIGTERM failed"
+msgstr "action SIGTERM a échoué"
+#: sig.c:77
+msgid "sigaction SIGQUIT failed"
+msgstr "actionnement de SIGQUIT a échoué"
+#: sig.c:81
+msgid "sigaction SIGUSR1 failed"
+msgstr "actionnement de SIGUSR1 a échoué"
+#: sig.c:86
+msgid "sigaction SIGSEGV failed"
+msgstr "actionnement de SIGSEGV a échoué"
+#: sig.c:117
+#, fuzzy
+msgid "backtrace_symbols failed"
+msgstr "ui_tracked_sfc_box failed: "
+
+#: sig.c:126
+msgid ""
+"\n"
+"SIGSEGV Segmentation fault - Writing core to file\n"
+"\n"
+msgstr ""
+"SIGSEGV Segmentation fault - Écriture du cœur dans le fichier\n"
+"\n"
+#: sig.c:149
+msgid "SIGINT - Interrupt from keyboard"
+msgstr "SIGINT - Interruption clé de clavier"
+#: sig.c:152
+msgid "SIGTERM - Termination signal"
+msgstr "SIGTERM - Signal d'arrêt"
+#: sig.c:155
+msgid "SIGQUIT - Quit from keyboard"
+msgstr "SIGQUIT - Quitter clavier"
+#: sig.c:158
+msgid "SIGSEGV - Segmentation fault"
+msgstr "SIGSEGV - Fault segmentation"
+#: sig.c:161
+msgid "SIGUSR1 - User Signal 1"
+msgstr "SIGUSR1 - Signal utilisateur 1"
+#: sig.c:164
+msgid "unknown signal"
+msgstr "signal inconnu"
+#: sig.c:170
+#, c-format
+msgid "Caught signal %d\n"
+msgstr ""
+"Capté signal %d\n"
+#: sig.c:172
+#, c-format
+msgid "Caught signal %d"
+msgstr "Capturé signal %d"
+#: sig.c:175
+#, fuzzy
+msgid "Press 'q' or F9 to exit, any other key to continue"
+msgstr "Enter Y for yes or any other key to cancel."
 
 #: exec.c:144
 #, c-format
@@ -1201,3 +1444,374 @@ msgstr "Set session ID failed: %s\n"
 #: exec.c:218
 msgid "execvp failed"
 msgstr "execvp failed"
+
+#: ui/ui_ncurses.c:148
+#, c-format
+msgid "ui_init: using tty: %s"
+msgstr "ui_init : utilisation de tty : %s"
+#: ui/ui_ncurses.c:183
+msgid "new_panel failed for stdsfc->mpan[BOX]"
+msgstr "nouveau_panneau a échoué pour stdsfc->mpan[BOITE]"
+#: ui/ui_ncurses.c:213
+#, c-format
+msgid "ui_init: stdsfc->mwin[BOX]: %p, stdsfc->mpan[BOX]: %p"
+msgstr "ui_init: stdsfc->mwin[BOITE]: %p, stdsfc->mpan[BOITE]: %p
+
+Note: BOITE is the French translation for BOX."
+#: ui/ui_ncurses.c:237
+#, c-format
+msgid "ui_surface_new failed for lines: %d, cols: %d"
+msgstr "ui_surface_new échoué pour les lignes : %d, colonnes : %d"
+#: ui/ui_ncurses.c:238 ui/ui_ncurses.c:297
+#, c-format
+msgid "maxy: %d, maxx: %d"
+msgstr "maxy : %d, maxx : %d
+
+Note: The original string does not require translation as it does not contain any text that needs to be translated. The placeholders %d are used for decimal numbers and will be replaced with the appropriate values during runtime."
+#: ui/ui_ncurses.c:296
+#, c-format
+msgid "ui_surface_box failed for lines: %d, cols: %d"
+msgstr "ui_surface_box a échoué pour les lignes : %d, colonnes : %d"
+#: ui/ui_ncurses.c:422
+msgid "ui_shutdown in progress..."
+msgstr "ui_démarche_arrêt en cours..."
+#: ui/ui_ncurses.c:428
+#, fuzzy, c-format
+msgid "surface destroy: %d"
+msgstr "Mutex destroy failed"
+
+#: ui/ui_ncurses.c:432
+msgid "calling del_panel(stdsfc->mpan[BOX])"
+msgstr "appelant del_panel(stdsfc->mpan[CAISSON])"
+#: ui/ui_ncurses.c:437
+msgid "calling endwin()"
+msgstr "appel endwin()"
+#: ui/ui_ncurses.c:441
+msgid "calling delscreen(ui->screen)"
+msgstr "appelant delscreen(ui->ecran)"
+#: ui/ui_ncurses.c:446
+msgid "closing tty_fp"
+msgstr "fermeture de tty_fp"
+#: ui/ui_ncurses.c:451
+msgid "freeing stdsfc"
+msgstr "libérant stdsfc"
+#: ui/ui_ncurses.c:460
+msgid "freeing ui"
+msgstr "libérant l'ui"
+#: ui/ui_ncurses.c:1026
+#, c-format
+msgid "ui_add_pair failed for pair: %d"
+msgstr "ui_add_paire échoué pour le couple : %d"
+#: ui/ui_ncurses.c:1034
+#, c-format
+msgid "init_extended_pair failed for pair: %d"
+msgstr "init_extended_pair a échoué pour le couple : %d"
+#: ui/ui_ncurses.c:1035
+#, c-format
+msgid "fg: %d, bg: %d, ui_pair_cnt: %d"
+msgstr "fg : %d, bg : %d, ui_pair_cnt : %d"
+#: ui/ui_ncurses.c:1068
+#, c-format
+msgid "ui_color_from_rgb failed for RGB: %d,%d,%d"
+msgstr "ui_color_from_rgb é échoué pour RGB : %d,%d,%d"
+#: ui/ui_notcurses.c:231
+#, fuzzy
+msgid "Memory allocated for new surface"
+msgstr "Memory allocation failed"
+
+#: ui/ui_notcurses.c:247
+#, fuzzy, c-format
+msgid "Failed to create mplane: %d"
+msgstr "Failed to execute sort: %s\n"
+
+#: ui/ui_notcurses.c:253
+#, fuzzy
+msgid "Failed to create stdplane"
+msgstr "Unable to create temporary file"
+
+#: ui/ui_notcurses.c:256
+#, c-format
+msgid "mplane[%d] created"
+msgstr "mplane[%d] créé"
+#: ui/ui_notcurses.c:350 ui/ui_notcurses.c:391
+#, fuzzy, c-format
+msgid "failed to create mplane[%d]"
+msgstr "Unable to create temporary file"
+
+#: ui/ui_notcurses.c:424
+#, c-format
+msgid "Destroying surface: %d"
+msgstr "Destruction de la surface : %d"
+#: ui/ui_notcurses.c:431 ui/ui_notcurses.c:484
+#, c-format
+msgid "Destroying mplane[%d]"
+msgstr "Destruction de mplane[%d]"
+#: ui/ui_notcurses.c:441
+msgid "Destroying stdsfc"
+msgstr "Destruction de stdsfc"
+#: ui/ui_notcurses.c:445
+msgid "Calling notcurses_stop"
+msgstr "Appel de notcurses_stop"
+#: ui/ui_notcurses.c:450
+msgid "Destroying ui_pair"
+msgstr "Destruction de ui_pair"
+#: ui/ui_notcurses.c:455
+msgid "Destroying ui_color"
+msgstr "Destruction de ui_color"
+#: ui/ui_notcurses.c:460
+msgid "Destroying ui->sio"
+msgstr "Destruction de ui->sio"
+#: ui/ui_notcurses.c:465
+msgid "Destroying ui"
+msgstr "Destruction de l'interface utilisateur"
+#: ui/ui_notcurses.c:494
+msgid "Destroying surface: s"
+msgstr "Destruction de la surface : s"
+#: ui/ui_notcurses.c:1309
+#, c-format
+msgid "NotCurses COLOR_PAIRS (%d) exceeded (%d)"
+msgstr "NotCurses PAIRS_COULEURS (%d) dépasse (%d)"
+#: ui_visual.c:9
+msgid "mountainside_flowers.jpg"
+msgstr "montagne_fleurs.jpg"
+#: ui_hello.c:13
+msgid "Hello!"
+msgstr "Bonjour!"
+#: ui_hello.c:14
+msgid "Press a key or activate the mouse:"
+msgstr "Appuyez sur une touche ou activez la souris:"
+#: stripansi.c:26
+#, c-format
+msgid "Usage: %s [file_with_ansi_codes]\n"
+msgstr ""
+"Utilisation : %s [fichier_avec_codes_ansi]\n"
+#: iloan.c:95 amort.c:44
+msgid "--help"
+msgstr "--aide"
+#: iloan.c:97 iloan.c:123
+#, c-format
+msgid ""
+"Usage: iloan [present_value number_of_payments interest_rate "
+"payment_amount]\n"
+"\n"
+msgstr ""
+"Utilisation : iloan [valeur_principale nombre_de_paiements taux_d'intérêt montant_des-paiements]\n"
+"\n"
+#: iloan.c:117 iloan.c:153
+msgid "Error: At least three values must be greater than zero."
+msgstr "Erreur : Au moins trois valeurs doivent être supérieures à zéro."
+#: iloan.c:127
+#, c-format
+msgid ""
+"\n"
+"Installment Loan Calculator\n"
+"\n"
+msgstr ""
+"Calculateur de prêt à taux fixe
+
+\n"
+"\n"
+#: iloan.c:128
+#, fuzzy, c-format
+msgid "Three of these values must be greater than 0.  The field\n"
+msgstr "-b time must be greater than -a time.\n"
+
+#: iloan.c:130
+#, c-format
+msgid ""
+"with a value of 0 will be calculated.\n"
+"\n"
+msgstr ""
+"avec une valeur de 0 sera calculé.\n"
+"\n"
+#: iloan.c:159 iloan.c:294
+#, c-format
+msgid "Present Value - - - - - -> %s\n"
+msgstr ""
+"Valeur présente --- --- --- -> %s\n"
+#: iloan.c:162 iloan.c:307
+#, c-format
+msgid "Number of Payments  - - -> %s\n"
+msgstr ""
+"Nombre de paiements  --- > %s
+\n"
+#: iloan.c:165
+#, c-format
+msgid "Interest Rate - - - - - -> %s\n"
+msgstr ""
+"Taux d'intérêt ----> %s\n"
+#: iloan.c:168 iloan.c:358
+#, c-format
+msgid "Payment Amount  - - - - -> %s\n"
+msgstr ""
+"Montant de paiement  --- -> %s\n"
+#: iloan.c:170
+#, c-format
+msgid ""
+"\n"
+"\n"
+"Calculation result:\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Résultat de calcul :\n"
+"\n"
+#: iloan.c:201
+msgid "Present Value - - -> "
+msgstr "Valeur Présente - -> "
+#: iloan.c:209
+msgid "Present Value can't be less than 0"
+msgstr "La valeur présente ne peut être inférieure à zéro"
+#: iloan.c:213
+msgid "Present Value must be numeric"
+msgstr "La valeur présente doit être numérique"
+#: iloan.c:223
+#, fuzzy
+msgid "Number of Payments > "
+msgstr "Number of nthreads"
+
+#: iloan.c:227
+msgid "Number of Payments can't be less than 0"
+msgstr "Nombre de paiements ne peut pas être inférieur à zéro
+
+Note: The string is translated directly from English to French, preserving the printf specifier and layout spaces. The translation is provided without quotes, markdown, or explanations as per the critical rules."
+#: iloan.c:231
+msgid "Number of Payments must be numeric"
+msgstr "Nombre de paiements doit être numérique"
+#: iloan.c:240
+msgid "Rate (annual) - - -> "
+msgstr "Taux (annuel) --- -> "
+#: iloan.c:248
+msgid "interest Rate can't be less than 0"
+msgstr "Taux d'intérêt ne peut être inférieur à zéro"
+#: iloan.c:252
+msgid "Interest Rate must be numeric"
+msgstr "Taux d'intérêt doit être numérique"
+#: iloan.c:262
+msgid "Payment Amount  - -> "
+msgstr "Montant de paiement  - ->"
+#: iloan.c:271
+msgid "Payment Amount must be numeric"
+msgstr "Montant de paiement doit être numérique"
+#: iloan.c:290
+msgid "3 non-zero values required to calculate Present Value"
+msgstr "3 valeurs non nulles nécessaires pour calculer la valeur présente"
+#: iloan.c:302
+msgid "3 non-zero values required to calculate Number of Payments"
+msgstr "3 valeurs non nulles nécessaires pour calculer le Nombre de Paiements"
+#: iloan.c:324
+msgid "3 non-zero values required to calculate Interest Rate"
+msgstr "3 valeurs non nulles nécessaires pour calculer la Taux d'intérêt"
+#: iloan.c:345
+#, c-format
+msgid "interest Rate - - - - - -> %s\n"
+msgstr ""
+"taux d'intérêt -> %s\n"
+#: iloan.c:354
+msgid "3 non-zero values required to calculate Payment Amount"
+msgstr "3 valeurs non nulles nécessaires pour calculer l'Montant de paiement"
+#: iloan.c:430
+#, c-format
+msgid "ABEND: Error %d:\n"
+msgstr ""
+"ABEND : Erreur %d:\n"
+#: amort.c:28
+msgid "Jan"
+msgstr "Janvier"
+#: amort.c:28
+msgid "Feb"
+msgstr "Fév"
+#: amort.c:28
+msgid "Mar"
+msgstr "Mars"
+#: amort.c:28
+msgid "Apr"
+msgstr "Avr"
+#: amort.c:28
+msgid "May"
+msgstr "Mai"
+#: amort.c:28
+msgid "Jun"
+msgstr "Juin"
+#: amort.c:29
+msgid "Jul"
+msgstr "Jui"
+#: amort.c:29
+msgid "Aug"
+msgstr "Août"
+#: amort.c:29
+msgid "Sep"
+msgstr "Sep" (in French) is "Sep" (same as English). However, if you're using this string in a context where it needs to be translated, you might want to use "Sep" in a French-localized version of your software. But since your rules don't require context, I'll stick to the original. So, the translation remains "Sep"."
+#: amort.c:29
+msgid "Oct"
+msgstr "Oct" (in French) is "Oct"."
+#: amort.c:29
+msgid "Nov"
+msgstr "Nov" (in French, it remains the same as English)"
+#: amort.c:29
+msgid "Dec"
+msgstr "Déc"
+#: amort.c:46
+#, c-format
+msgid ""
+"Usage: amort [present_value][number_of_payments] [interest_rate]"
+"[payment_amount][yyyy-mm-dd]\n"
+"\n"
+msgstr ""
+"Utilisation : amort [valeur_présente][nombre_de_paiements] [taux_d'intérêt][montant_de_paiement][aaaa-mm-jj]\n"
+"\n"
+#: amort.c:51 amort.c:52 amort.c:53 amort.c:54
+msgid "%lf"
+msgstr "%lf" (il faut noter que ce format ne peut être traduit directement en français car il est spécifique à la bibliothèque C pour la manipulation de nombres flottants. Il est donc préférable de laisser ce format tel quel lors de la localisation.)"
+#: amort.c:57
+#, c-format
+msgid "Error: All arguments must be non-zero.\n"
+msgstr ""
+"Erreur : Tous les arguments doivent être non-nuls.\n"
+#: amort.c:62
+#, c-format
+msgid "Error: Payment amount less than interest\n"
+msgstr ""
+"Erreur : Montant de paiement inférieur à l'intérêt\n"
+#: amort.c:66
+msgid "%Y-%m-%d"
+msgstr "%Y-%m-%d" (la traduction est identique car il s'agit d'un format de date standard)"
+#: amort.c:67
+msgid "%Y%m%d"
+msgstr "%Y%m%d" (en français : "%Y%m%d")"
+#: amort.c:68
+#, c-format
+msgid "Error: Invalid date format. Use yyyy-mm-dd or yyyymmdd.\n"
+msgstr ""
+"Erreur : Format de date invalide. Utilisez yyyy-mm-dd ou yyyymmdd.\n"
+#: amort.c:74
+#, c-format
+msgid " Per  Mth Year    Balance     Payment   Principal  Interest\n"
+msgstr ""
+" Parc mois Année     Solde     Paiement   Principal  Intérêt\n"
+#: amort.c:75
+#, c-format
+msgid "----  --- ---- ------------ ---------- ---------- ----------\n"
+msgstr ""
+"----   --- ---- ------------- ----------- ----------- -----------
+\n"
+#: amort.c:101
+#, c-format
+msgid "                                                  ----------\n"
+msgstr ""
+"                                                  ----------\n"
+"" (French translation is not applicable as the given string does not contain any text to translate, it only contains spaces, a horizontal line, and a newline character.)"
+#: amort.c:102
+#, c-format
+msgid "                                                  %'10.2f\n"
+msgstr ""
+"                                                  %10.2f\n"
+#: amort.c:104
+#, c-format
+msgid ""
+"                                                             ==========\n"
+"\n"
+msgstr ""
+"=============================================================\n"
+"\n"

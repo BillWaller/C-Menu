@@ -1205,7 +1205,7 @@ bool verify_dir(char *spec, uint imode) {
     src_line = 0;
     uint mode = imode & ~(S_WCOK | S_QUIET);
     if (faccessat(AT_FDCWD, spec, mode, AT_EACCESS) != 0) {
-        src_line = __LINE__ - 2;
+        src_line = __LINE__ - 1;
         src_name = __FILE__;
         strnz__cpy(fn, "faccessat", MAXLEN - 1);
     } else {

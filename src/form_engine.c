@@ -247,8 +247,6 @@ int form_post(Init *init) {
     while (loop) {
         if (rc == -1) {
             ui_display_chyron(sfc, WIN, form->chyron, form->lines - 1, form->chyron->l);
-            tcflush(2, TCIFLUSH);
-            ui_render();
             c = ui_get_event(sfc, WIN, form->chyron, &event, -1);
             ui_getmaxyx(sfc, WIN, &maxy, &maxx);
             if (event.in_win == 1 && event.y == maxy - 1)
@@ -353,8 +351,6 @@ int form_process(Init *init) {
         ui_compile_chyron(form->chyron);
         ui_display_chyron(sfc, 1, form->chyron, form->lines - 1, form->chyron->l);
         click_y = click_x = -1;
-        tcflush(2, TCIFLUSH);
-        ui_render();
         c = ui_get_event(sfc, WIN, form->chyron, &event, -1);
         ui_getmaxyx(sfc, WIN, &maxy, &maxx);
         if (event.in_win == 1 && event.y == maxy - 1)

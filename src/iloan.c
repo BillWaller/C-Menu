@@ -342,7 +342,7 @@ double calculate_i(double pv, double n, double pmt) {
     }
     i = i1 * 1200;
     if (!f_quiet)
-        printf(_("interest Rate - - - - - -> %s\n)", format_interest(i));
+        printf(_("interest Rate - - - - - -> %s\n"), format_interest(i));
     return (i);
 }
 /** @brief The calculate_pmt function calculates the payment amount for a loan based on the present value, number of payments, and interest rate. It uses the formula for the payment amount of an annuity to compute the result. If any of the input values are zero, it displays an error message and prompts the user to provide valid inputs.
