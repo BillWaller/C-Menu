@@ -66,24 +66,24 @@ void sig_prog_mode() {
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
     if (sigaction(SIGINT, &sa, nullptr) == -1) {
-        ui_abend(-1, "sigaction SIGINT failed");
+        ui_abend(-1, _("sigaction SIGINT failed"));
         exit(EXIT_FAILURE);
     }
     if (sigaction(SIGTERM, &sa, nullptr) == -1) {
-        ui_abend(-1, "sigaction SIGTERM failed");
+        ui_abend(-1, _("sigaction SIGTERM failed"));
         exit(EXIT_FAILURE);
     };
     if (sigaction(SIGQUIT, &sa, nullptr) == -1) {
-        ui_abend(-1, "sigaction SIGQUIT failed");
+        ui_abend(-1, _("sigaction SIGQUIT failed"));
         exit(EXIT_FAILURE);
     }
     if (sigaction(SIGUSR1, &sa, nullptr) == -1) {
-        ui_abend(-1, "sigaction SIGUSR1 failed");
+        ui_abend(-1, _("sigaction SIGUSR1 failed"));
         exit(EXIT_FAILURE);
     }
     sa.sa_flags = SA_SIGINFO; // Set the flag to receive siginfo_t
     if (sigaction(SIGSEGV, &sa, nullptr) == -1) {
-        ui_abend(-1, "sigaction SIGSEGV failed");
+        ui_abend(-1, _("sigaction SIGSEGV failed"));
         exit(EXIT_FAILURE);
     }
 }
@@ -114,7 +114,7 @@ void signal_handler(int sig_num) {
         frames = backtrace(addrlist, MAX_FRAMES);
         symbols = backtrace_symbols(addrlist, frames);
         if (symbols == nullptr) {
-            ui_abend(-1, "backtrace_symbols failed");
+            ui_abend(-1, _("backtrace_symbols failed"));
             exit(EXIT_FAILURE);
         }
         for (int i = 0; i < frames; i++) {
@@ -123,7 +123,7 @@ void signal_handler(int sig_num) {
             write(STDERR_FILENO, buf, strlen(buf));
         }
         free(symbols);
-        msg2 = "\nSIGSEGV Segmentation fault - Writing core to file\n\n";
+        msg2 = _("\nSIGSEGV Segmentation fault - Writing core to file\n\n");
         write(STDERR_FILENO, msg2, strlen(msg2));
         struct sigaction sa;
         sa.sa_handler = SIG_DFL;
@@ -146,33 +146,33 @@ void signal_handler(int sig_num) {
 bool handle_signal(int sig_num) {
     switch (sig_num) {
     case SIGINT:
-        strnz__cpy(em1, "SIGINT - Interrupt from keyboard", MAXLEN - 1);
+        strnz__cpy(em1, _("SIGINT - Interrupt from keyboard"), MAXLEN - 1);
         break;
     case SIGTERM:
-        strnz__cpy(em1, "SIGTERM - Termination signal", MAXLEN - 1);
+        strnz__cpy(em1, _("SIGTERM - Termination signal"), MAXLEN - 1);
         break;
     case SIGQUIT:
-        strnz__cpy(em1, "SIGQUIT - Quit from keyboard", MAXLEN - 1);
+        strnz__cpy(em1, _("SIGQUIT - Quit from keyboard"), MAXLEN - 1);
         break;
     case SIGSEGV:
-        strnz__cpy(em1, "SIGSEGV - Segmentation fault", MAXLEN - 1);
+        strnz__cpy(em1, _("SIGSEGV - Segmentation fault"), MAXLEN - 1);
         break;
     case SIGUSR1:
-        strnz__cpy(em1, "SIGUSR1 - User Signal 1", MAXLEN - 1);
+        strnz__cpy(em1, _("SIGUSR1 - User Signal 1"), MAXLEN - 1);
         break;
     default:
-        strnz__cpy(em1, "unknown signal", MAXLEN - 1);
+        strnz__cpy(em1, _("unknown signal"), MAXLEN - 1);
         break;
     }
     if (!f_ncurses_open && !f_notcurses_open)
         restore_shell_tioctl();
     em0[0] = '\0';
-    ssnprintf(em0, MAXLEN - 1, "Caught signal %d\n", sig_num);
+    ssnprintf(em0, MAXLEN - 1, _("Caught signal %d\n"), sig_num);
 #ifdef DEBUG_LOG
-    sprintf(em0, "Caught signal %d", sig_num);
+    sprintf(em0, _("Caught signal %d", sig_num));
     ui_log(INFO, em0);
 #endif
-    strnz__cpy(em2, "Press 'q' or F9 to exit, any other key to continue",
+    strnz__cpy(em2, _("Press 'q' or F9 to exit, any other key to continue"),
                MAXLEN - 1);
     sig_received = 0;
     return true;

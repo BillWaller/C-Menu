@@ -1097,12 +1097,12 @@ char *stdio_names(char *stdio_str, char *id) {
     strnz__cat(stdio_str, ttyname(1), MAXLEN - 1);
     strnz__cat(stdio_str, ", ", MAXLEN - 1);
     if (errno)
-        ssnprintf(err_str, MAXLEN - 1, "Error fd %d: %s\n", 1, strerror(errno));
+        ssnprintf(err_str, MAXLEN - 1, _("Error fd %d: %s\n"), 1, strerror(errno));
 
     strnz__cat(stdio_str, ttyname(2), MAXLEN - 1);
     strnz__cat(stdio_str, ", ", MAXLEN - 1);
     if (errno)
-        ssnprintf(err_str, MAXLEN - 1, "Error fd %d: %s\n", 2, strerror(errno));
+        ssnprintf(err_str, MAXLEN - 1, _("Error fd %d: %s\n"), 2, strerror(errno));
 
     return stdio_str;
 }
@@ -1279,7 +1279,7 @@ bool verify_file(char *in_spec, uint imode) {
     if (src_line != 0) {
         if (imode & S_QUIET)
             return false;
-        ssnprintf(em0, MAXLEN - 1, "%s failed in %s at line %d", fn, src_name,
+        ssnprintf(em0, MAXLEN - 1, _("%s failed in %s at line %d"), fn, src_name,
                   src_line);
         strnz__cpy(em1, spec, MAXLEN - 1);
         strnz__cpy(em3, "Check the file", MAXLEN - 1);

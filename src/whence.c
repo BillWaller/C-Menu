@@ -38,7 +38,7 @@ typedef enum { WH_ALL = 1,
 int wh_flags = 0;
 const char *argp_program_version = CM_VERSION;
 const char *argp_program_bug_address = "billxwaller@gmail.com";
-static char doc[] = "whence locate files in path";
+static char doc[] = _("whence locate files in path");
 static char args_doc[] = "";
 
 static struct argp_option options[] = {

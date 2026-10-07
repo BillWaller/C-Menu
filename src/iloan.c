@@ -156,18 +156,18 @@ int main(int argc, char **argv) {
                 }
                 printf("\nYou entered:\n\n");
                 if (pv != 0)
-                    printf("Present Value - - - - - -> %s\n",
+                    printf(_("Present Value - - - - - -> %s\n"),
                            format_currency(pv));
                 if (n != 0)
-                    printf("Number of Payments  - - -> %s\n",
+                    printf(_("Number of Payments  - - -> %s\n"),
                            format_currency(n));
                 if (i != 0)
-                    printf("Interest Rate - - - - - -> %s\n",
+                    printf(_("Interest Rate - - - - - -> %s\n"),
                            format_interest(i));
                 if (pmt != 0)
-                    printf("Payment Amount  - - - - -> %s\n",
+                    printf(_("Payment Amount  - - - - -> %s\n"),
                            format_currency(pmt));
-                printf("\n\nCalculation result:\n\n");
+                printf(_("\n\nCalculation result:\n\n"));
             }
         }
     }
@@ -291,7 +291,7 @@ double calculate_pv(double n, double i, double pmt) {
     i1 = i / 1200;
     pv = pmt * (1 - pow(1 + i1, -n)) / i1;
     if (!f_quiet)
-        printf("Present Value - - - - - -> %s\n", format_currency(pv));
+        printf(_("Present Value - - - - - -> %s\n"), format_currency(pv));
     return (pv);
 }
 /** @brief The calculate_n function calculates the number of payments required to pay off a loan based on the present value, interest rate, and payment amount. It uses logarithmic functions to compute the result. If any of the input values are zero, it displays an error message and prompts the user to provide valid inputs.
@@ -304,7 +304,7 @@ double calculate_n(double pv, double i, double pmt) {
     i1 = i / 1200;
     n = -log(1 - pv * i1 / pmt) / log(1 + i1);
     if (!f_quiet)
-        printf("Number of Payments  - - -> %s\n", format_currency(n));
+        printf(_("Number of Payments  - - -> %s\n"), format_currency(n));
     return (n);
 }
 /** @brief The calculate_i function calculates the annual interest rate for a loan based on the present value, number of payments, and payment amount. It uses an iterative method to find the interest rate that satisfies the loan equation. If any of the input values are zero, it displays an error message and prompts the user to provide valid inputs.
@@ -342,7 +342,7 @@ double calculate_i(double pv, double n, double pmt) {
     }
     i = i1 * 1200;
     if (!f_quiet)
-        printf("interest Rate - - - - - -> %s\n", format_interest(i));
+        printf(_("interest Rate - - - - - -> %s\n)", format_interest(i));
     return (i);
 }
 /** @brief The calculate_pmt function calculates the payment amount for a loan based on the present value, number of payments, and interest rate. It uses the formula for the payment amount of an annuity to compute the result. If any of the input values are zero, it displays an error message and prompts the user to provide valid inputs.
@@ -355,7 +355,7 @@ double calculate_pmt(double pv, double n, double i) {
     i1 = i / 1200;
     pmt = pv * i1 / (1 - pow(1 + i1, -n));
     if (!f_quiet)
-        printf("Payment Amount  - - - - -> %s\n", format_currency(pmt));
+        printf(_("Payment Amount  - - - - -> %s\n"), format_currency(pmt));
     return (pmt);
 }
 /** @brief The is_numeric function checks if a given string consists of numeric characters, including digits, decimal points, and commas. It iterates through each character in the string and returns FALSE if it encounters any character that is not a digit, a decimal point, or a comma. If all characters are valid, it returns TRUE.
@@ -427,7 +427,7 @@ char *format_interest(float a) {
 /** @brief The ABEND function is a signal handler that is called when the program receives certain signals (e.g., SIGINT, SIGQUIT, SIGHUP). It takes an integer argument representing the signal number and prints an error message indicating that an abnormal end (ABEND) has occurred, along with the signal number. After displaying the message, it exits the program with a failure status.
  */
 void ABEND(int e) {
-    printf("ABEND: Error %d:\n", e);
+    printf(_("ABEND: Error %d:\n"), e);
     exit(EXIT_FAILURE);
 }
 /** @brief The numbers function takes two character pointers as arguments: a destination pointer (d) and a source pointer (s). It iterates through the characters in the source string (s) and copies only the numeric characters (digits, decimal points, and minus signs) to the destination string (d). The function effectively filters out any non-numeric characters from the source string and constructs a new string containing only the valid numeric characters. Finally, it null-terminates the destination string.

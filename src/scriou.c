@@ -161,7 +161,7 @@ char di_getch() {
 
     fflush(NULL);
     if (tcgetattr(2, &org_tioctl) == -1) {
-        fprintf(stderr, "\ndi_getch: tcgetattr failed\n");
+        fprintf(stderr, _("\ndi_getch: tcgetattr failed\n"));
         return (0);
     }
     new_tioctl = org_tioctl;

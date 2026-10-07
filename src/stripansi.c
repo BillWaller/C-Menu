@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
         in_buf[2048];   /**< Buffer to hold the input string read from the file */
     char out_buf[2048]; /**< Buffer to hold the cleaned output string */
     if (argc != 2) {
-        fprintf(stderr, "Usage: %s [file_with_ansi_codes]\n", argv[0]);
+        fprintf(stderr, _("Usage: %s [file_with_ansi_codes]\n"), argv[0]);
         return 1;
     }
     FILE *in_fp = fopen(argv[1], "r");

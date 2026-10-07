@@ -6,7 +6,7 @@
 
 int main(int argc, char **argv) {
     UiMultiMedia mm;
-    char image_file[256] = "mountainside_flowers.jpg";
+    char image_file[256] = _("mountainside_flowers.jpg");
     Init *init = new_init(argc, argv);
     mapp_initialization(init, argc, argv);
     UiConfig ui_config = {.border_style = UI_BORDER_HEAVY};

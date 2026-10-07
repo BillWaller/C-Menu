@@ -415,7 +415,7 @@ int view_init_input(Init *init, char *file_name) {
             ui_unregister_read_fd(view->in_fd);
             if (status != UIKEY_STREAM_DATA) {
                 if (status == UIKEY_F09)
-                    cmenu_abend(init, -1, _("view: terminated by F9"));
+                    cmenu_abend(init, -1, _("view: user pressed F9"));
                 if (status == UIKEY_TIMEOUT)
                     cmenu_abend(init, -1, _("view: timed out waiting for input"));
                 cmenu_abend(init, -1, _("view: no input data"));

@@ -17,7 +17,10 @@ rsh [-i] [-D] [COMMAND_ARGUMENTS...]
 
 # DESCRIPTION
 
-rsh is a helper utility for C-Menu that allows users to execute commands with root privileges. It provides a secure and convenient way to run commands that require elevated permissions.
+Type xx<enter> to assume root privileges. Your prompt turns bright red as a
+constant reminder that you are in a dangerous mode. Get your administrative work done. No loitering as root. When you are finished, type x<enter>, your prompt returns to normal, and you are back to the safety and protection of the user level operating system. Your total time to switch from user to root and back is no longer in precious seconds, but nanoseconds with rsh, and you won't hesitate to bop back and forth between user and root as often as you like.
+
+Although outside threats to our systems are sensational and newsworthy, the truth is that some of the most consequential threats are of internal origin, and not born of malice, but of momentary lapses of attention. No one wants to be the person who deletes company records, wipes out a critical database, or removes a user account by mistake. rsh is designed to protect you from these calamities. rsh makes it so quick and easy to switch, you won't be tempted to linger as root. To make sure you don't, rsh provides a bright red prompt as a constant reminder that you are wielding potentially terrible power (power that could ruin your day, your career, and your life).
 
 # NOTE
 
