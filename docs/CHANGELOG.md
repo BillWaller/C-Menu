@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-08T18:18:43-05:00* - ENHANCEMENTS lf is even faster now 
+
+*2026-10-08T11:12:05-05:00* - Update CHANGELOG.md 
+
 *2026-10-08T11:08:32-05:00* - FIX: before and after dates were not working in lf.c because of missing stat_cached flag. Added stat_cached flag to finder and forwarded it to scan_file. Before and after dates are working properly now. 
 
 *2026-10-07T21:15:54-05:00* - Update CHANGELOG.md 
