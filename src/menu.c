@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     mapp_initialization(init, argc, argv);
     UiConfig ui_config = {
         .border_style = UI_BORDER_ROUNDED,
-        .log_file = "/tmp/mylog.log",
+        .log_file = NULL,
         .log_level = INFO};
     ui_init(&ui_config, init->sio);
     rc = atexit(end_pgm);

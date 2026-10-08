@@ -135,3 +135,29 @@ C-Menu was designed to support internal function calls and direct execution, so 
 For piped input and output with internal function calls and direct execution, C-Menu allows the specification of providers and receivers for pipe I-O. Instead of using I/O redirection on the command line with pipe symbols, C-Menu provides more controllable alternatives such as "-S" for specifying a command to execute as a provider (source) of input to a form, pick, or view, "-R" for specifying a command to receive standard output from a form, pick, or view, and "-c" for specifying a command to execute with the selected item as an argument. These features allow you to create powerful and flexible menu items that can interact with other applications and scripts in a more controlled and efficient manner.
 
 ---
+# Why RSH?
+
+Here's just one example:
+
+![WHY RSH](../screenshots/rsh_su.png)
+
+This story is true, but the names have been changed to protect the guilty.
+The screenshot above illustrates why you use rsh instead of su.
+
+## Part 1 - Su
+
+Scene 1. execute view to open view_engine.c. So far, so good. It opens view_engine.c
+   and displays it in your terminal.
+
+Scene 2. Use su to switch to root. You enter your password and it seems as if nothing happened, but something big did just happen. You now have root authority, but there is no indication of the peril to which your system is exposed..
+
+Scene 3. Now, let's repeat the previous command. It doesn't work. That's because it had been opened as "bill" and "root" doesn't have write access. Look at the permissions, ".rw-r-----". Even as root, you can't write to it. View told you what you needed to do. As root, you can delete the file.
+
+Scene 4. You type exit to return to your safe user environment, but did it work? There is no indication to confirm that you have relinquished root privileges. Beads of perspiration form on your forehead as you quickly type "whoami", leaving it to the machine to resolve your identity? (Very distressing indeed.)
+
+## Part 2 - Rsh
+
+Scene 5. Now, let's try it with rsh. This will be a much shorter story. You type xx and press enter. Bam! You know you have root authority because you get a bright red prompt labeled, "root".
+
+Scene 6. Try the command again, and viola: it works. Nothing left to do. Type x to return to your normal user. The prompt changes to green and is labeled with your user name. No need to ask the computer who you are, you know because you use rsh.
+

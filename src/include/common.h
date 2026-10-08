@@ -180,7 +180,7 @@ typedef struct
     char help_spec[MAXLEN];     /**< help file */
     char log_file_spec[MAXLEN]; /**< log file spec */
     uint timeout_secs;          /**< timeout seconds for user input */
-    UiLogLevel min_log_level;
+    UiLogLevel log_min_level;
     int select_max; /**< Pick maximum number of selections */
     int tab_stop;   /**< View - number of spapaces per tab */
     int h_shift;    /**< View - horizontal scroll shift width */

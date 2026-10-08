@@ -254,19 +254,19 @@ parse_opt(int key, char *arg, struct argp_state *state) {
     case 'l':
         str_to_upper(arg);
         if (!strcmp(arg, "SILENT"))
-            init->min_log_level = SILENT;
+            init->log_min_level = SILENT;
         else if (!strcmp(arg, "DEBUG"))
-            init->min_log_level = DEBUG;
+            init->log_min_level = DEBUG;
         else if (!strcmp(arg, "INFO"))
-            init->min_log_level = INFO;
+            init->log_min_level = INFO;
         else if (!strcmp(arg, "WARN"))
-            init->min_log_level = WARN;
+            init->log_min_level = WARN;
         else if (!strcmp(arg, "ERROR"))
-            init->min_log_level = ERROR;
+            init->log_min_level = ERROR;
         else if (!strcmp(arg, "FATAL"))
-            init->min_log_level = FATAL;
+            init->log_min_level = FATAL;
         else
-            init->min_log_level = SILENT;
+            init->log_min_level = SILENT;
         break;
     case 'o':
         strnz__cpy(init->out_spec, arg, MAXLEN - 1);
@@ -594,8 +594,8 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     else
         strnz__cpy(init->editor, e, MAXLEN - 1);
     process_config_files(init);
-    ui_min_log_level = init->min_log_level;
-    ui_log_fp = ui_open_log();
+    ui_log.min_level = init->log_min_level;
+    ui_log.fp = ui_open_log();
     ui_log(INFO, "mapp_initialization");
     ui_log(INFO, _("config files processed"));
     init->mapp_spec[0] = '\0';
@@ -1127,19 +1127,19 @@ int process_config_file(char *config_file_name, Init *init) {
         if (!strcmp(key, "log_level")) {
             str_to_upper(value);
             if (!strcmp(value, "SILENT"))
-                init->min_log_level = SILENT;
+                init->log_min_level = SILENT;
             else if (!strcmp(value, "DEBUG"))
-                init->min_log_level = DEBUG;
+                init->log_min_level = DEBUG;
             else if (!strcmp(value, "INFO"))
-                init->min_log_level = INFO;
+                init->log_min_level = INFO;
             else if (!strcmp(value, "WARN"))
-                init->min_log_level = WARN;
+                init->log_min_level = WARN;
             else if (!strcmp(value, "ERROR"))
-                init->min_log_level = ERROR;
+                init->log_min_level = ERROR;
             else if (!strcmp(value, "FATAL"))
-                init->min_log_level = FATAL;
+                init->log_min_level = FATAL;
             else
-                init->min_log_level = SILENT;
+                init->log_min_level = SILENT;
             continue;
         }
     }
@@ -1255,7 +1255,7 @@ int write_config(Init *init) {
 
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "log_file_spec", init->log_file_spec);
     print_argp_doc(minitrc_fp, config_s, "log_file_spec");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "log_level", ui_log_level_s[init->min_log_level]);
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "log_level", ui_log.level[init->log_min_level]);
     print_argp_doc(minitrc_fp, config_s, "log_level");
 
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "receiver_cmd", init->receiver_cmd);

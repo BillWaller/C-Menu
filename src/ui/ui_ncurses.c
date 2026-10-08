@@ -142,7 +142,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
         return NULL;
     }
     ui->tty_fd = fileno(ui->tty_fp);
-    ui_min_log_level = cfg->log_level;
+    ui_log.min_level = cfg->log_level;
 
     ui_log(INFO, _("ui_init: using tty: %s"), tty_name);
     ui->screen = newterm(NULL, ui->tty_fp, ui->tty_fp);

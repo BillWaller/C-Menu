@@ -167,6 +167,7 @@ int main(int argc, char **argv) {
             rl.rlim_max = RLIM_INFINITY;
             setrlimit(RLIMIT_FSIZE, &rl);
         }
+        setenv("USER", "root", 1);
         execvp(exec_cmd, cargv);
         ABEND(EXIT_FAILURE, _("execvp() fatal error"));
         break;

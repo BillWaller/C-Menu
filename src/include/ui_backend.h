@@ -31,6 +31,20 @@ extern int win_ptr;
 extern bool f_ncurses_open;
 extern bool f_notcurses_open;
 // ---------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------
+#define CCHARW_MAX 5
+#define UI_COLORS 512
+#define UI_PAIRS 512
+#define ALLWINS (uint)1000
+#define UI_SFC_MAX 30
+#define SFC_MAX 30
+#define MAXLEN 256
+extern char em0[MAXLEN]; /**< error message string for error messages */
+extern char em1[MAXLEN]; /**< error message string for error messages */
+extern char em2[MAXLEN]; /**< error message string for error messages */
+extern char em3[MAXLEN]; /**< error message string for error messages */
+// ---------------------------------------------------------------
 // Surface enums
 // ---------------------------------------------------------------
 #define SUB_SURFACE_LIST(X) \
@@ -63,22 +77,6 @@ typedef enum {
 } UiMouseAction;
 
 typedef uint32_t UiKey;
-// ---------------------------------------------------------------
-// Logging enums
-// ---------------------------------------------------------------
-#define LOG_LEVEL_LIST(X) \
-    X(FATAL)              \
-    X(ERROR)              \
-    X(WARN)               \
-    X(INFO)               \
-    X(VERBOSE)            \
-    X(DEBUG)              \
-    X(SILENT)
-#define AS_ENUM(NAME) NAME,
-typedef enum {
-    LOG_LEVEL_LIST(AS_ENUM)
-        LOG_LEVEL_COUNT
-} UiLogLevel;
 // ---------------------------------------------------------------
 // File Types
 // ---------------------------------------------------------------
@@ -185,21 +183,34 @@ typedef struct {
     int lines;
     int cols;
 } UiRect;
+// ---------------------------------------------------------------
+// Logging enums
+// ---------------------------------------------------------------
+#define LOG_LEVEL_LIST(X) \
+    X(FATAL)              \
+    X(ERROR)              \
+    X(WARN)               \
+    X(INFO)               \
+    X(VERBOSE)            \
+    X(DEBUG)              \
+    X(SILENT)
+#define AS_ENUM(NAME) NAME,
+typedef enum {
+    LOG_LEVEL_LIST(AS_ENUM)
+        LOG_LEVEL_COUNT
+} UiLogLevel;
 
-// ---------------------------------------------------------------
-// Configuration
-// ---------------------------------------------------------------
-#define CCHARW_MAX 5
-#define UI_COLORS 512
-#define UI_PAIRS 512
-#define ALLWINS (uint)1000
-#define UI_SFC_MAX 30
-#define SFC_MAX 30
-#define MAXLEN 256
-extern char em0[MAXLEN]; /**< error message string for error messages */
-extern char em1[MAXLEN]; /**< error message string for error messages */
-extern char em2[MAXLEN]; /**< error message string for error messages */
-extern char em3[MAXLEN]; /**< error message string for error messages */
+typedef struct {
+    FILE *fp;
+    char file_spec[MAXLEN];
+    UiLogLevel min_level;
+    bool localtime;
+    char timestamp[32];
+    char *color[LOG_LEVEL_COUNT];
+    char *level[LOG_LEVEL_COUNT];
+} UiLogContext;
+
+extern UiLogContext ui_log;
 
 #ifdef UAL_UI
 // ---------------------------------------------------------------
@@ -1110,34 +1121,28 @@ void ui_compile_chyron(UiChyron *);
 // ---------------------------------------------------------------
 #define ANSI_RESET "\033[0m"
 extern char *ui_iso8601_timestamp(char *buf, size_t n, bool local);
-extern bool ui_timestamp_local;
-extern const char *const ui_logcolor[LOG_LEVEL_COUNT];
-extern const char *const ui_log_level_s[LOG_LEVEL_COUNT];
-extern UiLogLevel ui_min_log_level;
-extern char ui_timestamp[32];
 extern FILE *ui_open_log();
-extern FILE *ui_log_fp;
 
 static inline void ui_logrec(const UiLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) __attribute__((format(printf, 5, 6)));
 
 static inline void ui_logrec(const UiLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) {
     UiLogLevel safe_level = (level >= LOG_LEVEL_COUNT) ? INFO : level;
-    fprintf(ui_log_fp, "[%s] %s[%s]%s <%s:%s:%d> ",
-            ui_iso8601_timestamp(ui_timestamp, sizeof(ui_timestamp), ui_timestamp_local),
-            ui_logcolor[safe_level],
-            ui_log_level_s[safe_level],
+    fprintf(ui_log.fp, "[%s] %s[%s]%s <%s:%s:%d> ",
+            ui_iso8601_timestamp(ui_log.timestamp, sizeof(ui_log.timestamp), ui_log.localtime),
+            ui_log.color[safe_level],
+            ui_log.level[safe_level],
             ANSI_RESET,
             file, func, line);
     va_list args;
     va_start(args, fmt);
-    vfprintf(ui_log_fp, fmt, args);
+    vfprintf(ui_log.fp, fmt, args);
     va_end(args);
-    fprintf(ui_log_fp, "\n");
-    fflush(ui_log_fp);
+    fprintf(ui_log.fp, "\n");
+    fflush(ui_log.fp);
 }
 #define ui_log(level, fmt, ...)                                                 \
     do {                                                                        \
-        if (level <= ui_min_log_level) {                                        \
+        if (level <= ui_log.min_level) {                                        \
             ui_logrec(level, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__); \
         }                                                                       \
     } while (0)

@@ -50,6 +50,23 @@ char em3[MAXLEN];
 bool f_ncurses_open = false;
 bool f_notcurses_open = false;
 
+UiLogContext ui_log = {
+    .fp = NULL,
+    .file_spec = "\0",
+    .min_level = INFO,
+    .localtime = false,
+    .timestamp = "\0",
+    .color = {
+        [FATAL] = "\033[1;31m",   // Bold Red
+        [ERROR] = "\033[0;31m",   // Regular Red
+        [WARN] = "\033[0;33m",    // Yellow
+        [INFO] = "\033[0;32m",    // Green
+        [VERBOSE] = "\033[0;36m", // Cyan
+        [DEBUG] = "\033[0;34m",   // Blue
+        [SILENT] = _("SILENT"),
+    },
+    .level = {[FATAL] = "FATAL", [ERROR] = "ERROR", [WARN] = "WARN", [INFO] = "INFO", [VERBOSE] = "VERBOSE", [DEBUG] = "DEBUG", [SILENT] = "SILENT"}};
+
 // NOTE: It should be safe to use ui_ctx as a global variable, as it is only
 // used for input handling and does not contain any state that would be modified
 // by multiple threads. However, if you plan to use this in a multi-threaded
@@ -1370,44 +1387,29 @@ const char *ui_sub_surface_str(ss_t w) {
         return _("unknown");
     return subsfc_s[w];
 }
-#define AS_STRING(NAME) #NAME,
-const char *const ui_log_level_s[] = {
-    LOG_LEVEL_LIST(AS_STRING)};
-// ANSI Color Strings for UiLog
-const char *const ui_logcolor[] = {
-    [FATAL] = "\033[1;31m",   // Bold Red
-    [ERROR] = "\033[0;31m",   // Regular Red
-    [WARN] = "\033[0;33m",    // Yellow
-    [INFO] = "\033[0;32m",    // Green
-    [VERBOSE] = "\033[0;36m", // Cyan
-    [DEBUG] = "\033[0;34m",   // Blue
-    [SILENT] = _("SILENT"),
-};
 
-FILE *ui_log_fp = NULL;
-char ui_log_file_name[MAXLEN] = "/tmp/ui.log"; // default log file
-const char *const ui_logcolor[];
-UiLogLevel ui_min_log_level = INFO;
-bool ui_timestamp_local = true; // default to local time for timestamps
-char ui_timestamp[32];
 /** ui_open_log
     @brief Open the log file for writing
     @ingroup logging
     @return FILE pointer to the opened log file */
 FILE *ui_open_log() {
-    if (!ui_log_fp) {
-        if (strlen(ui_log_file_name) == 0)
-            strnz__cpy(ui_log_file_name, "/tmp/ui_default.log", MAXLEN - 1);
-        ui_log_fp = fopen(ui_log_file_name, "w");
-        if (!ui_log_fp) {
-            ssnprintf(em0, MAXLEN - 1, _("Failed to open log file: %s"), ui_log_file_name);
+    if (!ui_log.fp) {
+        if (strlen(ui_log.file_spec) == 0) {
+            char *user = getenv("USER");
+            strnz__cpy(ui_log.file_spec, "/tmp/", MAXLEN - 1);
+            strnz__cat(ui_log.file_spec, user, MAXLEN - 1);
+            strnz__cat(ui_log.file_spec, "_ui.log", MAXLEN - 1);
+        }
+        ui_log.fp = fopen(ui_log.file_spec, "a");
+        if (!ui_log.fp) {
+            ssnprintf(em0, MAXLEN - 1, _("Failed to open log file: %s"), ui_log.file_spec);
             ssnprintf(em1, MAXLEN - 1, _("Error: %s"), strerror(errno));
             ssnprintf(em2, MAXLEN - 1, "%s: line: %d", __FILE__, __LINE__ - 4);
-            ssnprintf(em3, MAXLEN - 1, _("remedy: delete %s and try again"), ui_log_file_name);
+            ssnprintf(em3, MAXLEN - 1, _("remedy: delete %s and try again"), ui_log.file_spec);
             fprintf(stderr, "%s\n%s\n%s\n%s\n", em0, em1, em2, em3);
             exit(EXIT_FAILURE);
         }
-        setvbuf(ui_log_fp, NULL, _IOLBF, BUFSIZ);
+        setvbuf(ui_log.fp, NULL, _IOLBF, BUFSIZ);
     }
     char ttyname[MAXLEN];
     char cmenu_user[MAXLEN];
@@ -1417,7 +1419,7 @@ FILE *ui_open_log() {
         strnz__cpy(em0, ttyname, MAXLEN - 1);
     ssnprintf(em0, MAXLEN - 1, _("Ui_Log started by user '%s' on terminal '%s'"), cmenu_user, ttyname);
     ui_log(INFO, "%s:", em0);
-    return ui_log_fp;
+    return ui_log.fp;
 }
 /* -------------------------------------------------------------------------
    Formatting
