@@ -11,8 +11,6 @@
     The fact that using memset to xor the tm struct fixes the broken behavior of GNU gmtime and localtime functions when used within the scope of CST (UTC-6) suggests that there may be a bug in the implementation of these functions that is triggered by uninitialized memory. The fact that it breaks the otherwise correct behavior of GNU gmtime and localtime functions when used within the scope of CDT (UTC-5) suggests that there may be a different bug in the implementation of these functions that is triggered by zeroed memory.
  */
 
-#define _GNU_SOURCE
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>

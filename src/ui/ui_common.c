@@ -50,8 +50,8 @@ char em3[MAXLEN];
 bool f_ncurses_open = false;
 bool f_notcurses_open = false;
 
-UiLogContext ui_log = {
-    .fp = NULL,
+UiLogContext ui_log_ctx = {
+    .fd = -1,
     .file_spec = "\0",
     .min_level = INFO,
     .localtime = false,
@@ -1392,24 +1392,24 @@ const char *ui_sub_surface_str(ss_t w) {
     @brief Open the log file for writing
     @ingroup logging
     @return FILE pointer to the opened log file */
-FILE *ui_open_log() {
-    if (!ui_log.fp) {
-        if (strlen(ui_log.file_spec) == 0) {
-            char *user = getenv("USER");
-            strnz__cpy(ui_log.file_spec, "/tmp/", MAXLEN - 1);
-            strnz__cat(ui_log.file_spec, user, MAXLEN - 1);
-            strnz__cat(ui_log.file_spec, "_ui.log", MAXLEN - 1);
-        }
-        ui_log.fp = fopen(ui_log.file_spec, "a");
-        if (!ui_log.fp) {
-            ssnprintf(em0, MAXLEN - 1, _("Failed to open log file: %s"), ui_log.file_spec);
+int ui_open_log() {
+    if (ui_log_ctx.fd == -1) {
+        char *user = getenv("USER");
+        time_t t = time(NULL);
+        struct tm tp;
+        localtime_r(&t, &tp);
+        char time_s[16];
+        strftime(time_s, 100, "%Y%m%d%H%M%S", &tp);
+        ssnprintf(ui_log_ctx.file_spec, MAXLEN - 1, "/tmp/%s_ui_%s.log", user, time_s);
+        ui_log_ctx.fd = open(ui_log_ctx.file_spec, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        if (ui_log_ctx.fd == -1) {
+            ssnprintf(em0, MAXLEN - 1, _("Failed to open log file: %s"), ui_log_ctx.file_spec);
             ssnprintf(em1, MAXLEN - 1, _("Error: %s"), strerror(errno));
             ssnprintf(em2, MAXLEN - 1, "%s: line: %d", __FILE__, __LINE__ - 4);
-            ssnprintf(em3, MAXLEN - 1, _("remedy: delete %s and try again"), ui_log.file_spec);
+            ssnprintf(em3, MAXLEN - 1, _("remedy: delete %s and try again"), ui_log_ctx.file_spec);
             fprintf(stderr, "%s\n%s\n%s\n%s\n", em0, em1, em2, em3);
             exit(EXIT_FAILURE);
         }
-        setvbuf(ui_log.fp, NULL, _IOLBF, BUFSIZ);
     }
     char ttyname[MAXLEN];
     char cmenu_user[MAXLEN];
@@ -1419,11 +1419,55 @@ FILE *ui_open_log() {
         strnz__cpy(em0, ttyname, MAXLEN - 1);
     ssnprintf(em0, MAXLEN - 1, _("Ui_Log started by user '%s' on terminal '%s'"), cmenu_user, ttyname);
     ui_log(INFO, "%s:", em0);
-    return ui_log.fp;
+    return ui_log_ctx.fd;
 }
-/* -------------------------------------------------------------------------
-   Formatting
-   ------------------------------------------------------------------------- */
+
+void ui_log_write(const UiLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) {
+    UiLogLevel safe_level = (level >= LOG_LEVEL_COUNT) ? INFO : level;
+    struct stat st;
+    if (ui_log_ctx.fd == -1 || (stat(ui_log_ctx.file_spec, &st) == 0 && st.st_size >= MAX_LOG_SIZE)) {
+        if (ui_log_ctx.fd != -1) {
+            close(ui_log_ctx.fd);
+            ui_log_ctx.fd = -1;
+        }
+        char old_archive[MAXLEN];
+        strnz__cpy(old_archive, ui_log_ctx.file_spec, MAXLEN - 1);
+        strnz__cat(old_archive, ".closed", MAXLEN - 1);
+        rename(ui_log_ctx.file_spec, old_archive);
+        ui_log_ctx.fd = ui_open_log();
+    }
+    char log_buffer[MAX_LOG_REC_LEN];
+    int offset = 0;
+    int written = snprintf(log_buffer + offset, sizeof(log_buffer) - offset, "[%s] %s[%s]%s <%s:%s:%d> ",
+                           ui_iso8601_timestamp(ui_log_ctx.timestamp, sizeof(ui_log_ctx.timestamp), ui_log_ctx.localtime),
+                           ui_log_ctx.color[safe_level],
+                           ui_log_ctx.level[safe_level],
+                           ANSI_RESET,
+                           file, func, line);
+    if (written > 0)
+        offset += written;
+    va_list args;
+    va_start(args, fmt);
+    written = vsnprintf(log_buffer + offset, sizeof(log_buffer) - offset, fmt, args);
+    va_end(args);
+    if (written > 0)
+        offset += written;
+    if (offset < (int)sizeof(log_buffer) - 2) {
+        log_buffer[offset++] = '\n';
+        log_buffer[offset] = '\0';
+    } else {
+        log_buffer[sizeof(log_buffer) - 2] = '\n';
+        log_buffer[sizeof(log_buffer) - 1] = '\0';
+        offset = sizeof(log_buffer) - 1;
+    }
+    // Atomic if log_buffer <= 4096 bytes
+    if (write(ui_log_ctx.fd, log_buffer, offset) == -1) {
+        perror("Failed to write atomic log record");
+    }
+}
+// -------------------------------------------------------------------------
+// Formatting
+// -------------------------------------------------------------------------
 /** parse_ansi
     @brief Parse ANSI escape sequences for color and attributes
     @ingroup formatting

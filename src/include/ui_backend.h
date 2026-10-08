@@ -22,10 +22,20 @@ extern "C" {
 #include <notcurses/notcurses.h>
 // #include "../ui/ui_notcurses_internal.h"
 #endif
+#include <fcntl.h>
 #include <poll.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
+#include <wchar.h>
+
 extern int sfc_ptr;
 extern int win_ptr;
 extern bool f_ncurses_open;
@@ -184,8 +194,11 @@ typedef struct {
     int cols;
 } UiRect;
 // ---------------------------------------------------------------
-// Logging enums
+// Logging
 // ---------------------------------------------------------------
+#define ANSI_RESET "\033[0m"
+#define MAX_LOG_SIZE (10 * 1024 * 1024)
+#define MAX_LOG_REC_LEN 4096
 #define LOG_LEVEL_LIST(X) \
     X(FATAL)              \
     X(ERROR)              \
@@ -199,9 +212,8 @@ typedef enum {
     LOG_LEVEL_LIST(AS_ENUM)
         LOG_LEVEL_COUNT
 } UiLogLevel;
-
 typedef struct {
-    FILE *fp;
+    int fd;
     char file_spec[MAXLEN];
     UiLogLevel min_level;
     bool localtime;
@@ -209,8 +221,7 @@ typedef struct {
     char *color[LOG_LEVEL_COUNT];
     char *level[LOG_LEVEL_COUNT];
 } UiLogContext;
-
-extern UiLogContext ui_log;
+extern UiLogContext ui_log_ctx;
 
 #ifdef UAL_UI
 // ---------------------------------------------------------------
@@ -1119,34 +1130,18 @@ void ui_compile_chyron(UiChyron *);
 // ---------------------------------------------------------------
 // Logging
 // ---------------------------------------------------------------
-#define ANSI_RESET "\033[0m"
 extern char *ui_iso8601_timestamp(char *buf, size_t n, bool local);
-extern FILE *ui_open_log();
+extern int ui_open_log();
 
-static inline void ui_logrec(const UiLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) __attribute__((format(printf, 5, 6)));
+void ui_log_write(const UiLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) __attribute__((format(printf, 5, 6)));
 
-static inline void ui_logrec(const UiLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) {
-    UiLogLevel safe_level = (level >= LOG_LEVEL_COUNT) ? INFO : level;
-    fprintf(ui_log.fp, "[%s] %s[%s]%s <%s:%s:%d> ",
-            ui_iso8601_timestamp(ui_log.timestamp, sizeof(ui_log.timestamp), ui_log.localtime),
-            ui_log.color[safe_level],
-            ui_log.level[safe_level],
-            ANSI_RESET,
-            file, func, line);
-    va_list args;
-    va_start(args, fmt);
-    vfprintf(ui_log.fp, fmt, args);
-    va_end(args);
-    fprintf(ui_log.fp, "\n");
-    fflush(ui_log.fp);
-}
-#define ui_log(level, fmt, ...)                                                 \
-    do {                                                                        \
-        if (level <= ui_log.min_level) {                                        \
-            ui_logrec(level, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__); \
-        }                                                                       \
+#define ui_log(level, fmt, ...)                                                    \
+    do {                                                                           \
+        if (level <= ui_log_ctx.min_level) {                                       \
+            ui_log_write(level, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__); \
+        }                                                                          \
     } while (0)
 
 #ifdef __cplusplus
-}
+extern "C" {
 #endif

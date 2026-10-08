@@ -128,7 +128,6 @@ static struct argp_option options[] = {
     {"help_spec", 'H', "file_spec", 0, "help file spec", 3},
     {"in_spec", 'i', "file_spec", 0, "input file spec", 3},
     {"log_level", 'l', "text", 0, "FATAL, ERROR, WARN, INFO, VERBOSE, DEBUG", 3},
-    {"log_file_spec", 'g', "file_spec", 0, "log file spec", 3},
     {"mapp_spec", 'd', "file_spec", 0, "description file spec", 3},
     {"provider_cmd", 'S', "file_spec", 0, "execute provider of piped input", 3},
     {"receiver_cmd", 'R', "file_spec", 0, "execute receiver of piped output", 3},
@@ -247,9 +246,6 @@ parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'i':
         strnz__cpy(init->in_spec, arg, MAXLEN - 1);
-        break;
-    case 'g':
-        strnz__cpy(init->log_file_spec, arg, MAXLEN - 1);
         break;
     case 'l':
         str_to_upper(arg);
@@ -594,8 +590,8 @@ void mapp_initialization(Init *init, int argc, char **argv) {
     else
         strnz__cpy(init->editor, e, MAXLEN - 1);
     process_config_files(init);
-    ui_log.min_level = init->log_min_level;
-    ui_log.fp = ui_open_log();
+    ui_log_ctx.min_level = init->log_min_level;
+    ui_log_ctx.fd = ui_open_log();
     ui_log(INFO, "mapp_initialization");
     ui_log(INFO, _("config files processed"));
     init->mapp_spec[0] = '\0';
@@ -1120,10 +1116,6 @@ int process_config_file(char *config_file_name, Init *init) {
             strnz__cpy(init->mapp_theme, value, MAXLEN - 1);
             continue;
         }
-        if (!strcmp(key, "log_file_spec")) {
-            strnz__cpy(init->log_file_spec, value, MAXLEN - 1);
-            continue;
-        }
         if (!strcmp(key, "log_level")) {
             str_to_upper(value);
             if (!strcmp(value, "SILENT"))
@@ -1253,9 +1245,7 @@ int write_config(Init *init) {
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "out_spec", init->out_spec);
     print_argp_doc(minitrc_fp, config_s, "out_spec");
 
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "log_file_spec", init->log_file_spec);
-    print_argp_doc(minitrc_fp, config_s, "log_file_spec");
-    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "log_level", ui_log.level[init->log_min_level]);
+    ssnprintf(config_s, MAXLEN - 1, "%s=%s", "log_level", ui_log_ctx.level[init->log_min_level]);
     print_argp_doc(minitrc_fp, config_s, "log_level");
 
     ssnprintf(config_s, MAXLEN - 1, "%s=%s", "receiver_cmd", init->receiver_cmd);

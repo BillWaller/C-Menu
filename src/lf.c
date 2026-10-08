@@ -176,8 +176,7 @@ bool mpmc_enqueue(LfContext *, const QueuePayload *child_node);
 bool mpmc_dequeue(LfContext *lf, QueuePayload *output_node);
 void *worker(void *arg);
 void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node);
-int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf, const unsigned char,
-              const struct stat *, OutputBuffer *);
+int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf, const unsigned char, struct stat *, bool stat_cached, OutputBuffer *);
 bool build_full_path(char *, size_t, const char *, const char *, size_t *);
 void flush_output_buffer(LfContext *, OutputBuffer *);
 bool append_output_buffer(LfContext *, OutputBuffer *, const char *, size_t,
@@ -1107,6 +1106,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
     long nread;
     char dir_buf[DIR_BUF_SIZE];
     struct stat sb = {};
+    bool stat_cached = false;
     struct linux_dirent64 *entry;
     dev_t actual_dev = 0, effective_dev = 0;
     ino_t actual_ino = 0, effective_ino = 0;
@@ -1179,12 +1179,14 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                                 strerror(errno));
                     }
                 } else {
+
                     actual_ino = sb.st_ino;
                     actual_dev = sb.st_dev;
                     actual_type = (sb.st_mode & S_IFMT) >> 12;
                     effective_dev = actual_dev;
                     effective_ino = actual_ino;
                     effective_type = actual_type;
+                    stat_cached = true;
                 }
                 if (S_ISLNK(sb.st_mode)) {
                     // Determine the real type of the entry. If the entry is a symbolic link, we set actual_type to DT_LNK and then attempt to get the metadata of the target it points to using fstatat without AT_SYMLINK_NOFOLLOW. This allows us to determine the effective type of the entry based on the target's metadata, which is important for deciding how to process it (e.g., whether it's a directory that we should enqueue for further searching). If fstatat fails when trying to get the target's metadata, we log the error (if debugging is enabled) but continue processing the entry based on its symbolic link metadata.
@@ -1287,7 +1289,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                         }
                         atomic_fetch_add(&lf->error_count, 1);
                         child_node->depth = current_node->depth + 1;
-                        scan_file(child_node->path, &child_node->path_len, lf, effective_type, &sb, &output);
+                        scan_file(child_node->path, &child_node->path_len, lf, effective_type, &sb, stat_cached, &output);
                         continue;
                     }
                 }
@@ -1324,7 +1326,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                         continue;
                 }
                 if (!lf->only_errors)
-                    scan_file(child_node->path, &child_node->path_len, lf, effective_type, &sb, &output);
+                    scan_file(child_node->path, &child_node->path_len, lf, effective_type, &sb, stat_cached, &output);
             } else {
                 // --------------------------------------------------------
                 // NOT DIRECTORY - CONDITIONALLY PRINT THE ENTRY
@@ -1352,7 +1354,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                     }
                 }
                 if (!lf->only_errors)
-                    scan_file(full_path, &path_len, lf, effective_type, &sb, &output);
+                    scan_file(full_path, &path_len, lf, effective_type, &sb, stat_cached, &output);
             }
         }
     }
@@ -1386,10 +1388,8 @@ bool is_link_cycle(dev_t dev, ino_t ino, CycleNode *parent) {
     @details This function checks various conditions based on the search filters specified in the LfContext. It evaluates whether the file or directory should be included in the output based on type, regex matching, ownership, permissions, modification time, and size. If all conditions are met, it appends the path to the output buffer. The function also handles caching of stat information to avoid redundant system calls when possible.
 */
 int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
-              const unsigned char effective_type, const struct stat *cached_sb,
+              const unsigned char effective_type, struct stat *cached_sb, bool stat_cached,
               OutputBuffer *output) {
-    bool stat_cached = cached_sb != nullptr;
-    struct stat sb = {};
 
     while (1) {
         if (lf->suppress_types & lf_mask[effective_type])
@@ -1413,43 +1413,43 @@ int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
         }
         //  Exclude files not owned by specified user
         if (lf->flags & LF_USER) {
-            if (!stat_cached && stat(file_spec, &sb) == 0)
+            if (!stat_cached && stat(file_spec, cached_sb) == 0)
                 stat_cached = true;
-            if (!stat_cached || sb.st_uid != lf->user_id)
+            if (!stat_cached || cached_sb->st_uid != lf->user_id)
                 break;
         }
         if (lf->include_perms) {
-            if (!stat_cached && stat(file_spec, &sb) == 0)
+            if (!stat_cached && stat(file_spec, cached_sb) == 0)
                 stat_cached = true;
             if (!stat_cached)
                 break;
-            if ((lf->include_perms & LF_IRUSR) && !(sb.st_mode & S_IRUSR))
+            if ((lf->include_perms & LF_IRUSR) && !(cached_sb->st_mode & S_IRUSR))
                 break;
-            else if ((lf->include_perms & LF_IWUSR) && !(sb.st_mode & S_IWUSR))
+            else if ((lf->include_perms & LF_IWUSR) && !(cached_sb->st_mode & S_IWUSR))
                 break;
-            else if ((lf->include_perms & LF_IXUSR) && !(sb.st_mode & S_IXUSR))
+            else if ((lf->include_perms & LF_IXUSR) && !(cached_sb->st_mode & S_IXUSR))
                 break;
-            else if ((lf->include_perms & LF_ISUID) && !(sb.st_mode & S_ISUID))
+            else if ((lf->include_perms & LF_ISUID) && !(cached_sb->st_mode & S_ISUID))
                 break;
-            else if ((lf->include_perms & LF_ISGID) && !(sb.st_mode & S_ISGID))
+            else if ((lf->include_perms & LF_ISGID) && !(cached_sb->st_mode & S_ISGID))
                 break;
         }
         if (lf->before) { // Last file modification
-            if (!stat_cached && stat(file_spec, &sb) == 0)
+            if (!stat_cached && stat(file_spec, cached_sb) == 0)
                 stat_cached = true;
-            if (stat_cached && sb.st_mtime > lf->before)
+            if (stat_cached && cached_sb->st_mtime > lf->before)
                 break;
         }
         if (lf->after) { // Last file modification
-            if (!stat_cached && stat(file_spec, &sb) == 0)
+            if (!stat_cached && stat(file_spec, cached_sb) == 0)
                 stat_cached = true;
-            if (stat_cached && sb.st_mtime < lf->after)
+            if (stat_cached && cached_sb->st_mtime < lf->after)
                 break;
         }
         if (lf->file_size_min) {
-            if (!stat_cached && stat(file_spec, &sb) == 0)
+            if (!stat_cached && stat(file_spec, cached_sb) == 0)
                 stat_cached = true;
-            if (stat_cached && sb.st_size < lf->file_size_min)
+            if (stat_cached && cached_sb->st_size < lf->file_size_min)
                 break;
         }
         if (lf->only_errors)
