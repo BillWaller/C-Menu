@@ -16,115 +16,19 @@
 #include <string.h>
 #include <time.h>
 
-int main() {
+int main(int argc, char **argv) {
     char buf[100];
-    char time_s[32];
     struct tm tm1;
-
+    bool f_localtime = false;
+    if (argc > 1 && !strcmp(argv[1], "-l"))
+        f_localtime = true;
     time_t t1 = time(NULL);
-    gmtime_r(&t1, &tm1);
-    strftime(buf, 100, "gmtime     %Y-%m-%dT%H:%M:%SZ", &tm1);
+    if (f_localtime) {
+        localtime_r(&t1, &tm1);
+        strftime(buf, 100, "%Y-%m-%dT%H:%M:%S", &tm1);
+    } else {
+        gmtime_r(&t1, &tm1);
+        strftime(buf, 100, "%Y-%m-%dT%H:%M:%SZ", &tm1);
+    }
     printf("%s\n", buf);
-
-    localtime_r(&t1, &tm1);
-    strftime(buf, 100, "localtime  %Y-%m-%dT%H:%M:%S", &tm1);
-    printf("%s\n\n", buf);
-
-    // ==========================================================
-    strcpy(time_s, "2026-06-01T00:00:00");
-    printf("input:     %s\n", time_s);
-    memset(&tm1, 0, sizeof(struct tm)); // xor tm1
-    tm1.tm_isdst = -1;
-    strptime(time_s, "%Y-%m-%dT%H:%M:%S", &tm1);
-    t1 = mktime(&tm1);
-
-    gmtime_r(&t1, &tm1);
-    strftime(buf, 100, "gmtime     %Y-%m-%dT%H:%M:%SZ", &tm1);
-    printf("%s\n", buf);
-
-    localtime_r(&t1, &tm1);
-    strftime(buf, 100, "localtime  %Y-%m-%dT%H:%M:%S", &tm1);
-    printf("%s\n\n", buf);
-
-    // used memset to xor tm1
-
-    // input:     2026-06-01T00:00:00
-    // gmtime     2026-06-01T06:00:00Z
-    // localtime  2026-06-01T01:00:00
-
-    // gmtime_r incorrectly used UTC-6 instead of UTC-5
-    // localtime_r incorrectly added 1 hour
-    // ----------------------------------------------------------
-    strcpy(time_s, "2026-06-01T00:00:00");
-    printf("input:     %s\n", time_s);
-    memset(&tm1, 0, sizeof(struct tm)); // xor tm1
-    tm1.tm_isdst = -1;
-    strptime(time_s, "%Y-%m-%dT%H:%M:%S", &tm1);
-    t1 = mktime(&tm1);
-
-    gmtime_r(&t1, &tm1);
-    strftime(buf, 100, "gmtime     %Y-%m-%dT%H:%M:%SZ", &tm1);
-    printf("%s\n", buf);
-
-    localtime_r(&t1, &tm1);
-    strftime(buf, 100, "localtime  %Y-%m-%dT%H:%M:%S", &tm1);
-    printf("%s\n\n", buf);
-
-    // did not use memset to xor tm1
-    //
-    // input:     2026-06-01T00:00:00
-    // gmtime     2026-06-01T05:00:00Z
-    // localtime  2026-06-01T00:00:00
-    //
-    // gmtime correctly used UTC-5
-    // localtime correctly did not add 1 hour
-    // ==========================================================
-    strcpy(time_s, "2026-03-07T00:00:00");
-    printf("input:     %s\n", time_s);
-    memset(&tm1, 0, sizeof(struct tm));
-    tm1.tm_isdst = -1;
-    strptime(time_s, "%Y-%m-%dT%H:%M:%S", &tm1);
-    t1 = mktime(&tm1);
-
-    gmtime_r(&t1, &tm1);
-    strftime(buf, 100, "gmtime     %Y-%m-%dT%H:%M:%SZ", &tm1);
-    printf("%s\n", buf);
-
-    localtime_r(&t1, &tm1);
-    strftime(buf, 100, "localtime  %Y-%m-%dT%H:%M:%S", &tm1);
-    printf("%s\n\n", buf);
-
-    // did not use memset to xor tm1
-    //
-    // input:     2026-03-07T00:00:00
-    // gmtime     2026-03-07T05:00:00Z
-    // localtime  2026-03-06T23:00:00
-    //
-    // gmtime_r incorrectly used UTC-6 instead of UTC-5
-    // localtime_r incorrectly subtracted 1 hour
-    // ----------------------------------------------------------
-    strcpy(time_s, "2026-03-07T00:00:00");
-    printf("input:     %s\n", time_s);
-    memset(&tm1, 0, sizeof(struct tm));
-    tm1.tm_isdst = -1;
-    strptime(time_s, "%Y-%m-%dT%H:%M:%S", &tm1);
-    t1 = mktime(&tm1);
-
-    gmtime_r(&t1, &tm1);
-    strftime(buf, 100, "gmtime     %Y-%m-%dT%H:%M:%SZ", &tm1);
-    printf("%s\n", buf);
-
-    localtime_r(&t1, &tm1);
-    strftime(buf, 100, "localtime  %Y-%m-%dT%H:%M:%S", &tm1);
-    printf("%s\n\n", buf);
-
-    // used memset to xor tm1
-    //
-    // input:     2026-03-07T00:00:00
-    // gmtime     2026-03-07T06:00:00Z
-    // localtime  2026-03-07T00:00:00
-    //
-    // gmtime_r correctly used UTC-6 instead of UTC-5
-    // localtime_r correctly did not add 1 hour
-    // ==========================================================
 }

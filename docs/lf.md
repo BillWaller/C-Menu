@@ -36,19 +36,15 @@ providing a variety of options for customizing the search criteria.
 
 # OPTIONS
 
--a, --after=Modified after YYYY-MM-DDTHH:MM:SS
+-a, --after=Modified after YYYY-MM-DDTHH:MM:SS (local time)
 
--b, --before=Modified before YYYY-MM-DDTHH:MM:SS
+-b, --before=Modified before YYYY-MM-DDTHH:MM:SS (local time)
 
-    Dates use the ISO 8601 format. The T is a separator between the date and
-    time. If the time is not specified, it defaults to 00:00:00. If the date
-    is not specified, it defaults to the current date.
+    Date Time: should be specified in the ISO 8601 standard format. Note that the "T" is a separator between the date and time. If the time is not specified, it defaults to 00:00:00.
 
 -d, --max_depth=Depth into directory tree
 
-    Default depth is 0, which means no limit. A depth of 1 means only the
-    specified directory, 2 means the specified directory and its immediate
-    subdirectories, and so on.
+    The default maximum depth is 0, which means no limit. A depth of 1 means only the specified directory, 2 means the specified directory and its immediate subdirectories, and so on.
 
 -D, --debug=12345678
 
@@ -56,14 +52,21 @@ providing a variety of options for customizing the search criteria.
     information. The levels are as follows:
 
     1-config        Print the configuration settings.
+
     2-info          Print informational messages about the program execution.
+
     3-warnings      Print warning messages about potential issues.
+
     4-errors        Print error messages about problems encountered during
                     execution.
+
     5-badlinks      Print messages about broken symbolic links.
+
     6-trace         Trace ancestor scans for cyclic links.
+
     7-all           Print all debugging information (config, info, warnings,
                     errors and badlinks).
+
     8-only_errors:  Print only error messages. This is useful for
                     examining a directory tree for errors.
 
@@ -96,9 +99,13 @@ providing a variety of options for customizing the search criteria.
     Use -p to include only files with the specified permissions.
 
     x-execute
+
     w-write
+
     r-read
+
     s-setuid
+
     g-setgid
 
     For example, if you want to include only files that have read and write
@@ -124,8 +131,11 @@ providing a variety of options for customizing the search criteria.
 -s, --file_size_min=minimum size
 
     No Suffix-bytes
+
     K-kilobytes
+
     M-Megabytes, or
+
     G-Gigabytes
 
     Use -s to include only files that are at least the specified size. A
@@ -135,24 +145,31 @@ providing a variety of options for customizing the search criteria.
 
 -S, --sort Sort in Ascending order
 
-    Use -R to sort the results in ascending order. By default, results
+    Use -S to sort the results in ascending order. By default, results
     are not sorted.
 
-    Note: This option invokes the sort command internallay. It is likely
+    Note: This option invokes the sort command internally. It is likely
     that the user can obtain better results by piping the output of lf through
-    a custom sort command taylored to the specific needs of the application.
+    a custom sort command tailored to the specific needs of the application.
 
     Example: lf -H | LC_ALL=C sort --parallel=4 --buffer_size=4G
 
 -t, --include_types=pcdbflsu
 
     p-pipe
+
     c-character_dev
+
     d-directory
+
     b-block_dev
+
     f-regular_file
+
     l-link
+
     s-socket
+
     u-unknown
 
     Use -t to include only files of the specified types. To include only
@@ -298,7 +315,7 @@ Compare number of files found in the current working directory by find, fd, and 
 
     Note: Subtract 1 from the count reported by find as it includes the top-level
     base path. fd and lf do not include the top-level base path as that would be
-    tautilogical.
+    tautological.
 
 List all man pages that begin with "view" in MANPATH.
 
