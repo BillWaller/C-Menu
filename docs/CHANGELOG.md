@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-08T23:19:52-05:00* - DOCUMENTATION UPDATES 
+
+*2026-10-08T22:43:23-05:00* - Update CHANGELOG.md 
+
 *2026-10-08T22:43:03-05:00* - FIX: further refinement of parse_ansi_str 
 
 *2026-10-08T22:40:35-05:00* - Update CHANGELOG.md 
