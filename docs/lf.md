@@ -246,6 +246,34 @@ hidden files and directories by default. Use the "-H" option to include hidden f
 
 # EXAMPLES
 
+To list the bill_ui_*.log files in the /tmp directory:
+
+    ls -l /tmp/bill_ui_*.log
+    -rw-r--r-- 1 bill bill 1758 Oct  8 22:34 /tmp/bill_ui_20261008223442.log
+    -rw-r--r-- 1 bill bill 1758 Oct  8 22:43 /tmp/bill_ui_20261008224347.log
+    -rw-r--r-- 1 bill bill 1240 Oct  8 22:44 /tmp/bill_ui_20261008224350.log
+    -rw-r--r-- 1 bill bill 1242 Oct  8 22:48 /tmp/bill_ui_20261008224854.log
+    -rw-r--r-- 1 bill bill 1242 Oct  8 22:51 /tmp/bill_ui_20261008225104.log
+
+List all files in the /tmp directory that have a modification time between 22:35
+and 22:50 on October 8, 2026 using lf:
+
+    lf /tmp -a 2026-10-08T22:35:00 -b 2026-10-08T22:50:00 | sort
+    /tmp/bill_ui_20261008224347.log
+    /tmp/bill_ui_20261008224350.log
+    /tmp/bill_ui_20261008224854.log
+
+This handy capability is especially useful for freeing up disk space by deleting
+temporary files, log files, and installation artifacts that are no longer
+needed.
+
+    lf /var/log -b 2026-07-31T00:00:00 | xargs rm -f
+
+    NOTE: It is highly recommended that you have "safe rm" installed on your
+    system. Safe rm copies files to your trash directory before deleting them.
+    Once you are comfortable that the files are no longer needed, you can empty
+    your trash directory. See C-Menu Augmentation.
+
 List all files in the current directory and its subdirectories that have a .txt extension:
 
     lf -r '.*\.txt$'

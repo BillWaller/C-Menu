@@ -70,6 +70,7 @@ gh repo clone BillWaller/C-Menu
 * [Useful Configurations](#useful-configurations)
   * [Alternate Bash Executable](#alternate-bash-executable)
   * [Shell Configuration](#shell-configuration)
+  * [Safe File Deletion](#safe-file-deletion)
   * [Customize Your Terminal Emulator](#customize-your-terminal-emulator)
     * [Fonts](#fonts)
     * [Example Terminal Configurations](#example-terminal-configurations)
@@ -958,6 +959,56 @@ export XUSER="$(id -un)"
 export PS1="\[\e[1;32m\]\u@\h:\w>\[\e[0m\] "
 [ "$XUSER" = "root" ] && export PS1="\[\e[1;31m\]\u@\h:\w>\[\e[0m\] "
 echo PS1="$PS1"
+```
+
+---
+
+### Safe File Deletion
+
+```bash
+#   ╭───────────────────────────────────────────────────────────────╮
+#   │ Safe rm - move deleted files to ~/trash                       │
+#   ╰───────────────────────────────────────────────────────────────╯
+trash() {
+    local TRASH_DIR="$HOME/trash"
+    # Ensure the trash directory exists
+    mkdir -p "$TRASH_DIR"
+    # Loop through all arguments passed to the function
+    for target in "$@"; do
+        # Ignore options/flags (like -rf) to prevent errors
+        [[ "$target" =~ ^- ]] && continue
+        # Check if the file or directory actually exists
+        if [ -e "$target" ] || [ -L "$target" ]; then
+            local base_name
+            base_name=$(basename "$target")
+            local dest="$TRASH_DIR/$base_name"
+            # If a duplicate exists, find the next available sequence number
+            if [ -e "$dest" ] || [ -L "$dest" ]; then
+                local filename="${base_name%.*}"
+                local extension="${base_name##*.}"
+                local count=1
+                # Handle files without extensions
+                if [ "$filename" = "$extension" ]; then
+                    while [ -e "$TRASH_DIR/${filename}_${count}" ] || [ -L "$TRASH_DIR/${filename}_${count}" ]; do
+                        ((count++))
+                    done
+                    dest="$TRASH_DIR/${filename}_${count}"
+                else
+                    while [ -e "$TRASH_DIR/${filename}_${count}.${extension}" ] || [ -L "$TRASH_DIR/${filename}_${count}.${extension}" ]; do
+                        ((count++))
+                    done
+                    dest="$TRASH_DIR/${filename}_${count}.${extension}"
+                fi
+            fi
+            # Move the file to the trash folder
+            mv "$target" "$dest"
+        else
+            echo "trash: cannot remove '$target': No such file or directory" >&2
+        fi
+    done
+}
+# Alias rm to use the trash function instead
+alias rm=trash
 ```
 
 ---
