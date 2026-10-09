@@ -386,6 +386,17 @@ List all man pages that begin with "view" in MANPATH.
 
     VIM - Vi IMproved 9.2 (2026 Feb 14)
 
+# PERFORMANCE
+
+The performance of any file finder is highly dependent on the number of files in the directory tree and the speed of the storage device. lf is optimized for performance on multi-core systems fast storage devices. The following benchmarks were run on a system with 8 CPU cores (circa 2016) and an ultra-low-latency NVMe SSD (Intel Optane). The performance of all file finders will be significantly better on modern systems with more CPU cores.
+
+    Command     User  Sys   Elap  %CPU   Memory   Pfaults  Files
+    find        0.39  0.46  0.86   100   35,220k   11,980  511,170
+    fd . -H -I  0.79  0.60  0.15   923  125,584k    3,627  511,169
+    lf -H       0.23  0.67  0.08  1052   13,776k    3,488  511,169
+
+    NOTE: find counts the root base path while lf and fd only count the files actually found during the search. As a result, find reports one more file than lf or fd. Accordingly, subtract 1 from the count reported by find to get an accurate count.
+
 # REPORTING BUGS
 
 Report bugs to <billxwaller@gmail.com>.

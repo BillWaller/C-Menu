@@ -36,7 +36,8 @@
 #define QUEUE_MASK (QUEUE_CAPACITY - 1)
 #define MAX_PATH_LEN _POSIX_PATH_MAX
 #define MAX_DEPTH 64
-#define DIR_BUF_SIZE 262144
+// #define DIR_BUF_SIZE 262144
+#define DIR_BUF_SIZE 524288
 #define CACHE_LINE_SIZE 64
 
 // 32 Million directories max limit. Cost: 768MB Virtual Memory, 0MB RAM initially.
