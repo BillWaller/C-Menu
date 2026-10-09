@@ -2489,6 +2489,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attrs, ushort *cpx) {
                             if (tok != nullptr) {
                                 x_idx = a_toi(tok, &a_toi_error);
                                 rgb = ui_xterm256_idx_to_rgb(x_idx);
+                                f_rgb = true;
                             }
                         } else if (*tok == '2') {
                             tok = strtok(nullptr, ";m");
