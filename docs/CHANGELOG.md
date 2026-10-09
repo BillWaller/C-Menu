@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-08T22:43:03-05:00* - FIX: further refinement of parse_ansi_str 
+
+*2026-10-08T22:40:35-05:00* - Update CHANGELOG.md 
+
 *2026-10-08T22:35:38-05:00* - FIX: view_engine.c could fail with a segmentation fault when encountering invalid ANSI SGR escape sequences. The function, parse_ansi_str has been modified to handle invalid escape sequences gracefully, preventing the segmentation fault and ensuring that the program continues to run without crashing. This fix improves the robustness of the view engine when processing ANSI escape sequences. 
 
 *2026-10-08T18:19:30-05:00* - Update CHANGELOG.md 
