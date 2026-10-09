@@ -1074,8 +1074,8 @@ void *worker(void *arg) {
     // current_node is a pointer to the current task being processed, while child_node is a local variable used to hold the next task to be enqueued. The worker thread continuously dequeues tasks from the queue and processes them using the finder function. If the finder function returns NULL, indicating that there are no more tasks to process, the active task count is decremented. If the active task count reaches zero, the shut_down flag is set to true, signaling other threads to terminate.
     QueuePayload *current_node = calloc(1, sizeof(QueuePayload));
     QueuePayload *child_node = calloc(1, sizeof(QueuePayload));
-    OutputBuffer *output = calloc(1, sizeof(OutputBuffer));
     char *dir_buf = calloc(1, DIR_BUF_SIZE);
+    OutputBuffer *output = calloc(1, sizeof(OutputBuffer));
     if (child_node == nullptr) {
         fprintf(stderr, _("Out of memory allocating child_node\n"));
         return NULL;

@@ -395,7 +395,28 @@ The performance of any file finder is highly dependent on the number of files in
     fd . -H -I  0.79  0.60  0.15   923  125,584k    3,627  511,169
     lf -H       0.23  0.67  0.08  1052   13,776k    3,488  511,169
 
-    NOTE: find counts the root base path while lf and fd only count the files actually found during the search. As a result, find reports one more file than lf or fd. Accordingly, subtract 1 from the count reported by find to get an accurate count.
+NOTE: find counts the root base path while lf and fd only count the files actually found during the search. As a result, find reports one more file than lf or fd. Accordingly, subtract 1 from the count reported by find to get an accurate count.
+
+# MEMORY HYGIENE
+
+    valgrind options:
+        --tool=memcheck
+        --leak-check=full
+        --show-leak-kinds=definite
+        --show-reachable=no
+        --num-callers=30
+        --leak-resolution=high
+        --track-origins=yes
+        --keep-debuginfo=yes
+        --suppressions=valgrind.supp
+        --gen-suppressions=all
+
+    valgrind output:
+        HEAP SUMMARY:
+            in use at exit: 0 bytes in 0 blocks
+          total heap usage: 81 allocs, 81 frees, 13,581,697 bytes allocated
+        All heap blocks were freed -- no leaks are possible
+        ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
 
 # REPORTING BUGS
 

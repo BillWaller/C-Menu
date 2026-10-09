@@ -28,7 +28,7 @@ Usage: [menu] [form] [pick] [view] [OPTION...] [INPUT] [OUTPUT] [HELP] [ARG4] [A
 [--provider_cmd=file_spec] [--title=text] [--wait_timeout=seconds]
 [--f_erase_remainder=bool] [--f_strip_ansi=bool]
 [--f_squeeze=bool] [--f_ignore_case=bool] [--fill_char=char]
-[--f_ln[=bool]] [--tab_stop=number] [--brackets=text]
+[--f_ln=bool] [--tab_stop=number] [--brackets=text]
 [--bg_clr_x=hex_clr] [--bo_clr_x=hex_clr] [--fg_clr_x=hex_clr]
 [--ln__bg_clr_x=hex_clr] [--ln_clr_x=hex_clr] [--blue_gamma=float]
 [--gray_gamma=float] [--green_gamma=float] [--red_gamma=float]

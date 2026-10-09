@@ -102,7 +102,7 @@ UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
         free(ui);
         return NULL;
     }
-    ui_log.min_level = cfg->log_level;
+    ui_log_ctx.min_level = cfg->log_level;
     NotCursesOptions nc_opts = {
         .flags = NCOPTION_SUPPRESS_BANNERS |
                  NCOPTION_NO_QUIT_SIGHANDLERS,
