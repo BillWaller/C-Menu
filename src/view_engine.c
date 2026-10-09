@@ -2467,6 +2467,7 @@ void parse_ansi_str(char *ansi_str, attr_t *attrs, ushort *cpx) {
     uint fg_clr, bg_clr;
     char *ansi_p = ansi_str + 2;
     ui_pair_content(*cpx, &fg_clr, &bg_clr);
+    bool f_rgb = false;
     fg = fg_clr;
     bg = bg_clr;
     RGB rgb;
@@ -2491,17 +2492,26 @@ void parse_ansi_str(char *ansi_str, attr_t *attrs, ushort *cpx) {
                             }
                         } else if (*tok == '2') {
                             tok = strtok(nullptr, ";m");
-                            rgb.r = a_toi(tok, &a_toi_error);
-                            tok = strtok(nullptr, ";m");
-                            rgb.g = a_toi(tok, &a_toi_error);
-                            tok = strtok(nullptr, ";m");
-                            rgb.b = a_toi(tok, &a_toi_error);
+                            if (tok != nullptr) {
+                                rgb.r = a_toi(tok, &a_toi_error);
+                                tok = strtok(nullptr, ";m");
+                                if (tok != nullptr) {
+                                    rgb.g = a_toi(tok, &a_toi_error);
+                                    tok = strtok(nullptr, ";m");
+                                    if (tok != nullptr) {
+                                        rgb.b = a_toi(tok, &a_toi_error);
+                                        f_rgb = true;
+                                    }
+                                }
+                            }
                         }
                     }
-                    if (t0 == '3')
-                        fg_clr = ui_color_from_rgb(&rgb);
-                    else if (t0 == '4')
-                        bg_clr = ui_color_from_rgb(&rgb);
+                    if (f_rgb) {
+                        if (t0 == '3')
+                            fg_clr = ui_color_from_rgb(&rgb);
+                        else if (t0 == '4')
+                            bg_clr = ui_color_from_rgb(&rgb);
+                    }
                 } else if (t1 == '9') {
                     if (t0 == '3')
                         fg_clr = CLR_NT_FG;
