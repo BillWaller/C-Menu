@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @name ptrace_scope.sh
 # @desc Enable or disable ptrace_scope kernel parameter.
 # @usage ptrace_scope.sh [0123]

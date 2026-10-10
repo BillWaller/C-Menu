@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 /bin/ls -Fl --time-style=+"%y%m%d %H%M" --color=always \
     /etc/ld.so.conf.d/CMenu.conf \
     /etc/pam.d/rsh-auth \

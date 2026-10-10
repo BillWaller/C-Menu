@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # NAME:        lfin.sh
 # DESCRIPTION: regular expression file search from colon-separated paths

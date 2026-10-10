@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # test lf
 
 # The -S option of lf is only recommended for smaller lists of files. It

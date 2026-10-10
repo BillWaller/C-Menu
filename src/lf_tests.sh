@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # lf_tests.sh
 
 directory="/home/bill"

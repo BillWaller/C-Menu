@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 name="lf"
 lf --version >"$name"_help
 lf -? >>"$name"_help

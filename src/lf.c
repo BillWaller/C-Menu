@@ -1075,18 +1075,11 @@ void *worker(void *arg) {
     // current_node is a pointer to the current task being processed, while child_node is a local variable used to hold the next task to be enqueued. The worker thread continuously dequeues tasks from the queue and processes them using the finder function. If the finder function returns NULL, indicating that there are no more tasks to process, the active task count is decremented. If the active task count reaches zero, the shut_down flag is set to true, signaling other threads to terminate.
     //
     // thread_local variables
-    char dir_buf[DIR_BUF_SIZE];
-    // = calloc(1, DIR_BUF_SIZE);
-    OutputBuffer output;
-    // = calloc(1, sizeof(OutputBuffer));
-    // char *full_path = calloc(1, MAX_PATH_LEN);
     char full_path[MAX_PATH_LEN];
     QueuePayload current_node;
     QueuePayload child_node;
-    // if (child_node == nullptr) {
-    //     fprintf(stderr, _("Out of memory allocating child_node\n"));
-    //     return NULL;
-    // }
+    OutputBuffer output;
+    char dir_buf[DIR_BUF_SIZE];
     while (true) {
         if (mpmc_dequeue(lf, &current_node) == true) {
             memset(&child_node, 0, sizeof(QueuePayload));
@@ -1098,11 +1091,6 @@ void *worker(void *arg) {
         } else
             break;
     }
-    // free(child_node);
-    // free(current_node);
-    // free(full_path);
-    // free(output);
-    // free(dir_buf);
     return NULL;
 }
 // ----------------------------------------------------------------------
@@ -1316,24 +1304,11 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                     if (mpmc_enqueue(lf, child_node)) {
                         atomic_fetch_add_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
                     } else {
-                        QueuePayload *local_node = calloc(1, sizeof(QueuePayload));
-                        if (local_node == nullptr) {
-                            atomic_fetch_add(&lf->error_count, 1);
-                            if (lf->report_errors) {
-                                err_out(lf, _("local_node calloc failed,%s\n"), strerror(errno));
-                            }
-                            continue;
-                        }
-                        // TODO: add error handling for remaining calloc
-                        // failures
-                        OutputBuffer *local_output = calloc(1, sizeof(OutputBuffer));
-                        char *local_dir_buf = calloc(1, DIR_BUF_SIZE);
-                        char *local_full_path = calloc(1, MAX_PATH_LEN);
-                        finder(lf, child_node, local_node, local_output, local_dir_buf, local_full_path);
-                        free(local_full_path);
-                        free(local_output);
-                        free(local_dir_buf);
-                        free(local_node);
+                        QueuePayload local_node;
+                        OutputBuffer local_output;
+                        char local_dir_buf[DIR_BUF_SIZE];
+                        char local_full_path[MAX_PATH_LEN];
+                        finder(lf, child_node, &local_node, &local_output, local_dir_buf, local_full_path);
                     }
                 }
                 // --------------------------------------------------------
