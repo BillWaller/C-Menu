@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-09T21:46:20-05:00* - PERFORMANCE MODIFICATIONS: lf.c 
+
+*2026-10-09T15:16:20-05:00* - Update CHANGELOG.md 
+
 *2026-10-09T13:48:18-05:00* - FIX: ui_notcurses.c failed to compile. Replaced instance of ui_log with ui_log_ctx. 
 
 *2026-10-09T12:02:34-05:00* - Update CHANGELOG.md 
