@@ -37,40 +37,12 @@ Report bugs to billxwaller@gmail.com.
 
 ## find, lf, and fd Performance Comparison
 
-### find - 0.86 elapsed - "Very Fast"
 
-```
-find /home/bill
-0.38user 0.47system 0:00.86elapsed 100%CPU (0avgtext+0avgdata 33272maxresident)k
-0inputs+0outputs (0major+11917minor)pagefaults 0swaps
-find found 492502 files
-
-```
-
-### fd - 0.15 elapsed - "Extremely Fast"
-
-```
-fd . -H -I /home/bill
-0.77user 0.62system 0:00.15elapsed 930%CPU (0avgtext+0avgdata 125320maxresident)k
-0inputs+0outputs (0major+3814minor)pagefaults 0swaps
-fd found 492501 files
-```
-
-### lf - 0.10 elapsed - "Lightning Fast"
-
-```
-./lf -H /home/bill
-0.19user 0.73system 0:00.08elapsed 1075%CPU (0avgtext+0avgdata 12756maxresident)k
-0inputs+0outputs (0major+1562minor)pagefaults 0swaps
-lf found 492501 files
-```
-
-
-|command   |elapsed|CPU%|memory|pagefaults|files |
-|----------|-------|----|------|----------|------|
-|find      |   0.86| 100| 33272|     11917|492502|
-|fd . -H -I|   0.15| 930|125320|      3814|492501|
-|lf -H     |   0.08|1075| 12756|      1562|492501|
+| command    | elapsed | CPU% | memory | pagefaults | files  |
+| ---------- | ------- | ---- | ------ | ---------- | ------ |
+| find       | 0.85    | 100  | 33288  | 11754      | 492537 |
+| fd . -H -I | 0.13    | 1036 | 143096 | 5274       | 492536 |
+| lf -H      | 0.08    | 1068 | 10104  | 825        | 492536 |
 
 
 Notice that lf is the fastest, and uses the least memory. It also has the fewest page faults. fd is faster than find, but uses more memory and has more page faults. find is the slowest, and uses the most memory and has the most page faults.
