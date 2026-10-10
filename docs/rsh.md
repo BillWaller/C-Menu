@@ -17,38 +17,44 @@ rsh [-i] [-D] [COMMAND_ARGUMENTS...]
 
 # DESCRIPTION
 
-Type xx<enter> to assume root privileges. Your prompt turns bright red as a
-constant reminder that you are in a dangerous mode. Get your administrative work done. No loitering as root. When you are finished, type x<enter>, your prompt returns to normal, and you are back to the safety and protection of the user level operating system. Your total time to switch from user to root and back is no longer in precious seconds, but nanoseconds with rsh, and you won't hesitate to bop back and forth between user and root as often as you like.
+Type xx<enter> to assume root authority. Your shell prompts will become and remain bright red until you type x<enter> to exit the root shell. This will serve to keep you mindful of your elevated privileges. Total time to switch from user to root and back is no longer several precious concentration breaking seconds, but nanoseconds. It's so natural, it will become a habit you barely even think about, allowing you to minimize your exposure. Mistakes made with root authority may have severe consequences.
 
-Although outside threats to our systems are sensational and newsworthy, the truth is that some of the most consequential threats are of internal origin, and not born of malice, but of momentary lapses of attention. No one wants to be the person who deletes company records, wipes out a critical database, or removes a user account by mistake. rsh is designed to protect you from these calamities. rsh makes it so quick and easy to switch, you won't be tempted to linger as root. To make sure you don't, rsh provides a bright red prompt as a constant reminder that you are wielding potentially terrible power (power that could ruin your day, your career, and your life).
+Although outside threats to systems security are sensational and newsworthy, the truth is that some of the most destructive events are of internal origin, and not born of malice, but of momentary lapses of attention. No one wants to be the person who deletes company records, wipes out a critical database, or removes the boss's user account by mistake. rsh is designed to help administrators and developers minimize exposure to disasters that could ruin a day, a career, or a life.
 
 # NOTE
 
 Throughout this manual, you will see references to "user_name". This is a placeholder for the actual username of the user who has installed C-Menu. When you see "user_name", replace it with the actual user name to ensure that the instructions and commands work correctly on your system.
 
+# ROOT SHELL
+
+The root shell used by rsh is defined with the SHELL environment variable.
+
+# SHELL MODE
+
+The shell is started with the -i (interactive) option and executes /etc/profile and
+~/.bashrc if those files exist and are readable. 
+
 # ROOT AUTHORITY
 
 C-Menu build installs rsh with root ownership and the setuid bit turned on. This
-means that when a user executes rsh, it runs with the privileges of the root user, allowing it to perform actions with elevated permissions. Although useful, this feature must be used with caution, as it can potentially be exploited if not properly secured.
+means that when a user executes rsh, it runs with the privileges of the root user, allowing it to perform actions with elevated permissions.
 
-The first line of protection is inherent to the OS. If rsh is not owned by root
-with its setuid bit turned on, it is no more dangerous than any other binary.
+Although useful, this feature must be used with caution, as it can potentially be exploited if not properly secured. The first line of protection is inherent to the OS. If rsh is not owned by root with its setuid bit turned on, it is no more dangerous than any other binary.
 
-We will assume the person who installed C-Menu is a trusted user, who will understand the implications and take necessary precautions to secure the rsh binary and limit its usage to authorized users only. While there are compelling reasons for top-level administrators and developers to have and use rsh, there is no case for allowing unrestricted access.
+We will assume the person who installed C-Menu is a trusted user, who understands the implications and takes the necessary precautions to secure the rsh binary and limit its usage to authorized users. While there are compelling reasons for top-level administrators and developers to have and use rsh, there is no case for allowing unrestricted access.
 
-# MAINTAINING SECURITY WITH RSH
+# USER ENVIRONMENT VARIABLE
 
-To mitigate potential vulnerabilities associated with rsh, it is crucial to follow secure practices when using and managing the rsh binary. This includes restricting access to the binary, monitoring its usage, and configuring it to use additional security measures such as PAM (Pluggable Authentication Modules) or ACL (access control lists).
+Some operations require USER=root to function properly as root. Accordingly,
+USER is set to root. Additionally, XUSER is also set to root.
 
-# BEST PRACTICES FOR USING RSH
 
-Administrators and developers need root access frequently in the normal course of their work. The best practice is to operate with root privileges only as required to accomplish specific tasks. Still, bopping in and out of a root shell, entering a password every time, is like a series of speed bumps shifting your focus and disrupting your mental pace. It is tempting to just remain in a root shell and get your job done, but that is living dangerously.
+# RED ROOT PROMPT
 
-rsh makes the transition to and from privileged access so quick and easy
-that it becomes unimposing and habitual almost immediately.
+Administrators and developers need root access frequently in the normal course of their work. The best practice is to operate with root privileges only as required to accomplish specific tasks. Here's how it works:
 
-    1. You type xx and your prompt turns bright red. You have root privileges.
-    2. You do your business as root, and type x. Your prompt returns to its normal color, and you resume with normal privileges.
+    1. Type xx<enter> and you get a red root prompt. You have root privileges.
+    2. Type x<enter> and your user prompt returns in its normal color. You now have normal user privileges.
 
 Requires:
 
@@ -60,7 +66,7 @@ export XUSER="$(id -un)"
 [ "$XUSER" = "root" ] && export PS1="\[\e[1;31m\]\u@\h(\l)\W▶\[\e[0m\]"
 ```
 
-Environment functions xx and x defined as follows:
+The functions xx and x defined as follows:
 
 ```bash
 xx() { rsh -i "$@"; }
@@ -86,7 +92,14 @@ Requires rsh to be built with -DRSH_LOG
 
 # PAM
 
+To mitigate potential vulnerabilities associated with rsh, it is crucial to follow secure practices when using and managing the rsh binary. This includes restricting access to the binary, monitoring its usage, and configuring it to use additional security measures such as PAM (Pluggable Authentication Modules) or ACL (access control lists).
+
 rsh can be configured to use Pluggable Authentication Modules (PAM) for additional security. This allows for more flexible authentication methods and can help prevent unauthorized access.
+
+```PAM
+# /etc/pam.d/rsh-auth
+auth required pam_env.so
+```
 
 Requires rsh to be built with -DRSH_PAM
 

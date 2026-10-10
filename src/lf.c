@@ -36,8 +36,9 @@
 #define QUEUE_MASK (QUEUE_CAPACITY - 1)
 #define MAX_PATH_LEN _POSIX_PATH_MAX
 #define MAX_DEPTH 64
+#define DIR_BUF_SIZE 131072
 // #define DIR_BUF_SIZE 262144
-#define DIR_BUF_SIZE 524288
+// #define DIR_BUF_SIZE 524288
 #define CACHE_LINE_SIZE 64
 
 // 32 Million directories max limit. Cost: 768MB Virtual Memory, 0MB RAM initially.
@@ -176,7 +177,7 @@ MPMCQueue *mpmc_queue_init();
 bool mpmc_enqueue(LfContext *, const QueuePayload *child_node);
 bool mpmc_dequeue(LfContext *lf, QueuePayload *output_node);
 void *worker(void *arg);
-void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node, OutputBuffer *output, char *dir_buf);
+void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node, OutputBuffer *output, char *dir_buf, char *full_path);
 int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf, const unsigned char, struct stat *, bool stat_cached, OutputBuffer *);
 bool build_full_path(char *, size_t, const char *, const char *, size_t *);
 void flush_output_buffer(LfContext *, OutputBuffer *);
@@ -1072,10 +1073,12 @@ bool mpmc_dequeue(LfContext *lf, QueuePayload *out_node) {
 void *worker(void *arg) {
     LfContext *lf = (LfContext *)arg;
     // current_node is a pointer to the current task being processed, while child_node is a local variable used to hold the next task to be enqueued. The worker thread continuously dequeues tasks from the queue and processes them using the finder function. If the finder function returns NULL, indicating that there are no more tasks to process, the active task count is decremented. If the active task count reaches zero, the shut_down flag is set to true, signaling other threads to terminate.
-    QueuePayload *current_node = calloc(1, sizeof(QueuePayload));
-    QueuePayload *child_node = calloc(1, sizeof(QueuePayload));
     char *dir_buf = calloc(1, DIR_BUF_SIZE);
     OutputBuffer *output = calloc(1, sizeof(OutputBuffer));
+    // char *full_path = calloc(1, MAX_PATH_LEN);
+    char full_path[MAX_PATH_LEN];
+    QueuePayload *current_node = calloc(1, sizeof(QueuePayload));
+    QueuePayload *child_node = calloc(1, sizeof(QueuePayload));
     if (child_node == nullptr) {
         fprintf(stderr, _("Out of memory allocating child_node\n"));
         return NULL;
@@ -1083,7 +1086,7 @@ void *worker(void *arg) {
     while (true) {
         if (mpmc_dequeue(lf, current_node) == true) {
             memset(child_node, 0, sizeof(QueuePayload));
-            if (finder(lf, current_node, child_node, output, dir_buf) == NULL) {
+            if (finder(lf, current_node, child_node, output, dir_buf, full_path) == NULL) {
                 if (atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_acq_rel) == 1) {
                     atomic_store_explicit(&lf->q->shut_down, 1, memory_order_release);
                 }
@@ -1091,10 +1094,11 @@ void *worker(void *arg) {
         } else
             break;
     }
-    free(output);
-    free(dir_buf);
     free(child_node);
     free(current_node);
+    // free(full_path);
+    free(output);
+    free(dir_buf);
     return NULL;
 }
 // ----------------------------------------------------------------------
@@ -1106,7 +1110,7 @@ void *worker(void *arg) {
     @return NULL upon completion.
     @details This function opens the specified directory, reads its entries, and processes each entry according to the specified filters (e.g., file types, hidden files, max depth). It uses fstatat to get metadata for each entry and determines the effective type. If an entry is a directory and meets the criteria, it is enqueued for further processing. The function handles errors gracefully, logging them if necessary, and ensures that output is written in a thread-safe manner.
    */
-void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node, OutputBuffer *output, char *dir_buf) {
+void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node, OutputBuffer *output, char *dir_buf, char *full_path) {
     long nread;
     struct stat sb = {};
     bool stat_cached = false;
@@ -1116,7 +1120,6 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
     unsigned char actual_type;
     unsigned char effective_type;
     CycleNode *child_ctx;
-    char full_path[MAX_PATH_LEN] = {'\0'};
     int rc;
     int dir_fd = open(current_node->path, O_RDONLY | O_DIRECTORY);
     if (dir_fd == -1) {
@@ -1178,8 +1181,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                 if (rc == -1) {
                     atomic_fetch_add(&lf->error_count, 1);
                     if (lf->report_badlinks) {
-                        err_out(lf, _("LSTAT_FAIL,%s,%s\n"), full_path,
-                                strerror(errno));
+                        err_out(lf, _("LSTAT_FAIL,%s/%s,%s\n"), current_node->path, entry->d_name, strerror(errno));
                     }
                 } else {
 
@@ -1225,14 +1227,14 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                 child_ctx = cycle_arena_alloc(effective_dev, effective_ino, current_node->ctx);
                 child_node->ctx = child_ctx;
                 if (!build_full_path(child_node->path,
-                                     sizeof(child_node->path),
+                                     MAX_PATH_LEN,
                                      current_node->path,
                                      entry->d_name,
                                      &child_node->path_len)) {
                     atomic_fetch_add(&lf->error_count, 1);
                     if (lf->report_errors) {
-                        err_out(lf, _("PATH_TOO_LONG,%s/%s\n"),
-                                child_node->path, entry->d_name);
+                        err_out(lf, _("PATH_TOO_LONG,%s\n"),
+                                child_node->path);
                     }
                     continue;
                 }
@@ -1310,13 +1312,17 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                         if (local_node == nullptr) {
                             atomic_fetch_add(&lf->error_count, 1);
                             if (lf->report_errors) {
-                                err_out(lf, _("MEM_ALLOC_FAIL,%s\n"), strerror(errno));
+                                err_out(lf, _("local_node calloc failed,%s\n"), strerror(errno));
                             }
                             continue;
                         }
+                        // TODO: add error handling for remaining calloc
+                        // failures
                         OutputBuffer *local_output = calloc(1, sizeof(OutputBuffer));
                         char *local_dir_buf = calloc(1, DIR_BUF_SIZE);
-                        finder(lf, child_node, local_node, local_output, local_dir_buf);
+                        char *local_full_path = calloc(1, MAX_PATH_LEN);
+                        finder(lf, child_node, local_node, local_output, local_dir_buf, local_full_path);
+                        free(local_full_path);
                         free(local_output);
                         free(local_dir_buf);
                         free(local_node);
@@ -1348,7 +1354,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                 size_t path_len;
                 if (full_path[0] == '\0') {
                     if (!build_full_path(full_path,
-                                         sizeof(full_path),
+                                         MAX_PATH_LEN,
                                          current_node->path,
                                          entry->d_name,
                                          &path_len)) {
