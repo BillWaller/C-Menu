@@ -37,32 +37,47 @@ Report bugs to billxwaller@gmail.com.
 
 ## find, lf, and fd Performance Comparison
 
-### find - 0.82 elapsed - "Very Fast"
+### find - 0.86 elapsed - "Very Fast"
 
 ```
 find /home/bill
-0.34user 0.47system 0:00.82elapsed 100%CPU (0avgtext+0avgdata 35184maxresident)k
-0inputs+0outputs (0major+11782minor)pagefaults 0swaps
-find found 517552 files
+0.38user 0.47system 0:00.86elapsed 100%CPU (0avgtext+0avgdata 33272maxresident)k
+0inputs+0outputs (0major+11917minor)pagefaults 0swaps
+find found 492502 files
+
 ```
 
-### fd - 0.16 elapsed - "Extremely Fast"
+### fd - 0.15 elapsed - "Extremely Fast"
 
 ```
 fd . -H -I /home/bill
-0.74user 0.61system 0:00.16elapsed 835%CPU (0avgtext+0avgdata 118364maxresident)k
-0inputs+0outputs (0major+3694minor)pagefaults 0swaps
-fd found 517551 files
+0.77user 0.62system 0:00.15elapsed 930%CPU (0avgtext+0avgdata 125320maxresident)k
+0inputs+0outputs (0major+3814minor)pagefaults 0swaps
+fd found 492501 files
 ```
 
-### lf - 0.10 elapsed - "Ridiculously Fast"
+### lf - 0.10 elapsed - "Lightning Fast"
 
 ```
-./lf -H -T9 /home/bill
-0.36user 0.49system 0:00.10elapsed 794%CPU (0avgtext+0avgdata 9400maxresident)k
-0inputs+0outputs (0major+957minor)pagefaults 0swaps
-lf found 517551 files
+./lf -H /home/bill
+0.19user 0.73system 0:00.08elapsed 1075%CPU (0avgtext+0avgdata 12756maxresident)k
+0inputs+0outputs (0major+1562minor)pagefaults 0swaps
+lf found 492501 files
 ```
+
+
+|command   |elapsed|CPU%|memory|pagefaults|files |
+|----------|-------|----|------|----------|------|
+|find      |   0.86| 100| 33272|     11917|492502|
+|fd . -H -I|   0.15| 930|125320|      3814|492501|
+|lf -H     |   0.08|1075| 12756|      1562|492501|
+
+
+Notice that lf is the fastest, and uses the least memory. It also has the fewest page faults. fd is faster than find, but uses more memory and has more page faults. find is the slowest, and uses the most memory and has the most page faults.
+
+NOTE: find counts the root directory as a file, while fd and lf do not. This
+accounts for the one-file difference in the file counts. This is not necessarily
+an error. Just subtract 1 from the find count to get an accurate result.
 
 ## Under the Hood
 
