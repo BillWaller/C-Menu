@@ -36,8 +36,8 @@
 #define QUEUE_MASK (QUEUE_CAPACITY - 1)
 #define MAX_PATH_LEN _POSIX_PATH_MAX
 #define MAX_DEPTH 64
-#define DIR_BUF_SIZE 131072
-// #define DIR_BUF_SIZE 262144
+// #define DIR_BUF_SIZE 131072
+#define DIR_BUF_SIZE 262144
 // #define DIR_BUF_SIZE 524288
 #define CACHE_LINE_SIZE 64
 
@@ -575,7 +575,7 @@ int sort_lf_output(LfContext *lf, int argc, char **argv) {
 // ----------------------------------------------------------------------
 // DEBUG_OUT
 // ----------------------------------------------------------------------
-/** @brief Output debug information to stderr.
+/** @brief Display everything and the kitchen sink on stderr
     @param lf A pointer to the LfContext struct containing the debug settings.
     @param argc The number of command-line arguments.
     @param argv An array of command-line argument strings.
@@ -1073,20 +1073,24 @@ bool mpmc_dequeue(LfContext *lf, QueuePayload *out_node) {
 void *worker(void *arg) {
     LfContext *lf = (LfContext *)arg;
     // current_node is a pointer to the current task being processed, while child_node is a local variable used to hold the next task to be enqueued. The worker thread continuously dequeues tasks from the queue and processes them using the finder function. If the finder function returns NULL, indicating that there are no more tasks to process, the active task count is decremented. If the active task count reaches zero, the shut_down flag is set to true, signaling other threads to terminate.
-    char *dir_buf = calloc(1, DIR_BUF_SIZE);
-    OutputBuffer *output = calloc(1, sizeof(OutputBuffer));
+    //
+    // thread_local variables
+    char dir_buf[DIR_BUF_SIZE];
+    // = calloc(1, DIR_BUF_SIZE);
+    OutputBuffer output;
+    // = calloc(1, sizeof(OutputBuffer));
     // char *full_path = calloc(1, MAX_PATH_LEN);
     char full_path[MAX_PATH_LEN];
-    QueuePayload *current_node = calloc(1, sizeof(QueuePayload));
-    QueuePayload *child_node = calloc(1, sizeof(QueuePayload));
-    if (child_node == nullptr) {
-        fprintf(stderr, _("Out of memory allocating child_node\n"));
-        return NULL;
-    }
+    QueuePayload current_node;
+    QueuePayload child_node;
+    // if (child_node == nullptr) {
+    //     fprintf(stderr, _("Out of memory allocating child_node\n"));
+    //     return NULL;
+    // }
     while (true) {
-        if (mpmc_dequeue(lf, current_node) == true) {
-            memset(child_node, 0, sizeof(QueuePayload));
-            if (finder(lf, current_node, child_node, output, dir_buf, full_path) == NULL) {
+        if (mpmc_dequeue(lf, &current_node) == true) {
+            memset(&child_node, 0, sizeof(QueuePayload));
+            if (finder(lf, &current_node, &child_node, &output, dir_buf, full_path) == NULL) {
                 if (atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_acq_rel) == 1) {
                     atomic_store_explicit(&lf->q->shut_down, 1, memory_order_release);
                 }
@@ -1094,21 +1098,25 @@ void *worker(void *arg) {
         } else
             break;
     }
-    free(child_node);
-    free(current_node);
+    // free(child_node);
+    // free(current_node);
     // free(full_path);
-    free(output);
-    free(dir_buf);
+    // free(output);
+    // free(dir_buf);
     return NULL;
 }
 // ----------------------------------------------------------------------
 // FINDER
 // ----------------------------------------------------------------------
-/** @brief Process a directory and its entries, applying filters and enqueuing subdirectories.
-    @param lf A pointer to the LfContext struct containing the queue and other context information.
-    @param current_node A pointer to the QueuePayload struct representing the current directory to process.
-    @return NULL upon completion.
-    @details This function opens the specified directory, reads its entries, and processes each entry according to the specified filters (e.g., file types, hidden files, max depth). It uses fstatat to get metadata for each entry and determines the effective type. If an entry is a directory and meets the criteria, it is enqueued for further processing. The function handles errors gracefully, logging them if necessary, and ensures that output is written in a thread-safe manner.
+/** @brief Process a directory and its entries, enqueueing subdirectories for further searching.
+    @param lf A pointer to the LfContext struct containing the search settings.
+    @param current_node A pointer to the QueuePayload struct representing the current directory being processed.
+    @param child_node A pointer to the QueuePayload struct where new tasks will be enqueued.
+    @param output A pointer to the OutputBuffer struct for buffering output.
+    @param dir_buf A buffer for reading directory entries.
+    @param full_path A buffer for constructing full file paths.
+    @return NULL if processing is complete or an error occurred, otherwise returns a pointer to the next task to be enqueued.
+    @details This function reads the contents of the current directory, processes each entry, and applies filters based on the user's settings (e.g., file types, regex patterns). It uses fstatat to retrieve metadata for each entry and determines whether to enqueue subdirectories for further searching. The function also handles symbolic links according to the user's options and manages output buffering for efficient writing to stdout.
    */
 void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node, OutputBuffer *output, char *dir_buf, char *full_path) {
     long nread;
@@ -1391,19 +1399,20 @@ bool is_link_cycle(dev_t dev, ino_t ino, CycleNode *parent) {
 // ----------------------------------------------------------------------
 // SCAN_FILE
 // ----------------------------------------------------------------------
-/** @brief Scan a file or directory and apply filters based on the LfContext.
-    @param file_spec The full path of the file or directory to scan.
-    @param lf A pointer to the LfContext struct containing the search filters and options.
-    @param effective_type The effective type of the file or directory (e.g., DT_REG, DT_DIR).
-    @param cached_sb A pointer to a stat struct containing cached metadata for the file, or nullptr if not available.
-    @param output A pointer to the OutputBuffer struct where matching paths will be appended.
-    @return true if the file or directory passes all filters and is processed, false otherwise.
-    @details This function checks various conditions based on the search filters specified in the LfContext. It evaluates whether the file or directory should be included in the output based on type, regex matching, ownership, permissions, modification time, and size. If all conditions are met, it appends the path to the output buffer. The function also handles caching of stat information to avoid redundant system calls when possible.
-*/
+/** @brief Scan a file or directory and apply filters based on the user's settings.
+    @param file_spec The path to the file or directory to scan.
+    @param path_len A pointer to the length of the file_spec string.
+    @param lf A pointer to the LfContext struct containing the search settings.
+    @param effective_type The effective type of the file (e.g., DT_REG, DT_DIR).
+    @param cached_sb A pointer to a struct stat containing cached metadata for the file.
+    @param stat_cached A boolean indicating whether the cached_sb contains valid data.
+    @param output A pointer to the OutputBuffer struct for buffering output.
+    @return true if the file was successfully scanned and processed, false if an error occurred or if the file was excluded by filters.
+    @details This function applies various filters to determine whether a given file or directory should be included in the output. It checks for matching and non-matching regex patterns, user ownership, permissions, modification times, and file sizes. If the file passes all filters, it is added to the output buffer. The function also handles caching of file metadata to avoid redundant system calls.
+   */
 int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
               const unsigned char effective_type, struct stat *cached_sb, bool stat_cached,
               OutputBuffer *output) {
-
     while (1) {
         if (lf->suppress_types & lf_mask[effective_type])
             break;
@@ -1490,7 +1499,6 @@ int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
     @details This function locks the output mutex to ensure that only one thread can write to the error output at a time. It checks if an error file has been specified; if not, it defaults to stderr. If an error file is specified but not yet opened, it attempts to open it in append mode. The function uses vfprintf to write the formatted error message and then unlocks the mutex before returning.
    */
 int err_out(LfContext *lf, const char *format, ...) {
-
     pthread_mutex_lock(&lf->output_mutex);
     va_list args;
     va_start(args, format);
