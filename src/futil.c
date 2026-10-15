@@ -549,18 +549,31 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
 size_t strnz__cat(char *d, const char *s, size_t max_len) {
     if (d == nullptr || s == nullptr)
         return 0;
+    if (max_len == 0)
+        return 0;
     char *e;
     size_t len = 0;
-    if (max_len == 0) {
-        if (max_len > 0)
-            *d = '\0';
-        return 0;
-    }
     e = d + max_len;
     while (*d != '\0' && *d != '\n' && *d != '\r' && d < e) {
         d++;
         len++;
     }
+    while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
+        *d++ = *s++;
+        len++;
+    }
+    *d = '\0';
+    return len;
+}
+size_t strnz__pcat(char *d, size_t pos, const char *s, size_t max_len) {
+    if (d == nullptr || s == nullptr)
+        return 0;
+    if (max_len == 0)
+        return 0;
+    char *e;
+    size_t len = pos;
+    d += pos;
+    e = d + max_len;
     while (*s != '\0' && *s != '\n' && *s != '\r' && d < e) {
         *d++ = *s++;
         len++;

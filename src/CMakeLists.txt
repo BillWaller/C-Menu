@@ -179,6 +179,10 @@ add_executable(lf lf.c)
 set_target_properties(lf PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 target_link_libraries(lf cm ${LIBS} -pthread -lm)
 
+add_executable(lf2 lf2.c)
+set_target_properties(lf2 PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
+target_link_libraries(lf2 cm ${LIBS} -pthread -lm)
+
 add_executable(detach detach.c)
 set_target_properties(detach PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 target_link_libraries(detach cm ${LIBS})
@@ -223,6 +227,7 @@ install(
           amort
           iloan
           lf
+          lf2
           stripansi
           whence
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -294,6 +299,7 @@ if(GETTEXT_FOUND)
         ${PROJECT_SOURCE_DIR}/amort.c
         ${PROJECT_SOURCE_DIR}/iloan.c
         ${PROJECT_SOURCE_DIR}/lf.c
+        ${PROJECT_SOURCE_DIR}/lf2.c
         ${PROJECT_SOURCE_DIR}/detach.c
         ${PROJECT_SOURCE_DIR}/stripansi.c
         ${PROJECT_SOURCE_DIR}/whence.c

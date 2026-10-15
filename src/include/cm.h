@@ -446,6 +446,7 @@ extern char *strnz_dup(char *, size_t);
 extern size_t ssnprintf(char *, size_t, const char *, ...);
 size_t strnz__cpy(char *, const char *, size_t);
 size_t strnz__cat(char *, const char *, size_t);
+size_t strnz__pcat(char *d, size_t pos, const char *s, size_t max_len);
 extern double str_to_double(char *);
 extern size_t string_cpy(String *, const String *);
 extern size_t string_cat(String *, const String *);

@@ -36,29 +36,35 @@
 #define QUEUE_MASK (QUEUE_CAPACITY - 1)
 #define MAX_PATH_LEN _POSIX_PATH_MAX
 #define MAX_DEPTH 64
-// #define DIR_BUF_SIZE 131072
-// #define DIR_BUF_SIZE 262144
-// #define DIR_BUF_SIZE 524288
 #define DIR_BUF_SIZE 16384
 #define CACHE_LINE_SIZE 64
 
-// 32 Million directories max limit. Cost: 768MB Virtual Memory, 0MB RAM initially.
-#define ARENA_MAX_NODES (32 * 1024 * 1024)
+#define PATH_ARENA_CAPACITY (10 * 1024 * 1024)
+typedef struct PathNode PathNode;
+struct PathNode {
+    char *path;
+    PathNode *parent;
+};
+typedef struct {
+    PathNode *nodes;
+    _Atomic off_t pos;
+    off_t capacity;
+} PathArena;
+static PathArena path_arena = {NULL, 0, 0};
 
+#define CYCLE_ARENA_MAX_NODES (32 * 1024 * 1024)
 typedef struct CycleNode CycleNode;
 struct CycleNode {
     dev_t dev;
     ino_t ino;
     CycleNode *parent;
 };
-
 typedef struct {
     CycleNode *nodes;
     _Atomic size_t index;
     size_t capacity;
 } CycleArena;
-
-static CycleArena g_cycle_arena = {NULL, 0, 0};
+static CycleArena cycle_arena = {NULL, 0, 0};
 
 typedef struct QueuePayload QueuePayload;
 struct QueuePayload {
@@ -189,6 +195,9 @@ void cycle_arena_init(void);
 void cycle_arena_destroy(void);
 static CycleNode *cycle_arena_alloc(dev_t dev, ino_t ino, CycleNode *parent);
 bool is_link_cycle(dev_t dev, ino_t ino, CycleNode *parent);
+void path_arena_init(void);
+void path_arena_destroy(void);
+static PathNode *path_arena_alloc(char *path, PathNode *parent);
 // ---------------------------------------------------------------
 
 static struct argp_option options[] = {
@@ -825,24 +834,20 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
 // CYCLE_ARENA_INIT
 // ----------------------------------------------------------------------
 /** @brief Initialize the cycle arena for tracking visited directories.
-    @details This function initializes a global cycle arena structure that is used to track visited directories during the file search process. It reserves virtual memory space for the arena using mmap, allowing for efficient allocation of CycleNode structures without immediate physical memory allocation. The arena is designed to handle a maximum number of nodes defined by ARENA_MAX_NODES.
+    @details This function initializes a global cycle arena structure that is used to track visited directories during the file search process. It reserves virtual memory space for the arena using mmap, allowing for efficient allocation of CycleNode structures without immediate physical memory allocation. The arena is designed to handle a maximum number of nodes defined by CYCLE_ARENA_MAX_NODES.
    */
 void cycle_arena_init(void) {
-    g_cycle_arena.capacity = ARENA_MAX_NODES;
-    size_t total_bytes = g_cycle_arena.capacity * sizeof(CycleNode);
-
-    // Reserve virtual space. The OS marks it as yours but allocates NO physical RAM yet. MAP_ANONYMOUS guarantees the memory block is zero-initialized automatically.
-    g_cycle_arena.nodes = mmap(NULL, total_bytes,
-                               PROT_READ | PROT_WRITE,
-                               MAP_ANONYMOUS | MAP_PRIVATE,
-                               -1, 0);
-
-    if (g_cycle_arena.nodes == MAP_FAILED) {
+    cycle_arena.capacity = CYCLE_ARENA_MAX_NODES;
+    size_t total_bytes = cycle_arena.capacity * sizeof(CycleNode);
+    cycle_arena.nodes = mmap(NULL, total_bytes,
+                             PROT_READ | PROT_WRITE,
+                             MAP_ANONYMOUS | MAP_PRIVATE,
+                             -1, 0);
+    if (cycle_arena.nodes == MAP_FAILED) {
         perror(_("mmap failed to reserve tracking arena memory"));
         exit(EXIT_FAILURE);
     }
-
-    atomic_init(&g_cycle_arena.index, 0);
+    atomic_init(&cycle_arena.index, 0);
 }
 // ----------------------------------------------------------------------
 // CYCLE_ARENA_DESTROY
@@ -851,9 +856,9 @@ void cycle_arena_init(void) {
     @details This function releases the resources allocated for the global cycle arena structure. It unmaps the virtual memory space reserved for the arena using munmap, allowing the operating system to reclaim the memory. This function should be called when the cycle arena is no longer needed to prevent memory leaks.
    */
 void cycle_arena_destroy(void) {
-    if (g_cycle_arena.nodes != NULL && g_cycle_arena.nodes != MAP_FAILED) {
-        size_t total_bytes = g_cycle_arena.capacity * sizeof(CycleNode);
-        munmap(g_cycle_arena.nodes, total_bytes);
+    if (cycle_arena.nodes != NULL && cycle_arena.nodes != MAP_FAILED) {
+        size_t total_bytes = cycle_arena.capacity * sizeof(CycleNode);
+        munmap(cycle_arena.nodes, total_bytes);
     }
 }
 // ----------------------------------------------------------------------
@@ -867,16 +872,45 @@ void cycle_arena_destroy(void) {
     @details This function allocates a new CycleNode structure in the global cycle arena. It uses atomic operations to ensure thread-safe allocation of nodes. If the arena has reached its maximum capacity, the function returns nullptr to indicate that no more nodes can be allocated. The allocated node is initialized with the provided device ID, inode number, and parent pointer.
    */
 static CycleNode *cycle_arena_alloc(dev_t dev, ino_t ino, CycleNode *parent) {
-    size_t idx = atomic_fetch_add_explicit(&g_cycle_arena.index, 1, memory_order_relaxed);
-    // Bounds check to ensure we don't breach our massive virtual limit
-    if (idx >= g_cycle_arena.capacity) {
+    size_t idx = atomic_fetch_add_explicit(&cycle_arena.index, 1, memory_order_relaxed);
+    if (idx >= cycle_arena.capacity) {
         return NULL;
     }
-    // As soon as this thread hits an unmapped block of memory, the OS transparently provisions a 4KB hardware page of physical RAM for it on the fly.
-    CycleNode *node = &g_cycle_arena.nodes[idx];
+    CycleNode *node = &cycle_arena.nodes[idx];
     node->dev = dev;
     node->ino = ino;
     node->parent = parent;
+    return node;
+}
+
+// ----------------------------------------------------------------------
+// PATH_ARENA
+// ----------------------------------------------------------------------
+
+void path_arena_init(void) {
+    path_arena.nodes = mmap(NULL, PATH_ARENA_CAPACITY,
+                            PROT_READ | PROT_WRITE,
+                            MAP_ANONYMOUS | MAP_PRIVATE,
+                            -1, 0);
+    if (path_arena.nodes == MAP_FAILED) {
+        perror(_("mmap failed to reserve tracking arena memory"));
+        exit(EXIT_FAILURE);
+    }
+    atomic_init(&path_arena.pos, 0);
+}
+void path_arena_destroy(void) {
+    if (path_arena.nodes != NULL && path_arena.nodes != MAP_FAILED)
+        munmap(path_arena.nodes, PATH_ARENA_CAPACITY);
+}
+static PathNode *path_arena_alloc(char *path, PathNode *parent) {
+    size_t pos = atomic_fetch_add_explicit(&path_arena.pos, 1, memory_order_relaxed);
+    if (pos >= PATH_ARENA_CAPACITY)
+        return NULL;
+    PathNode *node = &path_arena.nodes[pos];
+    size_t len = strlen(path) + 1;
+    memcpy(node->path, path, len);
+    node->parent = parent;
+    path_arena.pos = pos + len + 1;
     return node;
 }
 // ----------------------------------------------------------------------
@@ -1080,7 +1114,7 @@ void *worker(void *arg) {
     QueuePayload current_node;
     QueuePayload child_node;
     OutputBuffer output;
-    char dir_buf[DIR_BUF_SIZE];
+    alignas(struct linux_dirent64) char dir_buf[DIR_BUF_SIZE];
     while (true) {
         if (mpmc_dequeue(lf, &current_node) == true) {
             memset(&child_node, 0, sizeof(QueuePayload));

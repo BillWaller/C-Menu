@@ -12,8 +12,9 @@ BUILD_TYPE=Debug
 # UI?=-DNCURSES_UI
 # UI?=-DNOTCURSES_UI
 include UI.mk
-# EXP= Experimental executable name, e.g. lf3
-EXP=
+# EXP= Experimental executable name, e.g. lf2
+EXP1=
+EXP2=lf3
 # CC_EXTRA = -fsanitize=thread
 ifneq ($(CMENU_HOME),)
 	PREFIX:=$(HOME)/menuapp
@@ -65,7 +66,7 @@ CX:=-std=gnu2y
 CC:=gcc $(CX) $(INCLUDE_DIRS)
 
 BINEXES:=menu form pick view ckeys whence rsh rsh_static \
-	rsh_pam iloan amort enterchr enterstr lf $(EXP) stripansi detach
+	rsh_pam iloan amort enterchr enterstr lf $(EXP1) $(EXP2) stripansi detach
 ifeq ($(UI), "-DNOTCURSES_UI")
 BINEXES+=ui_hello ui_visual
 endif
@@ -195,7 +196,10 @@ ui_visual:	ui_visual.c $(COMMON_OBJS) $(LIB_SHARED)
 lf: lf.c $(LIB_SHARED)
 	$(CC) $(CC_EXTRA) $< -o $@ $(LDFLAGS)
 
-$(EXP): $(EXP).c $(LIB_SHARED)
+$(EXP1): $(EXP1).c $(LIB_SHARED)
+	$(CC) $< -o $@ $(LDFLAGS)
+
+$(EXP2): $(EXP2).c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)
 
 %:	%.c $(LIB_SHARED)
@@ -289,13 +293,13 @@ valgrind: menu
 		--keep-debuginfo=yes \
 		--suppressions=valgrind.supp \
 		--gen-suppressions=all \
-		./lf
+		./lf3 -H
 # 		./view -L60 -C90 -w lsp.log
 
 install:
 	rm -f	$(INSTALL_LIB_DIR)/libcm*
 	install -CDp 	$(COMMON_HDRS)	-t $(PREFIX)/include
-	install -CDp	menu whence lf $(EXP) detach enterchr enterstr \
+	install -CDp	menu whence lf $(EXP1) $(EXP2) detach enterchr enterstr \
 		iloan amort stripansi -t $(INSTALL_BIN_DIR)
 	install -Dp -o root -g root -m 6711	rsh rsh_static rsh_pam -t $(INSTALL_BIN_DIR)
 	install -CDp $(LIB_STATIC) -t $(INSTALL_LIB_DIR)
@@ -347,5 +351,6 @@ uninstall:
 	$(INSTALL_BIN_DIR)/enterstr \
 	$(INSTALL_BIN_DIR)/stripansi \
 	$(INSTALL_BIN_DIR)/lf \
-	$(INSTALL_BIN_DIR)/$(EXP) \
+	$(INSTALL_BIN_DIR)/$(EXP1) \
+	$(INSTALL_BIN_DIR)/$(EXP2) \
 	$(INSTALL_LIB_DIR)/libcm.so
