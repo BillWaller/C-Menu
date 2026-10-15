@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-14T23:34:26-05:00* - EXPERIMENTAL: Refactoring lf with multiple arenas and provisions for depth_first search, delete, and ignore files options while maintaining its incredible performance. 
+
+*2026-10-10T07:23:46-05:00* - Update CHANGELOG.md 
+
 *2026-10-10T07:23:27-05:00* - PERFORMANCE IMPROVEMENTS: lf.c 
 
 *2026-10-10T06:25:42-05:00* - Update CHANGELOG.md 
