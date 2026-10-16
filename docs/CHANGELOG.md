@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-15T20:53:55-05:00* - EXPERIMENTAL: lf3.c testing performance with mmap, the kernel's paged virtual memory, to implement directory and cycle arenas in addition to the queue node and path arenas committed previously. 
+
+*2026-10-14T23:36:25-05:00* - Update CHANGELOG.md 
+
 *2026-10-14T23:34:26-05:00* - EXPERIMENTAL: Refactoring lf with multiple arenas and provisions for depth_first search, delete, and ignore files options while maintaining its incredible performance. 
 
 *2026-10-10T07:23:46-05:00* - Update CHANGELOG.md 
