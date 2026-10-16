@@ -14,7 +14,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <grp.h>
+#include <inttypes.h>
 #include <linux/limits.h>
+#include <locale.h>
 #include <pthread.h>
 #include <pwd.h>
 #include <regex.h>
@@ -49,6 +51,7 @@
 #define PATH_ARENA_MASK (PATH_ARENA_BYTES - 1)
 
 #define FINDER_STAGE_CAP 512
+#define DEBUG_CHILD_STAGING false
 
 typedef struct QueuePayload QueuePayload;
 typedef struct DirectoryNode DirectoryNode;
@@ -79,8 +82,8 @@ struct CycleNode {
 
 struct QueuePayload {
     uint32_t self_idx; // Track where this node lives in the QueueArena
-    DirectoryNode dir_ctx;
-    CycleNode cycle_ctx;
+    DirectoryNode *dir_ctx;
+    CycleNode *cycle_ctx;
 };
 
 // ---------------------------------------------------------------
@@ -119,11 +122,12 @@ typedef struct {
     alignas(CACHE_LINE_SIZE) _Atomic atomic_int active_tasks;
     alignas(CACHE_LINE_SIZE) _Atomic atomic_int shut_down;
     alignas(CACHE_LINE_SIZE) _Atomic size_t sequence[QUEUE_NODES];
-    alignas(CACHE_LINE_SIZE) _Atomic size_t dir_cyc_seq[DIRECTORY_NODES];
     QueuePayload nodes[QUEUE_NODES];
 } MPMCQueue;
 
 // ---------------------------------------------------------------
+
+#define MAX_THREADS 64
 
 typedef enum {
     TS_SUCCESS = 0,
@@ -158,13 +162,13 @@ static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
 TerminationStatus termination_status;
 typedef struct {
     MPMCQueue *q;
+    alignas(CACHE_LINE_SIZE) _Atomic size_t thread_id;
     PathArena *path_arena;
-    DirectoryNode *dir_nodes;
-    CycleNode *cycle_nodes;
     QueueArena *queue_arena;
     DirectoryArena *directory_arena;
     CycleArena *cycle_arena;
     pthread_t *threads;
+    long start;
     unsigned int nthreads;
     atomic_size_t file_count;
     atomic_size_t error_count;
@@ -230,36 +234,35 @@ char *debug_p;
 void debug_out(LfContext *lf, int, char **);
 bool init_lf(LfContext *lf, int, char **);
 int sort_lf_output(LfContext *lf, int, char **);
-MPMCQueue *mpmc_queue_init();
-bool mpmc_enqueue(LfContext *, const QueuePayload *new_node);
-bool mpmc_bulk_enqueue(LfContext *lf, QueuePayload *staged_nodes, size_t count);
-bool mpmc_dequeue(LfContext *lf, QueuePayload *dequeued_node);
 void *worker(void *arg);
-void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, char *dir_buf, char *current_dir_path, char *opath);
+void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, char *dir_buf, char *current_dir_path, char *full_path, pthread_t thread_id);
 int print_file(LfContext *lf, const unsigned char effective_type, struct stat *cached_sb, bool stat_cached, OutputBuffer *output, char *full_path);
 bool build_current_dir_path(char *, size_t, const char *, const char *, size_t *);
 void flush_output_buffer(LfContext *, OutputBuffer *);
 bool append_output_buffer(LfContext *, OutputBuffer *, const char *, size_t,
                           bool);
-int err_out(LfContext *lf, const char *format, ...);
-bool is_link_cycle(dev_t dev, ino_t ino, CycleNode *parent);
-size_t append_path_node_segment(PathArena *path_arena, char *path, QueuePayload *dir_ctx);
-size_t push_path_node_segment(PathArena *path_arena, QueuePayload *qnode, char *path);
-void path_arena_init(PathArena *path_arena);
-void path_arena_destroy(PathArena *path_arena);
-static size_t path_arena_alloc(PathArena *path_arena, const char *path, size_t len);
-void construct_path(PathArena *path_arena, char *filename, QueuePayload *qnode, char *current_dir_path, size_t len);
+__attribute__((format(printf, 2, 3))) int err_out(LfContext *lf, const char *format, ...);
 void get_filename(PathArena *path_arena, QueuePayload *qnode, char *current_dir_path, size_t len);
 void finalize_directory_node(LfContext *lf, size_t node_offset);
-QueueArena *queue_arena_create(size_t max_nodes);
-void queue_arena_destroy(QueueArena *arena);
-uint32_t queue_arena_push_root(QueueArena *arena, size_t path_offset, size_t path_len, dev_t dev, ino_t ino);
-void directory_arena_init(DirectoryArena *directory_arena);
-void directory_arena_destroy(DirectoryArena *directory_arena);
-static DirectoryNode *directory_arena_alloc(LfContext *lf, DirectoryArena *directory_arena, char *path, DirectoryNode *parent);
-void cycle_arena_init(CycleArena *cycle_arena);
-void cycle_arena_destroy(CycleArena *cycle_arena);
-static CycleNode *cycle_arena_alloc(LfContext *lf, CycleArena *cycle_arena, char *path);
+
+void queue_arena_create(LfContext *lf, size_t max_nodes);
+void queue_arena_destroy(LfContext *lf);
+uint32_t queue_arena_push_root(LfContext *lf, size_t path_offset, size_t path_len, dev_t dev, ino_t ino);
+bool mpmc_enqueue(LfContext *, const QueuePayload *new_node);
+bool mpmc_dequeue(LfContext *lf, QueuePayload *dequeued_node);
+
+void path_arena_init(LfContext *lf);
+void path_arena_destroy(LfContext *lf);
+static size_t path_arena_alloc(LfContext *lf, const char *path, size_t len);
+
+void directory_arena_init(LfContext *lf);
+void directory_arena_destroy(LfContext *lf);
+
+DirectoryNode *directory_arena_alloc(LfContext *lf, size_t path_offset, size_t path_len, uint16_t depth, uint32_t parent_idx);
+
+void cycle_arena_init(LfContext *lf);
+void cycle_arena_destroy(LfContext *lf);
+CycleNode *cycle_arena_alloc(LfContext *lf, dev_t dev, ino_t ino, size_t parent_idx);
 // ---------------------------------------------------------------
 
 static struct argp_option options[] = {
@@ -281,7 +284,7 @@ static struct argp_option options[] = {
      _("No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes"), 0},
     {_("user"), 'u', _("user name"), 0, _("User Name of file owner "), 0},
     {_("debug"), 'D', "123456789", 0,
-     _("1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, 8-only_errors, 9-report_error_count"),
+     _("1-config, 2-info, 3-debug, 4-errors, 5-badlinks, 6-trace, 7-all, 8-only_errors, 9-report_error_count"),
      0},
     {_("include_hidden"), 'H', "o", OPTION_ARG_OPTIONAL, _("Include hidden files (o=hidden only)"), 0},
     {_("follow_links"), 'L', 0, 0, _("Follow symbolic links"), 0},
@@ -486,10 +489,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         if (pwd) {
             lf->user_id = (uintmax_t)pwd->pw_uid;
             lf->flags |= LF_USER;
-        } else {
+        } else
             fprintf(stderr, _("User '%s' not found.\n"), arg);
-            exit(EXIT_FAILURE);
-        }
         break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
@@ -533,6 +534,7 @@ int main(int argc, char **argv) {
     lf->error_file_spec[0] = '\0';
     lf->error_file_open = false;
 
+    setlocale(LC_NUMERIC, "");
     char tmp_str[MAX_PATH_LEN];
     argp_parse(&argp, argc, argv, 0, 0, lf);
     if (lfargc > 0) {
@@ -808,8 +810,6 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
         lf->include_types = 0xff;
     if (lf->include_types)
         lf->suppress_types = lf->include_types ^ 0xff;
-    // LF_HIDE = 0 - include hidden files,
-    // LF_HIDE = 1 - suppress hidden files
     lf->include_hidden = !(lf->flags & LF_HIDE);
     int reti = 0;
     lf->reg_flags = REG_EXTENDED;
@@ -832,9 +832,6 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
         }
     }
     debug_out(lf, argc, argv);
-    // --------------------------------------------------------------------
-    // create root_node and enqueue it
-    // --------------------------------------------------------------------
     termination_status = TS_SUCCESS;
     int rc = 0;
     struct stat sb;
@@ -844,27 +841,39 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
     rc = stat(lf->base_path, &sb);
     if (rc != 0)
         return false;
-    lf->q = mpmc_queue_init();
-
-    lf->path_arena = calloc(PATH_ARENA_BYTES, sizeof(char *));
-    path_arena_init(lf->path_arena);
-
-    lf->directory_arena = (DirectoryArena *)calloc(DIRECTORY_NODES, sizeof(DirectoryNode));
-    directory_arena_init(lf->directory_arena);
-
-    lf->cycle_arena = (CycleArena *)calloc(CYCLE_NODES, sizeof(CycleNode));
-    cycle_arena_init(lf->cycle_arena);
-
-    lf->queue_arena = queue_arena_create(QUEUE_NODES);
-    if (!lf->queue_arena)
-        return EXIT_FAILURE;
+    // --------------------------------------------------------------------
+    // INITIALIZE ARENAS
+    // --------------------------------------------------------------------
+    lf->q = (MPMCQueue *)calloc(1, sizeof(MPMCQueue));
+    if (lf->q == nullptr)
+        return false;
+    for (size_t i = 0; i < QUEUE_NODES; i++)
+        atomic_init(&lf->q->sequence[i], i);
+    atomic_init(&lf->q->enqueue_pos, 0);
+    atomic_init(&lf->q->dequeue_pos, 0);
+    atomic_init(&lf->q->active_tasks, 0);
+    atomic_init(&lf->q->shut_down, 0);
+    queue_arena_create(lf, QUEUE_NODES);
+    path_arena_init(lf);
+    directory_arena_init(lf);
+    cycle_arena_init(lf);
+    atomic_init(&lf->thread_id, 0);
+    if (!lf->path_arena || !lf->directory_arena ||
+        !lf->cycle_arena || !lf->queue_arena) {
+        termination_status = TS_ERROR;
+        goto endlf;
+    }
+    // --------------------------------------------------------------------
+    // CREATE_ROOT_NODE
+    // --------------------------------------------------------------------
 
     // 4. Resolve the root path string and stat details to populate slot 0
     size_t path_len = strlen(lf->base_path);
     if (stat(lf->base_path, &sb) == -1) {
         perror("Failed to stat base_path");
-        queue_arena_destroy(lf->queue_arena);
-        return EXIT_FAILURE;
+        queue_arena_destroy(lf);
+        termination_status = TS_ERROR;
+        goto endlf;
     }
     if (!S_ISDIR(sb.st_mode)) {
         fprintf(stderr,
@@ -872,50 +881,45 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
                   "files will be found.\n"),
                 lf->base_path);
         termination_status = TS_ERROR;
-        return false;
+        goto endlf;
     }
 
     // 5. Store the root path string in the path arena
-    size_t offset = path_arena_alloc(lf->path_arena, lf->base_path, path_len);
-
-    // 6. Push the root node into the node arena
-    uint32_t root_node_idx = queue_arena_push_root(lf->queue_arena,
-                                                   offset,
-                                                   path_len,
-                                                   sb.st_dev,
-                                                   sb.st_ino);
-
-    // 7. Enqueue the root node index task into the MPMC Queue to wake up worker 1
+    size_t offset = path_arena_alloc(lf, lf->base_path, path_len);
+    // 6. Push the root node into the queue arena
+    uint32_t root_node_idx = queue_arena_push_root(lf, offset,
+                                                   path_len, sb.st_dev, sb.st_ino);
+    // 7. Enqueue the root node index task into the MPMC Queue to wake up worker
+    // 1
     QueuePayload root_node = lf->queue_arena->nodes[root_node_idx];
-
     // Mark global active tasks as 1
     atomic_store_explicit(&lf->q->active_tasks, 1, memory_order_release);
     mpmc_enqueue(lf, &root_node);
 
-    //------------------------------------------------------------
-    // FIRE UP WORKER THREAD POOL
-    //------------------------------------------------------------
+    // ------------------------------------------------------------
+    // LOOSE THE THREADS
+    // ------------------------------------------------------------
     lf->threads = calloc(lf->nthreads, sizeof(pthread_t));
     if (!lf->threads) {
         fprintf(stderr, _("Out of memory allocating threads\n"));
-        return false;
+        goto endlf;
     }
+    struct timespec tp;
+    clock_gettime(CLOCK_MONOTONIC, &tp);
+    lf->start = tp.tv_nsec;
     for (unsigned int i = 0; i < lf->nthreads; i++) {
-        rc = pthread_create(
-            &lf->threads[i],
-            NULL,
-            worker,
-            lf);
+        rc = pthread_create(&lf->threads[i], NULL,
+                            worker, lf);
         if (rc != 0) {
             fprintf(stderr, _("Error: Unable to create thread %d\n"), rc);
             lf->q->shut_down = 1;
             termination_status = TS_ERROR;
-            return false;
+            goto endlf;
         }
     }
-    //------------------------------------------------------------
-    // END THREADS
-    //------------------------------------------------------------
+    // ------------------------------------------------------------
+    // THREAD SHUTDOWN
+    // ------------------------------------------------------------
     for (unsigned int i = 0; i < lf->nthreads; i++)
         pthread_join(lf->threads[i], NULL);
     rc = pthread_mutex_destroy(&lf->output_mutex);
@@ -925,168 +929,145 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
         regfree(&lf->compiled_re);
     if (lf->flags & LF_EXC_REGEX)
         regfree(&lf->compiled_ere);
-    if (reti)
-        return false;
+endlf:
+    path_arena_destroy(lf);
+    cycle_arena_destroy(lf);
+    directory_arena_destroy(lf);
+    queue_arena_destroy(lf);
     return true;
-    path_arena_destroy(lf->path_arena);
-    cycle_arena_destroy(lf->cycle_arena);
-    directory_arena_destroy(lf->directory_arena);
 }
 // ----------------------------------------------------------------------
 // PATH_ARENA
 // ----------------------------------------------------------------------
-void path_arena_init(PathArena *path_arena) {
-    path_arena->capacity = PATH_ARENA_BYTES;
-    size_t total_bytes = path_arena->capacity;
-    path_arena->bytes = mmap(NULL, total_bytes,
-                             PROT_READ | PROT_WRITE,
-                             MAP_ANONYMOUS | MAP_PRIVATE,
-                             -1, 0);
-    if (path_arena->bytes == MAP_FAILED) {
+void path_arena_init(LfContext *lf) {
+    lf->path_arena = calloc(PATH_ARENA_BYTES, sizeof(char *));
+    lf->path_arena->capacity = PATH_ARENA_BYTES;
+    size_t total_bytes = lf->path_arena->capacity;
+    lf->path_arena->bytes = mmap(NULL, total_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    if (lf->path_arena->bytes == MAP_FAILED) {
         perror(_("mmap failed to reserve path_arena memory"));
-        exit(EXIT_FAILURE);
     }
-    atomic_init(&path_arena->cursor, 0);
+    atomic_init(&lf->path_arena->cursor, 0);
 }
-void path_arena_destroy(PathArena *path_arena) {
-    if (path_arena->bytes != NULL && path_arena->bytes != MAP_FAILED)
-        munmap(path_arena->bytes, PATH_ARENA_BYTES);
+void path_arena_destroy(LfContext *lf) {
+    if (lf->path_arena->bytes != NULL && lf->path_arena->bytes != MAP_FAILED)
+        munmap(lf->path_arena->bytes, PATH_ARENA_BYTES);
+    if (lf->path_arena != NULL)
+        free(lf->path_arena);
 }
-static size_t path_arena_alloc(PathArena *path_arena, const char *path, size_t len) {
+static size_t path_arena_alloc(LfContext *lf, const char *path, size_t len) {
     // Reserve len + 1 bytes to safely encapsulate the null terminator
-    size_t offset = atomic_fetch_add_explicit(&path_arena->cursor, len + 1, memory_order_relaxed);
-
+    size_t offset = atomic_fetch_add_explicit(&lf->path_arena->cursor, len + 1, memory_order_relaxed);
     if (offset + len + 1 >= PATH_ARENA_BYTES) {
         fprintf(stderr, "Fatal: Path arena exhausted (%zu / %d bytes)\n", offset + len + 1, PATH_ARENA_BYTES);
-        exit(EXIT_FAILURE);
     }
-
-    memcpy(&path_arena->bytes[offset], path, len);
-    path_arena->bytes[offset + len] = '\0';
-
+    memcpy(&lf->path_arena->bytes[offset], path, len);
+    lf->path_arena->bytes[offset + len] = '\0';
     return offset; // Return back to worker to record in dir_ctx.path_offset
 }
 // ----------------------------------------------------------------------
 // DIRECTORY_ARENA
 // ----------------------------------------------------------------------
-void directory_arena_init(DirectoryArena *directory_arena) {
+void directory_arena_init(LfContext *lf) {
+    lf->directory_arena = (DirectoryArena *)calloc(DIRECTORY_NODES, sizeof(DirectoryNode));
     size_t total_bytes = DIRECTORY_NODES * sizeof(DirectoryNode);
-    directory_arena->nodes = mmap(NULL,
-                                  total_bytes,
-                                  PROT_READ | PROT_WRITE,
-                                  MAP_ANONYMOUS | MAP_PRIVATE,
-                                  -1,
-                                  0);
-    if (directory_arena->nodes == MAP_FAILED) {
+    lf->directory_arena->nodes = mmap(NULL, total_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    if (lf->directory_arena->nodes == MAP_FAILED) {
         perror(_("mmap failed to reserve directory_arena memory"));
-        exit(EXIT_FAILURE);
     }
-    atomic_init(&directory_arena->index, 0);
+    atomic_init(&lf->directory_arena->index, 0);
 }
-void directory_arena_destroy(DirectoryArena *directory_arena) {
-    if (directory_arena->nodes != NULL && directory_arena->nodes != MAP_FAILED)
-        munmap(directory_arena->nodes, DIRECTORY_NODES);
+void directory_arena_destroy(LfContext *lf) {
+    if (lf->directory_arena->nodes != NULL && lf->directory_arena->nodes != MAP_FAILED)
+        munmap(lf->directory_arena->nodes, DIRECTORY_NODES);
+    if (lf->directory_arena != NULL)
+        free(lf->directory_arena);
 }
-static DirectoryNode *directory_arena_alloc(LfContext *lf, DirectoryArena *directory_arena, char *path, DirectoryNode *parent) {
-    size_t idx = atomic_fetch_add_explicit(&directory_arena->index, 1, memory_order_relaxed);
+DirectoryNode *directory_arena_alloc(LfContext *lf, size_t path_offset, size_t path_len, uint16_t depth, uint32_t parent_idx) {
+    size_t idx = atomic_fetch_add_explicit(&lf->directory_arena->index, 1, memory_order_relaxed);
     if (idx >= DIRECTORY_NODES)
         return NULL;
-    size_t path_len = strlen(path);
-    DirectoryNode *node = &directory_arena->nodes[idx];
-    node->parent_idx = idx;
-    node->depth = parent ? parent->depth + 1 : 0;
+    DirectoryNode *node = &lf->directory_arena->nodes[idx];
+    node->parent_idx = parent_idx;
+    node->depth = depth ? depth + 1 : 0;
+    node->child_dirs_remaining = 0;
+    node->path_offset = path_offset;
     node->path_len = path_len;
-    memcpy(lf->path_arena->bytes, path, path_len);
-    lf->path_arena->bytes = lf->path_arena->bytes + path_len;
     return node;
 }
 // ----------------------------------------------------------------------
 // CYCLE_ARENA
 // ----------------------------------------------------------------------
-void cycle_arena_init(CycleArena *cycle_arena) {
+void cycle_arena_init(LfContext *lf) {
+    lf->cycle_arena = (CycleArena *)calloc(CYCLE_NODES, sizeof(CycleNode));
     size_t total_bytes = CYCLE_NODES * sizeof(CycleNode);
-    cycle_arena->nodes = mmap(NULL,
-                              total_bytes,
-                              PROT_READ | PROT_WRITE,
-                              MAP_ANONYMOUS | MAP_PRIVATE,
-                              -1,
-                              0);
-    if (cycle_arena->nodes == MAP_FAILED) {
+    lf->cycle_arena->nodes = mmap(NULL, total_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    if (lf->cycle_arena->nodes == MAP_FAILED) {
         perror(_("mmap failed to reserve cycle_arena memory"));
-        exit(EXIT_FAILURE);
     }
-    atomic_init(&cycle_arena->index, 0);
+    atomic_init(&lf->cycle_arena->index, 0);
 }
-void cycle_arena_destroy(CycleArena *cycle_arena) {
-    if (cycle_arena->nodes != NULL && cycle_arena->nodes != MAP_FAILED)
-        munmap(cycle_arena->nodes, CYCLE_NODES);
+void cycle_arena_destroy(LfContext *lf) {
+    if (lf->cycle_arena->nodes != NULL && lf->cycle_arena->nodes != MAP_FAILED)
+        munmap(lf->cycle_arena->nodes, CYCLE_NODES);
+    if (lf->cycle_arena != NULL)
+        free(lf->cycle_arena);
 }
-static CycleNode *cycle_arena_alloc(LfContext *lf, CycleArena *cycle_arena, char *path) {
-    size_t idx = atomic_fetch_add_explicit(&cycle_arena->index, 1, memory_order_relaxed);
+CycleNode *cycle_arena_alloc(LfContext *lf, dev_t dev, ino_t ino, size_t parent_idx) {
+    size_t idx = atomic_fetch_add_explicit(&lf->cycle_arena->index, 1, memory_order_relaxed);
     if (idx >= CYCLE_NODES)
         return NULL;
-    size_t path_len = strlen(path);
-    CycleNode *node = &cycle_arena->nodes[idx];
-    node->parent_idx = idx;
-    node->dev = path_len;
-    memcpy(lf->path_arena->bytes, path, path_len);
-    lf->path_arena->bytes = lf->path_arena->bytes + path_len;
+    CycleNode *node = &lf->cycle_arena->nodes[idx];
+    node->parent_idx = parent_idx;
+    node->dev = dev;
+    node->ino = ino;
     return node;
 }
 // ----------------------------------------------------------------------
 // QUEUE_ARENA
 // ----------------------------------------------------------------------
-QueueArena *queue_arena_create(size_t max_nodes) {
-    QueueArena *queue_arena = (QueueArena *)malloc(sizeof(QueueArena));
-    if (!queue_arena) {
+void queue_arena_create(LfContext *lf, size_t max_nodes) {
+    lf->queue_arena = (QueueArena *)malloc(sizeof(QueueArena));
+    if (!lf->queue_arena) {
         perror("Failed to allocate QueueArena management struct");
-        return NULL;
+        return;
     }
-    queue_arena->capacity = max_nodes;
-    atomic_store_explicit(&queue_arena->cursor, 0, memory_order_relaxed);
-
-    // Using mmap provides page-aligned memory and avoids polluting the heap,
-    // which is excellent for raw high-performance buffers.
-    queue_arena->nodes = (QueuePayload *)mmap(NULL,
-                                              max_nodes * sizeof(QueuePayload),
-                                              PROT_READ | PROT_WRITE,
-                                              MAP_PRIVATE | MAP_ANONYMOUS,
-                                              -1, 0);
-    if (queue_arena->nodes == MAP_FAILED) {
+    lf->queue_arena->capacity = max_nodes;
+    atomic_store_explicit(&lf->queue_arena->cursor, 0, memory_order_relaxed);
+    lf->queue_arena->nodes = (QueuePayload *)mmap(NULL, max_nodes * sizeof(QueuePayload), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (lf->queue_arena->nodes == MAP_FAILED) {
         perror("Failed to mmap memory for QueueArena elements");
-        free(queue_arena);
-        return NULL;
+        free(lf->queue_arena);
     }
-    return queue_arena;
+    return;
 }
 // Push the very first root directory into the queue arena
-uint32_t queue_arena_push_root(QueueArena *queue_arena, size_t path_offset, size_t path_len, dev_t dev, ino_t ino) {
+uint32_t queue_arena_push_root(LfContext *lf, size_t path_offset, size_t path_len, dev_t dev, ino_t ino) {
     // Claim slot 0
-    size_t idx = atomic_fetch_add_explicit(&queue_arena->cursor, 1, memory_order_relaxed);
-
-    QueuePayload *root_node = &queue_arena->nodes[idx];
+    size_t idx = atomic_fetch_add_explicit(&lf->queue_arena->cursor, 1, memory_order_relaxed);
+    QueuePayload *root_node = &lf->queue_arena->nodes[idx];
     root_node->self_idx = (uint32_t)idx;
-
-    // Core directory node setup
-    root_node->dir_ctx.path_offset = path_offset;
-    root_node->dir_ctx.path_len = path_len;
-    root_node->dir_ctx.depth = 0;
-    root_node->dir_ctx.parent_idx = NO_PARENT; // Sentinel value (UINT32_MAX)
-    atomic_init(&root_node->dir_ctx.child_dirs_remaining, 0);
+    root_node->dir_ctx = directory_arena_alloc(lf, path_offset, path_len, 0, NO_PARENT);
+    root_node->cycle_ctx = cycle_arena_alloc(lf, dev, ino, NO_PARENT);
+    // Directory node setup
+    root_node->dir_ctx->path_offset = path_offset;
+    root_node->dir_ctx->path_len = path_len;
+    root_node->dir_ctx->depth = 0;
+    root_node->dir_ctx->parent_idx = NO_PARENT; // Sentinel value (UINT32_MAX)
+    atomic_init(&root_node->dir_ctx->child_dirs_remaining, 0);
 
     // Cycle tracking root setup
-    root_node->cycle_ctx.dev = dev;
-    root_node->cycle_ctx.ino = ino;
-    root_node->cycle_ctx.parent_idx = NO_PARENT;
+    root_node->cycle_ctx->dev = dev;
+    root_node->cycle_ctx->ino = ino;
+    root_node->cycle_ctx->parent_idx = NO_PARENT;
 
     return (uint32_t)idx;
 }
-// Clean up memory when your program exits
-void queue_arena_destroy(QueueArena *queue_arena) {
-    if (!queue_arena)
+void queue_arena_destroy(LfContext *lf) {
+    if (!lf->queue_arena)
         return;
-    munmap(queue_arena->nodes, queue_arena->capacity * sizeof(QueuePayload));
-    free(queue_arena);
+    munmap(lf->queue_arena->nodes, lf->queue_arena->capacity * sizeof(QueuePayload));
+    free(lf->queue_arena);
 }
 // ----------------------------------------------------------------------
 // FLUSH_OUTPUT_BUFFER
@@ -1140,30 +1121,8 @@ bool append_output_buffer(LfContext *lf, OutputBuffer *output, const char *path,
     return true;
 }
 // ----------------------------------------------------------------------
-// MPMC_QUEUE_INIT
-// ----------------------------------------------------------------------
-/** @brief Initialize the MPMCQueue.
-    @param q A pointer to the MPMCQueue struct representing the queue.
-    @details This function initializes the MPMCQueue by setting up the sequence numbers for each node in the queue and initializing the enqueue and dequeue indexes. It ensures that the queue is ready for concurrent access by multiple producer and consumer threads.
-   */
-MPMCQueue *mpmc_queue_init() {
-    MPMCQueue *q = calloc(1, sizeof(MPMCQueue));
-    if (q == nullptr)
-        return nullptr;
-    for (size_t i = 0; i < QUEUE_NODES; i++)
-        atomic_init(&q->sequence[i], i);
-    for (size_t i = 0; i < DIRECTORY_NODES; i++)
-        atomic_init(&q->dir_cyc_seq[i], i);
-    atomic_init(&q->enqueue_pos, 0);
-    atomic_init(&q->dequeue_pos, 0);
-    atomic_init(&q->active_tasks, 0);
-    atomic_init(&q->shut_down, 0);
-    return q;
-}
-// ----------------------------------------------------------------------
 // MPMC_ENQUEUE
 // ----------------------------------------------------------------------
-
 bool mpmc_enqueue(LfContext *lf, const QueuePayload *new_node) {
     // 1. Change to acquire to synchronize with previous wraps
     size_t pos = atomic_load_explicit(&lf->q->enqueue_pos, memory_order_acquire);
@@ -1174,8 +1133,7 @@ bool mpmc_enqueue(LfContext *lf, const QueuePayload *new_node) {
         intptr_t diff = (intptr_t)seq - (intptr_t)pos;
         if (diff == 0) {
             // 2. Change success to release order so the claim is visible safely
-            if (atomic_compare_exchange_weak_explicit(&lf->q->enqueue_pos, &pos, pos + 1,
-                                                      memory_order_release, memory_order_relaxed)) {
+            if (atomic_compare_exchange_weak_explicit(&lf->q->enqueue_pos, &pos, pos + 1, memory_order_release, memory_order_relaxed)) {
                 break;
             }
         } else if (diff < 0)
@@ -1226,56 +1184,6 @@ bool mpmc_dequeue(LfContext *lf, QueuePayload *dequeued_node) {
     atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + QUEUE_NODES, memory_order_release);
     return true;
 }
-
-// ----------------------------------------------------------------------
-// MPMC_BULK_ENQUEUE
-// ----------------------------------------------------------------------
-bool mpmc_bulk_enqueue(LfContext *lf, QueuePayload *staged_nodes, size_t count) {
-    if (count == 0)
-        return true;
-
-    size_t pos = atomic_load_explicit(&lf->q->enqueue_pos, memory_order_relaxed);
-
-    while (true) {
-        // Check if the entire block of slots from [pos] to [pos + count - 1] is ready
-        bool block_available = true;
-        for (size_t i = 0; i < count; ++i) {
-            size_t slot_idx = (pos + i) & QUEUE_MASK;
-            size_t seq = atomic_load_explicit(&lf->q->sequence[slot_idx], memory_order_acquire);
-            if ((intptr_t)seq - (intptr_t)(pos + i) != 0) {
-                block_available = false;
-                break;
-            }
-        }
-
-        if (block_available) {
-            // Atomically reserve the entire block of slots for this thread
-            if (atomic_compare_exchange_weak_explicit(&lf->q->enqueue_pos, &pos, pos + count,
-                                                      memory_order_relaxed, memory_order_relaxed)) {
-                break; // We successfully reserved the range [pos ... pos + count - 1]
-            }
-        } else {
-            // The queue is full or highly contended. Return false immediately.
-            // This prevents half-enqueued directory tasks from breaking atomic counts.
-            return false;
-        }
-
-// Minor spin optimization if contention happens
-#if defined(__x86_64__)
-        __builtin_ia32_pause();
-#endif
-    }
-
-    // We own the slots now. Copy data and release them safely!
-    for (size_t i = 0; i < count; ++i) {
-        size_t slot_idx = (pos + i) & QUEUE_MASK;
-        lf->q->nodes[slot_idx] = staged_nodes[i];
-        // Release sequentially allows consumers to dequeue them smoothly
-        atomic_store_explicit(&lf->q->sequence[slot_idx], pos + i + 1, memory_order_release);
-    }
-
-    return true;
-}
 // ----------------------------------------------------------------------
 // WORKER
 // ----------------------------------------------------------------------
@@ -1283,28 +1191,35 @@ void *worker(void *arg) {
     LfContext *lf = (LfContext *)arg;
     QueuePayload dqnode;
     OutputBuffer output = {};
-    char opath[MAX_PATH_LEN];
+    char full_path[MAX_PATH_LEN];
     alignas(CACHE_LINE_SIZE) char absolute_path[MAX_PATH_LEN];
     alignas(struct linux_dirent64) char dir_buf[DIR_BUF_SIZE];
-    PathArena *path_arena = lf->path_arena;
+    uint64_t elapsed_ns = 0;
+    size_t thread_id = atomic_fetch_add_explicit(&lf->thread_id, 1, memory_order_relaxed);
+    struct timespec tp;
     while (1) {
         if (mpmc_dequeue(lf, &dqnode) == true) {
             // ----------------------------------------------------------------
             // STEP 1: Calculate Total Path Length via Index Backtracking
             // ----------------------------------------------------------------
-            // #ifdef DEBUG_DEQUEUE
-            err_out(lf, "&dqnode.dir_ctx: %12p, parent_idx: %6lu %6lu/%6lu, %s\n",
-                    &dqnode.dir_ctx.parent_idx,
-                    dqnode.dir_ctx.parent_idx != NO_PARENT ? &lf->queue_arena->nodes[dqnode.dir_ctx.parent_idx].dir_ctx : NULL,
-                    dqnode.dir_ctx.path_offset,
-                    dqnode.dir_ctx.path_len,
-                    &lf->path_arena->bytes[dqnode.dir_ctx.path_offset]);
-            // #endif
-            size_t total_path_len = dqnode.dir_ctx.path_len;
-            uint32_t current_parent = dqnode.dir_ctx.parent_idx;
+            if (lf->debug) {
+                clock_gettime(CLOCK_MONOTONIC, &tp);
+                elapsed_ns = tp.tv_nsec - lf->start;
+                err_out(lf, "%'9lu %3lu <%10s %12p %6u %6u %6lu/%-6lu %s\n",
+                        elapsed_ns,
+                        thread_id,
+                        "dequeue",
+                        &dqnode,
+                        dqnode.self_idx,
+                        dqnode.dir_ctx->parent_idx != NO_PARENT ? dqnode.dir_ctx->parent_idx : 0, dqnode.dir_ctx->path_offset,
+                        dqnode.dir_ctx->path_len,
+                        &lf->path_arena->bytes[dqnode.dir_ctx->path_offset]);
+            }
+            size_t total_path_len = dqnode.dir_ctx->path_len;
+            uint32_t current_parent = dqnode.dir_ctx->parent_idx;
             while (current_parent != NO_PARENT) {
                 // Safely resolve the parent out of the global node arena
-                DirectoryNode *p_node = &lf->queue_arena->nodes[current_parent].dir_ctx;
+                DirectoryNode *p_node = lf->queue_arena->nodes[current_parent].dir_ctx;
                 total_path_len += p_node->path_len + 1; // +1 for the '/' separator
                 current_parent = p_node->parent_idx;
             }
@@ -1317,29 +1232,25 @@ void *worker(void *arg) {
             // ----------------------------------------------------------------
             absolute_path[total_path_len] = '\0';
             size_t write_cursor = total_path_len;
-
             // Copy the leaf payload directory first
-            write_cursor -= dqnode.dir_ctx.path_len;
-            memcpy(&absolute_path[write_cursor], &path_arena->bytes[dqnode.dir_ctx.path_offset], dqnode.dir_ctx.path_len);
-            current_parent = dqnode.dir_ctx.parent_idx;
+            write_cursor -= dqnode.dir_ctx->path_len;
+            memcpy(&absolute_path[write_cursor], &lf->path_arena->bytes[dqnode.dir_ctx->path_offset], dqnode.dir_ctx->path_len);
+            current_parent = dqnode.dir_ctx->parent_idx;
             while (current_parent != NO_PARENT) {
-                DirectoryNode *p_node = &lf->queue_arena->nodes[current_parent].dir_ctx;
-
+                DirectoryNode *p_node = lf->queue_arena->nodes[current_parent].dir_ctx;
                 // Add the separator
                 write_cursor -= 1;
                 absolute_path[write_cursor] = '/';
-
                 // Copy parent segment
                 write_cursor -= p_node->path_len;
-                memcpy(&absolute_path[write_cursor], &path_arena->bytes[p_node->path_offset], p_node->path_len);
-
+                memcpy(&absolute_path[write_cursor], &lf->path_arena->bytes[p_node->path_offset], p_node->path_len);
                 current_parent = p_node->parent_idx;
             }
             // ----------------------------------------------------------------
             // STEP 3: Execute Directory Scanning
             // ----------------------------------------------------------------
             // We pass the global index of this node so finder can attach it to children
-            finder(lf, &dqnode, &output, dir_buf, absolute_path, opath);
+            finder(lf, &dqnode, &output, dir_buf, absolute_path, full_path, thread_id);
             atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
         } else
             break;
@@ -1359,7 +1270,7 @@ void *worker(void *arg) {
     @details This function reads the contents of the current directory, processes each entry, and applies filters based on the user's settings (e.g., file types, regex patterns). It uses fstatat to retrieve metadata for each entry and determines whether to enqueue subdirectories for further searching. The function also handles symbolic links according to the user's options and manages output buffering for efficient writing to stdout.
    */
 
-void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, char *dir_buf, char *current_dir_path, char *full_path) {
+void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, char *dir_buf, char *current_dir_path, char *full_path, pthread_t thread_id) {
     long nread;
     struct stat sb = {};
     bool stat_cached = false;
@@ -1368,7 +1279,10 @@ void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, c
     ino_t actual_ino = 0, effective_ino = 0;
     unsigned char actual_type;
     unsigned char effective_type;
+    char var_str[MAXLEN];
     int rc;
+    struct timespec tp;
+    uint64_t elapsed_ns = 0;
     // Track subdirectories discovered during this syscall iteration
     QueuePayload stage[FINDER_STAGE_CAP];
     size_t local_count = 0;
@@ -1414,7 +1328,6 @@ void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, c
                         continue;
                 }
             }
-
             size_t current_dir_len = strlen(current_dir_path);
             size_t entry_name_len = strlen(entry->d_name);
             memcpy(full_path, current_dir_path, current_dir_len);
@@ -1422,6 +1335,8 @@ void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, c
             memcpy(full_path + current_dir_len + 1, entry->d_name, entry_name_len);
             size_t full_path_len = current_dir_len + 1 + entry_name_len;
             full_path[full_path_len] = '\0';
+            if (strcmp(entry->d_name, "WspiapiParseV4Address.obj") == 0)
+                err_out(lf, "found %s", entry->d_name);
             // -------------------------------------------------------------------
             // GET ADVANCED METADATA
             // -------------------------------------------------------------------
@@ -1470,7 +1385,7 @@ void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, c
             // DIRECTORY
             // --------------------------------------------------------------------
             if (effective_type == DT_DIR) {
-                uint16_t next_depth = dequeued_node->dir_ctx.depth + 1;
+                uint16_t next_depth = dequeued_node->dir_ctx->depth + 1;
                 if (lf->max_depth > 0 && next_depth > lf->max_depth)
                     continue;
                 bool cycle_found = false;
@@ -1498,15 +1413,15 @@ void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, c
                         QueuePayload *ancestor = &lf->queue_arena->nodes[current_parent_idx];
                         if (lf->report_trace) {
                             err_out(lf, "Checking Ancestor Index [%u] -> dev: %lu, ino: %lu\n",
-                                    current_parent_idx, ancestor->cycle_ctx.dev, ancestor->cycle_ctx.ino);
+                                    current_parent_idx, ancestor->cycle_ctx->dev, ancestor->cycle_ctx->ino);
                         }
                         // If both the device and inode match an ancestor, we
                         // found a cycle loop!
-                        if (effective_dev == ancestor->cycle_ctx.dev && effective_ino == ancestor->cycle_ctx.ino) {
+                        if (effective_dev == ancestor->cycle_ctx->dev && effective_ino == ancestor->cycle_ctx->ino) {
                             cycle_found = true;
                             break;
                         }
-                        current_parent_idx = ancestor->cycle_ctx.parent_idx;
+                        current_parent_idx = ancestor->cycle_ctx->parent_idx;
                     }
                     if (cycle_found) {
                         if (lf->report_badlinks) {
@@ -1526,37 +1441,31 @@ void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, c
                 // STAGE CHILD TASKS
                 // ----------------------------------------------------------------
                 if (local_count < FINDER_STAGE_CAP) {
-                    size_t child_offset = path_arena_alloc(lf->path_arena, entry->d_name, entry_name_len);
-
+                    size_t child_offset = path_arena_alloc(lf, entry->d_name, entry_name_len);
                     // 1. Reserve a permanent slot in the node arena for child
                     size_t global_node_idx = atomic_fetch_add_explicit(&lf->queue_arena->cursor, 1, memory_order_relaxed);
-
                     QueuePayload *child_task = &stage[local_count++];
                     child_task->self_idx = (uint32_t)global_node_idx;
-
-                    child_task->dir_ctx.path_offset = child_offset;
-                    child_task->dir_ctx.path_len = entry_name_len;
-                    child_task->dir_ctx.depth = next_depth;
-
-                    // 2. Link parent using the stable index from the dequeued_node
-                    child_task->dir_ctx.parent_idx = dequeued_node->self_idx;
-                    atomic_init(&child_task->dir_ctx.child_dirs_remaining, 0);
-
-                    child_task->cycle_ctx.dev = effective_dev;
-                    child_task->cycle_ctx.ino = effective_ino;
-                    child_task->cycle_ctx.parent_idx = dequeued_node->self_idx;
-
+                    child_task->dir_ctx = directory_arena_alloc(lf, child_offset, entry_name_len, next_depth, NO_PARENT);
+                    child_task->dir_ctx->parent_idx = dequeued_node->self_idx;
+                    child_task->cycle_ctx = cycle_arena_alloc(lf, effective_dev, effective_ino, dequeued_node->self_idx);
                     // 3. Write child task into the global arena so future
                     // generations can resolve it
                     lf->queue_arena->nodes[global_node_idx] = *child_task;
-                    // #ifdef DEBUG_STAGING
-                    err_out(lf, "child_task.dir_ctx: %12p, parent_idx: %6lu %6lu/%6lu, %s\n",
-                            &child_task->dir_ctx,
-                            child_task->dir_ctx.parent_idx,
-                            child_task->dir_ctx.path_offset,
-                            child_task->dir_ctx.path_len,
-                            &lf->path_arena->bytes[child_task->dir_ctx.path_offset]);
-                    // #endif
+                    if (lf->debug && DEBUG_CHILD_STAGING) {
+                        clock_gettime(CLOCK_MONOTONIC, &tp);
+                        elapsed_ns = tp.tv_nsec - lf->start;
+                        err_out(lf, "%'9lu %3lu >%10s %12p %6u %6u %6lu/%-6lu %s\n",
+                                elapsed_ns,
+                                thread_id,
+                                "child_task",
+                                (void *)&child_task,
+                                child_task->self_idx,
+                                child_task->dir_ctx->parent_idx,
+                                child_task->dir_ctx->path_offset,
+                                child_task->dir_ctx->path_len,
+                                &lf->path_arena->bytes[child_task->dir_ctx->path_offset]);
+                    }
                 }
                 // --------------------------------------------------------
                 // CONDITIONALLY PRINT AS DIRECTORY
@@ -1595,7 +1504,7 @@ void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, c
     // POST-PASS: ATOMIC SYNCHRONIZATION BARRIER
     // --------------------------------------------------------------------
     // Publish exact branch tally to parent atomic trackers
-    atomic_store_explicit(&dequeued_node->dir_ctx.child_dirs_remaining, local_count, memory_order_release);
+    atomic_store_explicit(&dequeued_node->dir_ctx->child_dirs_remaining, local_count, memory_order_release);
 
     if (local_count > 0) {
         // Increment the global active task pool for the incoming children
@@ -1618,15 +1527,21 @@ void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, c
             // breaking our bottom-up counter tree.
             //      handle_queue_overflow_fallback(stage, local_count);
             //  }
-            // #ifdef DEBUG_ENQUEUE_STAGE
-            err_out(lf, "stage[%d].dir_ctx: %12p, parent_idx: %6lu %6lu/%6lu, %s\n",
-                    i,
-                    &stage[i].dir_ctx,
-                    stage[i].dir_ctx.parent_idx,
-                    stage[i].dir_ctx.path_offset,
-                    stage[i].dir_ctx.path_len,
-                    &lf->path_arena->bytes[stage[i].dir_ctx.path_offset]);
-            // #endif
+            if (lf->debug) {
+                clock_gettime(CLOCK_MONOTONIC, &tp);
+                elapsed_ns = tp.tv_nsec - lf->start;
+                ssnprintf(var_str, MAXLEN - 1, "stage[%d]", i);
+                err_out(lf, "%'9lu %3lu >%10s %12p %6u %6u %6lu/%-6lu %s\n",
+                        elapsed_ns,
+                        thread_id,
+                        var_str,
+                        (void *)&stage[i],
+                        stage[i].self_idx,
+                        stage[i].dir_ctx->parent_idx,
+                        stage[i].dir_ctx->path_offset,
+                        stage[i].dir_ctx->path_len,
+                        &lf->path_arena->bytes[stage[i].dir_ctx->path_offset]);
+            }
             if (!mpmc_enqueue(lf, &stage[i])) {
                 // If an enqueue ever fails due to buffer overflow limits,
                 // handle it or drop safely while decrementing counters
@@ -1641,8 +1556,7 @@ void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, c
     // --------------------------------------------------------------------
     // FINDER WRAP-UP
     // --------------------------------------------------------------------
-    atomic_store_explicit(&lf->queue_arena->nodes[dequeued_node->self_idx].dir_ctx.child_dirs_remaining,
-                          local_count, memory_order_release);
+    atomic_store_explicit(&lf->queue_arena->nodes[dequeued_node->self_idx].dir_ctx->child_dirs_remaining, local_count, memory_order_release);
     if ((lf->unlink || lf->depth_first) && local_count == 0) {
         // --------------------------------------------------------------------
         // BOTTOM-UP PROCESSING
@@ -1651,12 +1565,12 @@ void *finder(LfContext *lf, QueuePayload *dequeued_node, OutputBuffer *output, c
         while (current_idx != NO_PARENT) {
             QueuePayload *node = &lf->queue_arena->nodes[current_idx];
             // IF ACTIVE CHILDREN, BREAK
-            if (atomic_fetch_sub_explicit(&node->dir_ctx.child_dirs_remaining, 1, memory_order_acq_rel) > 1)
+            if (atomic_fetch_sub_explicit(&node->dir_ctx->child_dirs_remaining, 1, memory_order_acq_rel) > 1)
                 break;
             // This directory and all its subdirectories are 100% processed.
             // You can safely process or remove the directory here.
             // Cascade up to the parent index
-            current_idx = node->dir_ctx.parent_idx;
+            current_idx = node->dir_ctx->parent_idx;
         }
     }
     return NULL;
@@ -1788,29 +1702,31 @@ int print_file(LfContext *lf, const unsigned char effective_type, struct stat *c
    */
 int err_out(LfContext *lf, const char *format, ...) {
     pthread_mutex_lock(&lf->output_mutex);
-    va_list args;
-    va_start(args, format);
     if (lf->error_file_spec[0] == '\0') {
         if (lf->err_fd == nullptr) {
             lf->err_fd = stderr;
             lf->error_file_open = true;
-            setvbuf(lf->err_fd, NULL, _IOLBF, 0); //  line buffering
+            setvbuf(lf->err_fd, NULL, _IOLBF, 0); // line buffering
         }
     } else {
-        if (lf->error_file_open == false) {
+        if (!lf->error_file_open) {
             lf->err_fd = fopen(lf->error_file_spec, "a");
             if (lf->err_fd == nullptr) {
-                lf->err_fd = stderr;
+                // Note: If you want formatting flags to work here too,
+                // ensure setlocale was called earlier in main()
                 fprintf(stderr, _("Failed to open error file %s: %s\n"),
                         lf->error_file_spec, strerror(errno));
+                pthread_mutex_unlock(&lf->output_mutex);
                 return TS_ERROR;
             }
             lf->error_file_open = true;
-            setvbuf(lf->err_fd, NULL, _IOLBF, 0); //  line buffering
+            setvbuf(lf->err_fd, NULL, _IOLBF, 0); // line buffering
         }
     }
+    va_list args;
+    va_start(args, format);
     int result = vfprintf(lf->err_fd, format, args);
+    va_end(args); // Clean up the va_list BEFORE unlocking and returning
     pthread_mutex_unlock(&lf->output_mutex);
-    va_end(args);
     return result;
 }

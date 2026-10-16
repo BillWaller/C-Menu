@@ -17,8 +17,11 @@ extern "C" {
 #define NCURSES_WIDECHAR 1       /**< Enable wide character support */
 #include "version.h"
 #include <argp.h>
+#ifdef NCURSES_UI
+#define UAL_UI 1
+#endif
 #ifdef UAL_UI
-// #include "../ui/ui_ncurses_internal.h"
+#define NCURSES_UI 1
 #include "ui_backend.h"
 #include <ncursesw/ncurses.h>
 #include <ncursesw/panel.h>

@@ -194,13 +194,13 @@ ui_visual:	ui_visual.c $(COMMON_OBJS) $(LIB_SHARED)
 # endif
 
 lf: lf.c $(LIB_SHARED)
-	$(CC) $(CC_EXTRA) $< -o $@ $(LDFLAGS)
+	$(CC) $< -o $@ $(LDFLAGS)
 
 $(EXP1): $(EXP1).c $(LIB_SHARED)
-	$(CC) $< -o $@ $(LDFLAGS)
+	$(CC) $(CC_EXTRA) $< -o $@ $(LDFLAGS)
 
 $(EXP2): $(EXP2).c $(LIB_SHARED)
-	$(CC) $< -o $@ $(LDFLAGS)
+	$(CC) $(CC_EXTRA) $< -o $@ $(LDFLAGS)
 
 %:	%.c $(LIB_SHARED)
 	$(CC) $< -o $@ $(LDFLAGS)
