@@ -1216,7 +1216,7 @@ int ui_poll_reg_read_fd(int timeout_ms) {
     @return Key code of user command */
 int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     char title[MAXLEN];
-    uint line, pos, msg_l, msg0_l, msg1_l, msg2_l, msg3_l;
+    uint line = 0, pos = 0, msg_l = 0, msg0_l = 0, msg1_l = 0, msg2_l = 0, msg3_l = 0;
     if (!f_ncurses_open && !f_notcurses_open) {
         fprintf(stderr, "\n\n%s\n", msg0);
         fprintf(stderr, "%s\n", msg1);
@@ -1226,10 +1226,14 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     }
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
-    msg0_l = strlen(msg0);
-    msg1_l = strlen(msg1);
-    msg2_l = strlen(msg2);
-    msg3_l = strlen(msg3);
+    if (msg0 != nullptr)
+        msg0_l = strlen(msg0);
+    if (msg1 != nullptr)
+        msg1_l = strlen(msg1);
+    if (msg2 != nullptr)
+        msg2_l = strlen(msg2);
+    if (msg3 != nullptr)
+        msg3_l = strlen(msg3);
     msg_l = max(msg0_l, msg1_l);
     msg_l = max(msg_l, msg2_l);
     msg_l = max(msg_l, msg3_l);
@@ -1373,9 +1377,9 @@ char *ui_iso8601_timestamp(char *buf, size_t n, bool local) {
     time_t t = time(NULL);
     struct tm *tp = local ? localtime(&t) : gmtime(&t);
     if (local) {
-        strftime(buf, n, _("%Y-%m-%dT%H:%M:%S%z"), tp);
+        strftime(buf, n, _("%Y-%m-%dT%H:%M:%S.NNNNNNNNN%z"), tp);
     } else {
-        strftime(buf, n, _("%Y-%m-%dT%H:%M:%SZ"), tp);
+        strftime(buf, n, _("%Y-%m-%dT%H:%M:%S.NNNNNNNNNZ"), tp);
     }
     return buf;
 }
