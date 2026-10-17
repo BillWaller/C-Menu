@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-16T23:25:37-05:00* - EXPERIMENTAL: lf3.c will eventually be the successor to lf.c. It is currently a testbed for new features and improvements. As we proceed, we are running lf3 through a series of tests to ensure that it produces the same exact results as lf.c and other file finders, such as find and fd. The objective is to make lf virtually unlimited as to the number of files it can handle, while also maintaining its speed advantage over other file finders. lf is heavily optimized, having abandoned the old mutex based concurrency manager for an entirely lock-free atomics based ring buffer to manage task queueing. Atomics make extreme performance possible. We have also replaced user space memory management with a custom memory allocator that is optimized for the specific needs of lf using arenas. The latest architectural improvements have enabled reverse traversal to provide depth-first operational capabilities. 
+
+*2026-10-15T21:01:41-05:00* - Update CHANGELOG.md 
+
 *2026-10-15T20:53:55-05:00* - EXPERIMENTAL: lf3.c testing performance with mmap, the kernel's paged virtual memory, to implement directory and cycle arenas in addition to the queue node and path arenas committed previously. 
 
 *2026-10-14T23:36:25-05:00* - Update CHANGELOG.md 
