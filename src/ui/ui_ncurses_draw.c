@@ -332,6 +332,7 @@ int ui_mvwadd_wchstr(UiSurface *s, ss_t w, uint y, uint x, const UiCell *cmplx_b
     if (!s || !cmplx_buf)
         return -1;
     mvwadd_wchstr(s->mwin[w], y, x, cmplx_buf);
+    ui_render();
     return 0;
 }
 /** @brief Draw a complex character string in a surface window, with a maximum length.

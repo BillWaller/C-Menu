@@ -2111,7 +2111,7 @@ int fmt_line(View *view) {
     uint i = 0, j = 0, x = 0;
     uint len = 0;
     uint tab_spaces = 0;
-    uint char_width;
+    int char_width;
     attr_t attrs = WA_NORMAL;
     ushort cpx = cp_nt;
     UiCell cc = {};
@@ -2225,11 +2225,17 @@ int fmt_line(View *view) {
                     len = 1;
                 }
                 char_width = wcwidth(wstr[0]);
+                if (char_width < 0) {
+                    char_width = 1;
+                    wstr[0] = L'?';
+                    wstr[1] = L'\0';
+                    len = 1;
+                }
                 if (x > PAD_COLS - 1)
                     return -1;
                 view->stripped_line_out[x++] = in_str[i];
                 if (char_width > 1)
-                    for (uint n = 1; n < char_width; n++)
+                    for (int n = 1; n < char_width; n++)
                         view->stripped_line_out[x++] = ' ';
                 ui_set_cell(view->sfc, PAD, &cc, wstr, attrs, cpx, nullptr);
                 if (j > PAD_COLS - 1)

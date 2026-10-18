@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-file=$(ls -rt /tmp | grep bill_lf_ | tail -1)
-
-view /tmp/$file

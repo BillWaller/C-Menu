@@ -1442,7 +1442,7 @@ void ui_log_write(const UiLogLevel level, const char *file, const char *func, co
     }
     char log_buffer[MAX_LOG_REC_LEN];
     int offset = 0;
-    int written = snprintf(log_buffer + offset, sizeof(log_buffer) - offset, "[%s] %s[%s]%s <%s:%s:%d> ",
+    int written = snprintf(log_buffer + offset, sizeof(log_buffer) - offset, "[%s]%s[%s]%s<%s:%s:%d> ",
                            ui_iso8601_timestamp(ui_log_ctx.timestamp, sizeof(ui_log_ctx.timestamp), ui_log_ctx.localtime),
                            ui_log_ctx.color[safe_level],
                            ui_log_ctx.level[safe_level],
@@ -1482,18 +1482,18 @@ void ui_log_write(const UiLogLevel level, const char *file, const char *func, co
    and updates the provided attribute and color pair index accordingly. It handles
    standard colors, extended colors, and text attributes like bold, underline, etc.
  */
-void ui_parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
+void ui_parse_ansi(char *ansi_str, attr_t *attrs, uint *cpx) {
     char *tok;
     char t0, t1;
     char tstr[3];
     uint len, x_idx;
     uint fg, bg;
-    uint _fg_clr, _bg_clr;
     uint fg_clr, bg_clr;
     char *ansi_p = ansi_str + 2;
-    ui_pair_content(*cpx, &_fg_clr, &_bg_clr);
-    fg = fg_clr = (uint)_fg_clr;
-    bg = bg_clr = (uint)_bg_clr;
+    ui_pair_content(*cpx, &fg_clr, &bg_clr);
+    bool f_rgb = false;
+    fg = fg_clr;
+    bg = bg_clr;
     RGB rgb;
     tok = strtok((char *)ansi_p, ";m");
     bool a_toi_error = false;
@@ -1513,20 +1513,30 @@ void ui_parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
                             if (tok != nullptr) {
                                 x_idx = a_toi(tok, &a_toi_error);
                                 rgb = ui_xterm256_idx_to_rgb(x_idx);
+                                f_rgb = true;
                             }
                         } else if (*tok == '2') {
                             tok = strtok(nullptr, ";m");
-                            rgb.r = a_toi(tok, &a_toi_error);
-                            tok = strtok(nullptr, ";m");
-                            rgb.g = a_toi(tok, &a_toi_error);
-                            tok = strtok(nullptr, ";m");
-                            rgb.b = a_toi(tok, &a_toi_error);
+                            if (tok != nullptr) {
+                                rgb.r = a_toi(tok, &a_toi_error);
+                                tok = strtok(nullptr, ";m");
+                                if (tok != nullptr) {
+                                    rgb.g = a_toi(tok, &a_toi_error);
+                                    tok = strtok(nullptr, ";m");
+                                    if (tok != nullptr) {
+                                        rgb.b = a_toi(tok, &a_toi_error);
+                                        f_rgb = true;
+                                    }
+                                }
+                            }
                         }
                     }
-                    if (t0 == '3')
-                        fg_clr = ui_color_from_rgb(&rgb);
-                    else if (t0 == '4')
-                        bg_clr = ui_color_from_rgb(&rgb);
+                    if (f_rgb) {
+                        if (t0 == '3')
+                            fg_clr = ui_color_from_rgb(&rgb);
+                        else if (t0 == '4')
+                            bg_clr = ui_color_from_rgb(&rgb);
+                    }
                 } else if (t1 == '9') {
                     if (t0 == '3')
                         fg_clr = CLR_NT_FG;
@@ -1554,38 +1564,38 @@ void ui_parse_ansi(char *ansi_str, attr_t *attr, uint *cpx) {
         }
         if (len == 1) {
             if (*tok == '0') {
-                *attr = WA_NORMAL;
+                *attrs = WA_NORMAL;
                 fg_clr = CLR_NT_FG;
                 bg_clr = CLR_NT_BG;
             } else {
                 switch (a_toi(tok, &a_toi_error)) {
                 case 1:
-                    *attr |= WA_BOLD;
+                    *attrs |= WA_BOLD;
                     break;
                 case 2:
-                    *attr |= WA_DIM;
+                    *attrs |= WA_DIM;
                     break;
                 case 3:
-                    *attr |= WA_ITALIC;
+                    *attrs |= WA_ITALIC;
                     break;
                 case 4:
-                    *attr |= WA_UNDERLINE;
+                    *attrs |= WA_UNDERLINE;
                     break;
                 case 5:
-                    *attr |= WA_BLINK;
+                    *attrs |= WA_BLINK;
                     break;
                 case 7:
-                    *attr |= WA_REVERSE;
+                    *attrs |= WA_REVERSE;
                     break;
                 case 8:
-                    *attr |= WA_INVIS;
+                    *attrs |= WA_INVIS;
                     break;
                 default:
                     break;
                 }
             }
         } else if (len == 0) {
-            *attr = WA_NORMAL;
+            *attrs = WA_NORMAL;
             fg_clr = CLR_NT_FG;
             bg_clr = CLR_NT_BG;
         }

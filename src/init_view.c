@@ -91,7 +91,7 @@ int init_view_full_screen(Init *init) {
     ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols);
     ui_log(INFO, _("created view->sfc->mplane[PAD]"));
     if (view->sfc->pad == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, _("ui_sfc_addpan(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen"));
+        ssnprintf(em0, MAXLEN - 1, _("ui_sfc_addpan(PAD, 1, COLS, LINES - 1, 0) failed in init_view_full_screen"));
         ui_log(INFO, "%s", em0);
         exit(EXIT_FAILURE);
     }
@@ -141,13 +141,14 @@ void view_calc_full_screen_dimensions(Init *init) {
         view->lines, view->cols, view->smaxrow, view->smaxcol);
     write_cmenu_log(em0);
 #endif
-    view->cmd_line = 0;
+
     view->pminrow = 0;
     view->pmincol = 0;
     view->sminrow = 0;
     view->smincol = view->ln_win_cols;
     view->smaxrow = view->lines - 1;
     view->smaxcol = view->cols - 1;
+
     view->ln_no = view->page_top_ln_no + view->scroll_lines;
     view->page_bot_ln_no = view->ln_no;
 }
@@ -254,12 +255,14 @@ void view_calc_boxwin_dimensions(Init *init) {
         view->ln_win_cols = 0;
     view->scroll_lines = view->lines - 1;
     view->cmd_line = 0;
+
     view->pminrow = 0;
     view->pmincol = 0;
     view->sminrow = view->begy + 1;
     view->smincol = view->begx + view->ln_win_cols + 1;
     view->smaxrow = view->begy + view->lines;
     view->smaxcol = view->begx + view->cols;
+
     view->ln_no = view->page_top_ln_no + view->scroll_lines;
     view->page_bot_ln_no = view->ln_no;
 #ifdef DEBUG_RESIZE

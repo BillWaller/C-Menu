@@ -52,46 +52,102 @@ extern "C" {
 #define ANSI_RESET "\033[0m"
 #define MAX_LOG_SIZE (10 * 1024 * 1024)
 #define MAX_LOG_REC_LEN 4096
+#define AS_STRINGS(NAME) #NAME,
+#define AS_ENUM(NAME) NAME,
+
 #define LOG_LEVEL_LIST(X) \
-    X(FATAL)              \
-    X(ERROR)              \
-    X(WARN)               \
+    X(CONFIG)             \
     X(INFO)               \
-    X(VERBOSE)            \
+    X(ERROR)              \
     X(DEBUG)              \
-    X(SILENT)
+    X(TRACE)              \
+    X(ONLY_ERRORS)        \
+    X(ERROR_COUNT)
 #define AS_ENUM(NAME) NAME,
 typedef enum {
     LOG_LEVEL_LIST(AS_ENUM)
         LOG_LEVEL_COUNT
-} LfLogLevel;
-typedef struct {
-    int fd;
-    char file_spec[MAXLEN];
-    LfLogLevel min_level;
-    bool localtime;
-    char timestamp[32];
-    char *color[LOG_LEVEL_COUNT];
-    char *level[LOG_LEVEL_COUNT];
-} LfLogContext;
-extern LfLogContext lf_log_ctx;
+} __attribute((packed)) LfLogLevel;
+const char *log_s[] = {LOG_LEVEL_LIST(AS_STRINGS)};
+const char *log_c[] = {
+    [CONFIG] = "\033[34m",
+    [INFO] = "\033[32m",
+    [ERROR] = "\033[1;38;2;255;150;0m",
+    [DEBUG] = "\033[33m",
+    [TRACE] = "\033[35m",
+};
 
-LfLogContext lf_log_ctx = {
-    .fd = -1,
-    .file_spec = "\0",
-    .min_level = INFO,
-    .localtime = false,
-    .timestamp = "\0",
-    .color = {
-        [FATAL] = "\033[1;31m",   // Bold Red
-        [ERROR] = "\033[0;31m",   // Regular Red
-        [WARN] = "\033[0;33m",    // Yellow
-        [INFO] = "\033[0;32m",    // Green
-        [VERBOSE] = "\033[0;36m", // Cyan
-        [DEBUG] = "\033[0;34m",   // Blue
-        [SILENT] = _("SILENT"),
-    },
-    .level = {[FATAL] = "FATAL", [ERROR] = "ERROR", [WARN] = "WARN", [INFO] = "INFO", [VERBOSE] = "VERBOSE", [DEBUG] = "DEBUG", [SILENT] = "SILENT"}};
+#define TIMESTAMP_STYLE(X) \
+    X(ISO8601_ZULU)        \
+    X(ISO8601_LOCAL)       \
+    X(CODER)
+typedef enum {
+    TIMESTAMP_STYLE(AS_ENUM)
+        TIMESTAMP_STYLE_COUNT
+} __attribute((packed)) tss_e;
+const char *tss_s[] = {TIMESTAMP_STYLE(AS_STRINGS)};
+
+#define ANSI_COLOR_LIST(X) \
+    X(BLACK)               \
+    X(RED)                 \
+    X(GREEN)               \
+    X(YELLOW)              \
+    X(BLUE)                \
+    X(CYAN)                \
+    X(MAGENTA)             \
+    X(WHITE)               \
+    X(BBLACK)              \
+    X(BRED)                \
+    X(BGREEN)              \
+    X(BYELLOW)             \
+    X(BBLUE)               \
+    X(BCYAN)               \
+    X(BMAGENTA)            \
+    X(BWHITE)              \
+    X(ORANGE)              \
+    X(BORANGE)             \
+    X(RESET)
+typedef enum {
+    ANSI_COLOR_LIST(AS_ENUM)
+        ANSI_COLOR_COUNT
+} __attribute((packed)) sgr_t;
+const char *sgr_s[] = {ANSI_COLOR_LIST(AS_STRINGS)};
+// sgr_c sgr_codes
+const char *sgr_c[] = {
+    [BLACK] = "\033[30m",
+    [RED] = "\033[31m",
+    [GREEN] = "\033[32m",
+    [YELLOW] = "\033[33m",
+    [BLUE] = "\033[34m",
+    [CYAN] = "\033[35m",
+    [MAGENTA] = "\033[36m",
+    [WHITE] = "\033[37m",
+    [BBLACK] = "\033[1;30m",
+    [BRED] = "\033[1;31m",
+    [BGREEN] = "\033[1;32m",
+    [BYELLOW] = "\033[1;33m",
+    [BBLUE] = "\033[1;34m",
+    [BCYAN] = "\033[1;35m",
+    [BMAGENTA] = "\033[1;36m",
+    [BWHITE] = "\033[1;37m",
+    [ORANGE] = "\033[38;5;214m",
+    [BORANGE] = "\033[1;38;2;255;150;0m",
+    [RESET] = "\033[0m",
+};
+#define MAX_TIMESTAMP_LEN 64
+typedef struct {
+    long start;
+    long prev_nsec;
+    long prev_sec;
+    size_t thread_id;
+    char file_spec[MAXLEN];
+    bool local;
+    int fd;
+    int err_fd;
+    LfLogLevel log_level;
+    tss_e timestamp_style;
+    char buf[MAX_TIMESTAMP_LEN];
+} LogCtx;
 
 // NOTE: It should be safe to use lf_ctx as a global variable, as it is only
 // used for input handling and does not contain any state that would be modified
@@ -99,7 +155,8 @@ LfLogContext lf_log_ctx = {
 // environment, consider using thread-local storage or mutexes to protect access
 // to this structure.
 
-int stdin_fd, stdout_fd, stderr_fd, tty_fd, pipe_in, pipe_out;
+int stdin_fd,
+    stdout_fd, stderr_fd, tty_fd, pipe_in, pipe_out;
 #define max(a, b)               \
     ({                          \
         __typeof__(a) _a = (a); \
@@ -284,16 +341,16 @@ char *strerror__r(int errnum, char *buf, size_t buflen);
 // ---------------------------------------------------------------
 // Logging
 // ---------------------------------------------------------------
-extern char *lf_iso8601_timestamp(char *buf, size_t n, bool local);
-extern int lf_open_log();
+extern void iso8601_timestamp(LogCtx *log_ctx);
+void coder_timestamp(LogCtx *log_ctx);
+extern void log_open(LogCtx *log_ctx, size_t thread_id);
+void log_write(const LfLogLevel level, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...) __attribute__((format(printf, 6, 7)));
 
-void lf_log_write(const LfLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) __attribute__((format(printf, 5, 6)));
-
-#define lf_log(level, fmt, ...)                                                    \
-    do {                                                                           \
-        if (level <= lf_log_ctx.min_level) {                                       \
-            lf_log_write(level, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__); \
-        }                                                                          \
+#define lf_log(level, fmt, ...)                                                          \
+    do {                                                                                 \
+        if (level <= log_ctx->log_level) {                                               \
+            log_write(level, log_ctx, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__); \
+        }                                                                                \
     } while (0)
 
 #ifdef __cplusplus
