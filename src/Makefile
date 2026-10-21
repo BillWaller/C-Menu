@@ -199,7 +199,7 @@ lf: lf.c $(LIB_SHARED)
 $(EXP1): $(EXP1).c $(LIB_SHARED)
 	$(CC) $(CC_EXTRA) $< -o $@ $(LDFLAGS)
 
-$(EXP2): $(EXP2).c $(LIB_SHARED)
+$(EXP2): $(EXP2).c include/lf.h $(LIB_SHARED)
 	$(CC) $(CC_EXTRA) $< -o $@ $(LDFLAGS)
 
 %:	%.c $(LIB_SHARED)

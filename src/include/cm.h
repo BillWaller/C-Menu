@@ -446,7 +446,7 @@ extern bool str_subc(char *, char *, char, char *, uint);
 extern size_t strnz(char *, size_t);
 extern size_t strnlf(char *, size_t);
 extern char *strnz_dup(char *, size_t);
-extern size_t ssnprintf(char *, size_t, const char *, ...);
+__attribute__((format(printf, 3, 4))) size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...);
 size_t strnz__cpy(char *, const char *, size_t);
 size_t strnz__cat(char *, const char *, size_t);
 size_t strnz__pcat(char *d, size_t pos, const char *s, size_t max_len);

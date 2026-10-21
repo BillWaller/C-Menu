@@ -387,7 +387,8 @@ size_t trim(char *s) {
     @param ... - arguments
     @returns number of characters that would have been written if enough space
    had been available */
-size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
+
+__attribute__((format(printf, 3, 4))) size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
     if (buf == nullptr || format == nullptr || buf_size == 0)
         return 0;
     size_t n;

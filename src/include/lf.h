@@ -18,12 +18,35 @@ extern "C" {
 #include <argp.h>
 
 #include <pthread.h>
+#include <regex.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 #include <wait.h>
-#include <wchar.h>
+
+#define MAX_PATH_LEN _POSIX_PATH_MAX
+#define MAX_DEPTH 64
+#define DIR_BUF_SIZE 65536
+#define CACHE_LINE_SIZE 64
+
+#define QUEUE_NODES (4 * 1024 * 1024)       // 4194304 * 16 = 64 MB
+#define CYCLE_NODES (1024 * 1024)           // 1048576 * 24 = 24 MB
+#define DIRECTORY_NODES (1024 * 1024)       // 1048576 * 32 = 32 MB
+#define PATH_ARENA_BYTES (32 * 1024 * 1024) // 33554432 = 32 MB
+
+#define QUEUE_MASK (QUEUE_NODES - 1)
+#define DIRECTORY_MASK (DIRECTORY_NODES - 1)
+#define CYCLE_MASK (CYCLE_NODES - 1)
+#define PATH_ARENA_MASK (PATH_ARENA_BYTES - 1)
+
+#define STAGE_BUFFER_SIZE 64
+// #define DEBUG_CHILD_STAGING
+#define MAX_LOG_RECORD_LEN 4096
 
 // Don't set __USE_GNU_GETTEXT as the translations are not yet complete
 #ifdef __USE_GNU_GETTEXT
@@ -60,22 +83,46 @@ extern "C" {
     X(INFO)               \
     X(ERROR)              \
     X(DEBUG)              \
-    X(TRACE)              \
-    X(ONLY_ERRORS)        \
-    X(ERROR_COUNT)
-#define AS_ENUM(NAME) NAME,
-typedef enum {
+    X(CYCLE)              \
+    X(ENQUEUE)            \
+    X(DEQUEUE)            \
+    X(ALL)                \
+    X(COUNT_ERRORS)       \
+    X(ONLY_ERRORS)
+const char *log_s[] = {LOG_LEVEL_LIST(AS_STRINGS)};
+typedef enum : uint16_t {
     LOG_LEVEL_LIST(AS_ENUM)
         LOG_LEVEL_COUNT
-} __attribute((packed)) LfLogLevel;
-const char *log_s[] = {LOG_LEVEL_LIST(AS_STRINGS)};
-const char *log_c[] = {
-    [CONFIG] = "\033[34m",
-    [INFO] = "\033[32m",
-    [ERROR] = "\033[1;38;2;255;150;0m",
-    [DEBUG] = "\033[33m",
-    [TRACE] = "\033[35m",
+} log_enum;
+
+typedef struct {
+    const char *name;
+    uint16_t bits;
+} log_level;
+log_level ll_t[] = {
+    [CONFIG] = {"CONFIG", 0b1},
+    [INFO] = {"INFO", 0b10},
+    [ERROR] = {"ERROR", 0b100},
+    [DEBUG] = {"DEBUG", 0b1000},
+    [CYCLE] = {"CYCLE", 0b10000},
+    [ENQUEUE] = {"ENQUEUE", 0b100000},
+    [DEQUEUE] = {"DEQUEUE", 0b1000000},
+    [ALL] = {"ALL", 0b1111111},
+    [COUNT_ERRORS] = {"COUNT_ERRORS", 0b100000000},
+    [ONLY_ERRORS] = {"ONLY_ERRORS", 0b1000000000},
+    [LOG_LEVEL_COUNT] = {"LOG_LEVEL_COUNT", 0b10000000000},
 };
+const char *log_c[] = {
+    [CONFIG] = "\033[37m",
+    [INFO] = "\033[1;30;46m",
+    [ERROR] = "\033[1;38;2;255;150;0m",
+    [DEBUG] = "\033[31m",
+    [CYCLE] = "\033[33m",
+    [ENQUEUE] = "\033[35m",
+    [DEQUEUE] = "\033[36m",
+};
+
+typedef uint16_t LogLevel;
 
 #define TIMESTAMP_STYLE(X) \
     X(ISO8601_ZULU)        \
@@ -140,13 +187,8 @@ typedef struct {
     long prev_nsec;
     long prev_sec;
     size_t thread_id;
-    char file_spec[MAXLEN];
-    bool local;
-    int fd;
-    int err_fd;
-    LfLogLevel log_level;
-    tss_e timestamp_style;
-    char buf[MAX_TIMESTAMP_LEN];
+    char time_buf[MAX_TIMESTAMP_LEN];
+    char record[MAX_LOG_REC_LEN];
 } LogCtx;
 
 // NOTE: It should be safe to use lf_ctx as a global variable, as it is only
@@ -314,6 +356,98 @@ DT_UNKNOWN: 00001110  14   LF_UNKNOWN: 10000000 128     8
     if (c >= 'a' && c <= 'z') \
     c -= ' '
 
+// on linux, write is atomic if record length <= 4096 bytes
+
+typedef struct QueuePayload QueuePayload;
+typedef struct DirectoryNode DirectoryNode;
+typedef struct CycleNode CycleNode;
+typedef struct PathArena PathArena;
+typedef struct DirectoryArena DirectoryArena;
+typedef struct CycleArena CycleArena;
+
+// ---------------------------------------------------------------
+// QUEUE STRUCTURES
+// ---------------------------------------------------------------
+
+#define NO_PARENT UINT32_MAX
+
+struct DirectoryNode {
+    size_t path_offset;
+    size_t path_len;
+    _Atomic size_t child_dirs_remaining;
+    uint16_t depth;
+    uint32_t parent_idx; // <-- CHANGED: Array index of parent node
+};
+
+struct CycleNode {
+    dev_t dev;
+    ino_t ino;
+    uint32_t parent_idx; // <-- CHANGED: Array index for cycle walking
+};
+
+struct QueuePayload {
+    uint32_t self_idx; // Track where this node lives in the QueueArena
+    DirectoryNode *dir_ctx;
+    CycleNode *cycle_ctx;
+};
+
+// ---------------------------------------------------------------
+
+struct PathArena {
+    char *bytes;
+    _Atomic size_t cursor;
+    size_t capacity;
+};
+
+struct DirectoryArena {
+    DirectoryNode *nodes;
+    _Atomic size_t index;
+    size_t capacity;
+};
+
+struct CycleArena {
+    CycleNode *nodes;
+    _Atomic size_t index;
+    size_t capacity;
+};
+
+typedef struct {
+    QueuePayload *nodes;
+    _Atomic size_t cursor;
+    size_t capacity;
+} QueueArena;
+
+// ---------------------------------------------------------------
+
+// static QueuePayload queue_nodes[QUEUE_NODES];
+typedef struct {
+    alignas(CACHE_LINE_SIZE) _Atomic size_t enqueue_pos;
+    alignas(CACHE_LINE_SIZE) _Atomic size_t dequeue_pos;
+    alignas(CACHE_LINE_SIZE) _Atomic atomic_int active_tasks;
+    alignas(CACHE_LINE_SIZE) _Atomic atomic_int shut_down;
+    alignas(CACHE_LINE_SIZE) _Atomic size_t sequence[QUEUE_NODES];
+    QueuePayload nodes[QUEUE_NODES];
+} MPMCQueue;
+
+// ---------------------------------------------------------------
+
+#define MAX_THREADS 64
+
+typedef enum {
+    TS_SUCCESS = 0,
+    TS_ERROR = 1,
+    TS_MATCH = 2,
+    TS_MATCH_PLUS_ERROR = 3,
+} TerminationStatus;
+
+struct linux_dirent64 {
+    unsigned long long d_ino; /* 64-bit inode number */
+    long long d_off;          /* 64-bit offset to next structure */
+    unsigned short d_reclen;  /* Size of this dirent */
+    unsigned char d_type;     /* File type */
+    char d_name[];            /* Filename (null-terminated) */
+};
+
 char em0[MAXLEN];
 char em1[MAXLEN];
 char em2[MAXLEN];
@@ -341,16 +475,73 @@ char *strerror__r(int errnum, char *buf, size_t buflen);
 // ---------------------------------------------------------------
 // Logging
 // ---------------------------------------------------------------
-extern void iso8601_timestamp(LogCtx *log_ctx);
+typedef struct {
+    MPMCQueue *q;
+    alignas(CACHE_LINE_SIZE) _Atomic size_t thread_id;
+    PathArena *path_arena;
+    QueueArena *queue_arena;
+    DirectoryArena *directory_arena;
+    CycleArena *cycle_arena;
+    atomic_size_t error_count;
+    atomic_size_t log_error_count;
+    pthread_t *threads;
+    long start;
+    unsigned int nthreads;
+    atomic_size_t file_count;
+    pthread_mutex_t output_mutex;
+    uintmax_t user_id;
+    off_t file_size_min;
+    int err_fd;
+    int log_fd;
+    char log_file_spec[MAX_PATH_LEN];
+    char error_file_spec[MAX_PATH_LEN];
+    bool error_file_open;
+    long flags;
+    time_t after;
+    time_t before;
+    int max_depth;
+    int reg_flags;
+    char *base_path;
+    char *re;
+    char *ere;
+    char *user_name;
+    char *sbuffer;
+    regex_t compiled_re;
+    regex_t compiled_ere;
+    unsigned char include_perms;
+    unsigned char include_types;
+    unsigned char suppress_types;
+    char log_record[MAX_LOG_RECORD_LEN];
+    bool unlink;
+    bool depth_first;
+    bool ignore_case;
+    bool sort;
+    bool sort_reverse;
+    bool include_hidden;
+    bool hidden_only;
+    bool follow_links;
+    tss_e timestamp_style;
+    bool display_log;
+    bool file_log;
+    uint16_t disp_level;
+    uint16_t file_level;
+    uint16_t level;
+    bool only_errors;
+    bool count_errors;
+    // 1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, 6-QUEUE, 7-ONLY_ERRORS,
+    // 8-COUNT_ERRORS, 9-ALL
+    bool count;
+    bool count_silently;
+} LfCtx;
+
+extern void iso8601_timestamp(LfCtx *lf, LogCtx *log_ctx);
 void coder_timestamp(LogCtx *log_ctx);
-extern void log_open(LogCtx *log_ctx, size_t thread_id);
-void log_write(const LfLogLevel level, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...) __attribute__((format(printf, 6, 7)));
+extern void log_open(LfCtx *lf, LogCtx *log_ctx, size_t thread_id);
+__attribute__((format(printf, 7, 8))) void log_write(const LogLevel level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...);
 
 #define lf_log(level, fmt, ...)                                                          \
     do {                                                                                 \
-        if (level <= log_ctx->log_level) {                                               \
-            log_write(level, log_ctx, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__); \
-        }                                                                                \
+        log_write(level, lf, log_ctx, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__); \
     } while (0)
 
 #ifdef __cplusplus
