@@ -2087,6 +2087,7 @@ int pad_refresh(View *view) {
     }
 #else
     (void)view;
+    ncplane_move_yx(view->sfc->mplane[PAD], view->sminrow, -view->pmincol);
 #endif
     ui_render();
     return 0;

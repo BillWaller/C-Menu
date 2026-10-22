@@ -47,9 +47,9 @@ ViewStack view_stack;
 int init_view_full_screen(Init *init) {
     View *view = init->view;
     view->f_full_screen = true;
-    // -------------------> 1. WIN <-------------------
     view_calc_full_screen_dimensions(init);
     ui_log(INFO, _("lines=%d, cols=%d"), view->lines, view->cols);
+    // -------------------> 1. WIN <-------------------
     view->sfc = ui_surface_new(WIN, NULL, 0, view->lines, view->cols, 0, 0);
     if (!view->sfc) {
         ssnprintf(em0, MAXLEN - 1, _("newwin(LINES, COLS, 0, 0) failed in init_view_full_screen"));
@@ -57,7 +57,7 @@ int init_view_full_screen(Init *init) {
         exit(EXIT_FAILURE);
         return -1;
     }
-    ui_log(INFO, _("created view->sfc"));
+    ui_log(INFO, _("created view->sfc->win"));
     ui_bkgd(view->sfc, WIN, &cell_nt);
     // -------------------> 2. LNNO <-------------------
     if (view->f_ln) {
@@ -86,17 +86,24 @@ int init_view_full_screen(Init *init) {
     ui_idlok(view->sfc, CMDLN, false);
     ui_idcok(view->sfc, CMDLN, false);
     ui_scrollok(view->sfc, CMDLN, false);
-    // -------------------> 4. PAD <-------------------
-
-    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols);
-    ui_log(INFO, _("created view->sfc->mplane[PAD]"));
+    // -------------------> 4. VIEWPORT <-------------------
+    ui_surface_addwin(view->sfc, VIEWPORT, WIN, view->lines, view->cols - view->ln_win_cols, 0, view->ln_win_cols);
+    if (!view->sfc->viewport) {
+        ssnprintf(em0, MAXLEN - 1, _("newwin(LINES, COLS, 0, 0) failed in init_view_full_screen"));
+        ui_log(INFO, "%s", em0);
+        exit(EXIT_FAILURE);
+        return -1;
+    }
+    ui_log(INFO, _("created view->sfc->viewport"));
+    // -------------------> 5. PAD <-------------------
+    ui_surface_addpad(view->sfc, PAD, VIEWPORT, view->lines - 1, PAD_COLS - 1, 0, 0);
     if (view->sfc->pad == nullptr) {
         ssnprintf(em0, MAXLEN - 1, _("ui_sfc_addpan(PAD, 1, COLS, LINES - 1, 0) failed in init_view_full_screen"));
         ui_log(INFO, "%s", em0);
         exit(EXIT_FAILURE);
     }
+    ui_log(INFO, _("created view->sfc->mplane[PAD]"));
     ui_scrollok(view->sfc, PAD, true);
-
     // ------------------------------------------------
     return 0;
 }

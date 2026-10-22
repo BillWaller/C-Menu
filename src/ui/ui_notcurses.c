@@ -221,7 +221,7 @@ UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
  * metadata, and creates a new ncplane for rendering. If any step fails, it
  * cleans up and returns NULL.
  */
-UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
+UiSurface *ui_surface_new(ss_t w, UiSurface *parent, ss_t p, uint lines, uint cols, uint y, uint x) {
     if (!ui)
         return NULL;
     UiSurface *s = calloc(1, sizeof(*s));
@@ -276,7 +276,7 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
  * title. It allocates memory for the surface, sets up its metadata, and creates
  * a new ncplane for rendering. If any step fails, it cleans up and returns NULL.
  */
-UiSurface *ui_surface_box(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *wtitle) {
+UiSurface *ui_surface_box(UiSurface *parent, ss_t p, uint lines, uint cols, uint y, uint x, const char *wtitle) {
     if (!ui)
         return NULL;
     UiSurface *s = calloc(1, sizeof(*s));
@@ -330,21 +330,25 @@ UiSurface *ui_surface_box(UiSurface *parent, uint p, uint lines, uint cols, uint
  * for the new padded surface and sets its background and scrolling properties.
  * If any step fails, it cleans up and returns -1.
  */
-int ui_surface_addpad(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint y, uint x) {
+int ui_surface_addpad(UiSurface *s, ss_t w, ss_t p, uint lines, uint cols, uint y, uint x) {
     uint plines, pcols;
     ncplane_dim_yx(s->mplane[p], &plines, &pcols);
-    pcols = min(pcols, cols);
-    plines = min(plines, lines);
+    plines = max(plines, lines);
+    pcols = max(pcols, cols);
     ncplane_options plane_opts = {
         .y = y,
         .x = x,
-        .rows = plines - y,
-        .cols = pcols - x,
-        .name = NULL};
+        .rows = lines,
+        .cols = cols,
+        // .margin_b = plines - y,
+        // .margin_r = cols - s->meta[p].cols - x,
+        .name = NULL,
+        // .flags = NCPLANE_OPTION_MARGINALIZED,
+    };
     s->meta[w].y = y;
     s->meta[w].x = x;
-    s->meta[w].lines = plines - y;
-    s->meta[w].cols = pcols - x;
+    s->meta[w].lines = lines - y;
+    s->meta[w].cols = cols - x;
     s->meta[w].hidden = false;
     s->mplane[w] = ncplane_create(s->mplane[p], &plane_opts);
     if (!s->mplane[w]) {
@@ -357,7 +361,8 @@ int ui_surface_addpad(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
     ncplane_set_channels(s->mplane[w], cell_nt.channels);
     ui_bkgd(s, w, &cell_nt);
     ui_bkgdset(s, w, &cell_nt);
-    ui_scrollok(s, w, true);
+    ui_render();
+    // ui_scrollok(s, w, false);
     return 0;
 }
 /** @brief Add a new window to an existing UI surface.
@@ -375,7 +380,7 @@ int ui_surface_addpad(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
  * for the new window and sets its background properties. If any step fails, it
  * cleans up and returns -1.
  */
-int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint y, uint x) {
+int ui_surface_addwin(UiSurface *s, ss_t w, ss_t p, uint lines, uint cols, uint y, uint x) {
     ncplane_options plane_opts = {
         .y = y,
         .x = x,
@@ -479,7 +484,7 @@ void ui_shutdown() {
 void ui_surface_destroy(UiSurface *s) {
     if (!s)
         return;
-    ss_t w = SUB_SFC_MAX;
+    ss_t w = SUB_SFC_MAX - 1;
     while (1) {
         if (s->mplane[w] != NULL) {
             ui_log(INFO, _("Destroying mplane[%d]"), w);

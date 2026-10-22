@@ -69,7 +69,7 @@ Init *new_init(int argc, char **argv) {
         ssnprintf(em0, MAXLEN - 1, _("%s, line: %d, errno: %d"), __FILE__,
                   __LINE__ - 4, errno);
         ssnprintf(em1, MAXLEN - 1, _("%s"), strerror(errno));
-        ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
+        ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %lu) failed\n",
                   (MAXARGS + 1), sizeof(char *));
         ui_display_error(em0, em1, em2, nullptr);
         exit(EXIT_FAILURE);
@@ -191,7 +191,7 @@ Pick *new_pick(Init *init, int argc, char **argv, uint begy, uint begx) {
     if (pick->m_object == nullptr) {
         ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
         ssnprintf(em1, MAXLEN - 1,
-                  "calloc pick->m_object = calloc(%d, %d) failed\n",
+                  "calloc pick->m_object = calloc(%d, %lu) failed\n",
                   OBJ_MAXCNT + 1, sizeof(char *));
         ui_display_error(em0, em1, nullptr, nullptr);
         ui_abend(-1, _("User terminated program"));
@@ -200,7 +200,7 @@ Pick *new_pick(Init *init, int argc, char **argv, uint begy, uint begx) {
     if (pick->d_object == nullptr) {
         ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
         ssnprintf(em1, MAXLEN - 1,
-                  "calloc pick->d_object = calloc(%d, %d) failed\n",
+                  "calloc pick->d_object = calloc(%d, %lu) failed\n",
                   OBJ_MAXCNT + 1, sizeof(char *));
         ui_display_error(em0, em1, nullptr, nullptr);
         ui_abend(-1, _("User terminated program"));
@@ -296,7 +296,7 @@ View *new_view(Init *init) {
         ssnprintf(em0, MAXLEN - 1, _("%s, line: %d, errno: %d"), __FILE__,
                   __LINE__ - 1, errno);
         ssnprintf(em1, MAXLEN - 1, _("%s"), strerror(errno));
-        ssnprintf(em2, MAXLEN - 1, "init->view = calloc(%d) failed\n",
+        ssnprintf(em2, MAXLEN - 1, "init->view = calloc(%lu) failed\n",
                   sizeof(View));
         ui_display_error(em0, em1, em2, nullptr);
         ui_abend(-1, _("calloc init->view failed"));
@@ -311,7 +311,7 @@ View *new_view(Init *init) {
             ssnprintf(em0, MAXLEN - 1, _("%s, line: %d, errno: %d"), __FILE__,
                       __LINE__ - 1, errno);
             ssnprintf(em1, MAXLEN - 1, _("%s"), strerror(errno));
-            ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %d) failed\n",
+            ssnprintf(em2, MAXLEN - 1, "view->argv = calloc(%d, %lu) failed\n",
                       view->argc, sizeof(char *));
             ui_display_error(em0, em1, em2, nullptr);
             ui_abend(-1, _("User terminated program"));
@@ -482,7 +482,7 @@ bool verify_spec_arg(char *spec, char *org_spec, char *dir, char *alt_dir,
     @details Positional args: [menu desc], [help file] */
 bool init_menu_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
-    int optind = 0;
+    optind = 0;
     if (optind < argc && !init->f_mapp_spec) {
         menu->f_mapp_spec =
             verify_spec_arg(menu->mapp_spec, argv[optind], init->mapp_msrc,
@@ -530,7 +530,7 @@ bool init_menu_files(Init *init, int argc, char **argv) {
     @details Positional args: [pick desc], [in_file], [out_file], [help_file] */
 bool init_pick_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
-    int optind = 1;
+    optind = 1;
     pick->f_in_spec = verify_spec_arg(pick->in_spec, init->in_spec,
                                       init->mapp_data, _("~/menuapp/data"), R_OK);
     pick->f_out_spec =
@@ -633,7 +633,7 @@ bool init_pick_files(Init *init, int argc, char **argv) {
     @details Positional args: [pick desc], [in_file], [out_file], [help_file] */
 bool init_form_files(Init *init, int argc, char **argv) {
     char tmp_str[MAXLEN];
-    int optind = 0;
+    optind = 0;
     form->f_mapp_spec =
         verify_spec_arg(form->mapp_spec, init->mapp_spec, init->mapp_msrc,
                         _("~/menuapp/msrc"), R_OK);

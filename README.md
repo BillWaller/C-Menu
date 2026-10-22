@@ -33,6 +33,9 @@ To say that lf is fast is understated. It is easily ten times faster than find, 
 
 ![lf help Screenshot](screenshots/lf.help.png)
 
+![lf3 logging](screenshots/lf_log.png)
+
+
 Report bugs to billxwaller@gmail.com.
 
 ## find, lf, and fd Performance Comparison

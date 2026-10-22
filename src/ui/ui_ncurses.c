@@ -226,7 +226,7 @@ struct UiRuntime *ui_init(const UiConfig *cfg, SIO *sio) {
  * @param x The x-coordinate (column) for the new surface's position.
  * @return A pointer to the newly created UiSurface, or NULL on failure.
  */
-UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x) {
+UiSurface *ui_surface_new(ss_t w, UiSurface *parent, ss_t p, uint lines, uint cols, uint y, uint x) {
     if (!ui)
         return NULL;
     uint maxy, maxx;
@@ -285,7 +285,7 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, uint p, uint lines, uint co
  * @param wtitle The title string to display in the border box, or NULL for no title.
  * @return A pointer to the newly created UiSurface with a border box, or NULL on failure.
  */
-UiSurface *ui_surface_box(UiSurface *parent, uint p, uint lines, uint cols, uint y, uint x, const char *wtitle) {
+UiSurface *ui_surface_box(UiSurface *parent, ss_t p, uint lines, uint cols, uint y, uint x, const char *wtitle) {
     if (!ui)
         return NULL;
     uint maxy, maxx;
@@ -366,7 +366,7 @@ void fast_exit(UiSurface *s) {
  * @param begx The x-coordinate (column) for the new pad's position (ignored in this implementation).
  * @return 0 on success, or -1 on failure.
  */
-int ui_surface_addpad(UiSurface *s, ss_t w, uint view_win, uint lines, uint cols, uint begy, uint begx) {
+int ui_surface_addpad(UiSurface *s, ss_t w, ss_t view_win, uint lines, uint cols, uint begy, uint begx) {
     (void)begy;
     (void)begx;
     s->mwin[w] = newpad(lines, cols);
@@ -377,6 +377,7 @@ int ui_surface_addpad(UiSurface *s, ss_t w, uint view_win, uint lines, uint cols
         return -1;
     s->mpan[w] = new_panel(s->mwin[view_win]);
     immedok(s->mwin[w], true);
+    scrollok(s->mwin[w], true);
 #ifdef DEBUG_UI
 #endif
     return 0;
@@ -392,7 +393,7 @@ int ui_surface_addpad(UiSurface *s, ss_t w, uint view_win, uint lines, uint cols
  * @param x The x-coordinate (column) for the new window's position relative to the parent window.
  * @return 0 on success, or -1 on failure.
  */
-int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint y, uint x) {
+int ui_surface_addwin(UiSurface *s, ss_t w, ss_t p, uint lines, uint cols, uint y, uint x) {
     s->mwin[w] = derwin(s->mwin[p], lines, cols, y, x);
     if (!s->mwin[w]) {
         free(s);
@@ -400,8 +401,8 @@ int ui_surface_addwin(UiSurface *s, ss_t w, uint p, uint lines, uint cols, uint 
     }
     s->mpan[w] = new_panel(s->mwin[w]);
     keypad(s->mwin[w], true);
-    ui_bkgd(s, w, &cell_nt);
-    ui_bkgdset(s, w, &cell_nt);
+    // ui_bkgd(s, w, &cell_nt);
+    // ui_bkgdset(s, w, &cell_nt);
     immedok(s->mwin[w], true);
 #ifdef DEBUG_UI
 #endif

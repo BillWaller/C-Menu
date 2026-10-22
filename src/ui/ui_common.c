@@ -1299,7 +1299,7 @@ int ui_perror(char *emsg_str) {
     line = (maxy - 4) / 2;
     strnz__cpy(title, _("Notification"), MAXLEN - 1);
     if (ui_tracked_sfc_box(2, cols, line, pos, title)) {
-        ssnprintf(tmp_str, MAXLEN - 1, _("ui_tracked_sfc_box(%d, %d, %d, %d, %s, %b) failed"),
+        ssnprintf(tmp_str, MAXLEN - 1, _("ui_tracked_sfc_box(%d, %d, %d, %d, %s) failed"),
                   4, line, line, pos, title);
         ui_log(ERROR, "%s", tmp_str);
         exit(EXIT_FAILURE);

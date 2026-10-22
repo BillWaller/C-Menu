@@ -1,10 +1,25 @@
-v0.2.9
-Usage: lf3 [OPTION...] [DIRECTORY] [REGULAR_EXPRESSION]
 lf list files
-If specified, DIRECTORY is the top-level
- directory to search. REGULAR_EXPRESSION is a properly
-formatted regular expression for which matching files
-will be listed.
+
+v0.2.9
+
+Usage: lf3 [-iLRS?V] [-a time] [-b time] [-c[s]] [-d number] [-D 12345EDACO]
+            [-e regex] [-E file_spec] [-H[o]] [-l 12345EDACO] [-p sgrwx]
+            [-r regex] [-s size] [-t pcdbflsu] [-T threads] [-u user name]
+            [-U bool] [-W bool] [-y CZL] [--after=time] [--before=time]
+            [--count[=s]] [--max_depth=number] [--display_log=12345EDACO]
+            [--ere=regex] [--error_file_spec=file_spec] [--include_hidden[=o]]
+            [--ignore_case] [--file_log=12345EDACO] [--follow_links]
+            [--include_perms=sgrwx] [--re=regex] [--sort_reverse]
+            [--file_size_min=size] [--sort] [--include_types=pcdbflsu]
+            [--nthreads=threads] [--user=user name] [--unlink=bool]
+            [--depth_first=bool] [--timestamp_style=CZL] [--help] [--usage]
+            [--version] [DIRECTORY] [REGULAR_EXPRESSION]
+
+Usage: lf3 [OPTION...] [DIRECTORY] [REGULAR_EXPRESSION]
+
+If specified, DIRECTORY is the top-level directory to search.
+REGULAR_EXPRESSION is a properly formatted regular expression
+for which matching files will be listed.
 
   -a, --after=time           Last Modified after YYYY-MM-DDTHH:MM:SS
   -b, --before=time          Last Modified before YYYY-MM-DDTHH:MM:SS
@@ -45,15 +60,3 @@ Mandatory or optional arguments to long options are also mandatory or optional
 for any corresponding short options.
 
 Report bugs to billxwaller@gmail.com.
-Usage: lf3 [-iLRS?V] [-a time] [-b time] [-c[s]] [-d number] [-D 12345EDACO]
-            [-e regex] [-E file_spec] [-H[o]] [-l 12345EDACO] [-p sgrwx]
-            [-r regex] [-s size] [-t pcdbflsu] [-T threads] [-u user name]
-            [-U bool] [-W bool] [-y CZL] [--after=time] [--before=time]
-            [--count[=s]] [--max_depth=number] [--display_log=12345EDACO]
-            [--ere=regex] [--error_file_spec=file_spec] [--include_hidden[=o]]
-            [--ignore_case] [--file_log=12345EDACO] [--follow_links]
-            [--include_perms=sgrwx] [--re=regex] [--sort_reverse]
-            [--file_size_min=size] [--sort] [--include_types=pcdbflsu]
-            [--nthreads=threads] [--user=user name] [--unlink=bool]
-            [--depth_first=bool] [--timestamp_style=CZL] [--help] [--usage]
-            [--version] [DIRECTORY] [REGULAR_EXPRESSION]
