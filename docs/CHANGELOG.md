@@ -2,6 +2,12 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-22T16:47:32-05:00* - FIXES: 
+
+*2026-10-21T11:51:19-05:00* - FEATURE UPGRADE: Added logging features to lf3.c. This will assist developers who want to tweak lf for different hardware and use cases. See the example log file in screenshots/lf_log.png. 
+
+*2026-10-18T18:48:38-05:00* - Update CHANGELOG.md 
+
 *2026-10-18T18:39:24-05:00* - EXPERIMENTAL: lf3.c is getting some significant improvements, but it is still a work-in-progress. The code is functional and performing well in preliminary testing, but it may not be fully stable or feature-complete. Users are encouraged to continue using lf.c, which remains the primary and stable implementation of the project. We have given lf3.c powerful instrumentation and debugging capabilities, which will be useful for future development and optimization. As it stands lf is 10 times faster then find and 50% faster than fd. We plan to improve that while we are adding powerful new features. BUG FIXES: view_engine.c was core dumping upon encountering a binary '001' in its input. As it turns out '\001' is a valid character in UTF-8, and the code was not handling it correctly. This has been fixed, and view_engine.c should now handle binary input more gracefully. 
 
 *2026-10-16T23:47:29-05:00* - Update CHANGELOG.md 
