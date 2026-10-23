@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-22T23:25:49-05:00* - FIXES: #1037 View: Horizontal scrolling wasn't accounting for offset due to the line number pane, so it wouldn't scroll to the last 8 columns of content. The fix was to add the line number pane's width to the horizontal offset. This is the same problem as #1036, except in the NCurses backend. 
+
+*2026-10-22T17:18:44-05:00* - Update CHANGELOG.md 
+
 *2026-10-22T16:47:32-05:00* - FIXES: 
 
 *2026-10-21T11:51:19-05:00* - FEATURE UPGRADE: Added logging features to lf3.c. This will assist developers who want to tweak lf for different hardware and use cases. See the example log file in screenshots/lf_log.png. 
