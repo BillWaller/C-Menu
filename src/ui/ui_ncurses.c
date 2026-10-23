@@ -469,7 +469,7 @@ void ui_shutdown() {
 void ui_surface_destroy(UiSurface *s) {
     if (!s)
         return;
-    for (int i = SUB_SFC_MAX; i >= 0; i--) {
+    for (int i = SUB_SFC_MAX - 1; i >= 0; i--) {
         if (s->mpan[i] != NULL) {
             hide_panel(s->mpan[i]);
             ui_render();
@@ -477,7 +477,7 @@ void ui_surface_destroy(UiSurface *s) {
             s->mpan[i] = NULL;
         }
     }
-    for (int i = SUB_SFC_MAX; i >= 0; i--) {
+    for (int i = SUB_SFC_MAX - 1; i >= 0; i--) {
         if (s->mwin[i] != NULL) {
             delwin(s->mwin[i]);
             s->mwin[i] = NULL;

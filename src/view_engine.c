@@ -303,11 +303,17 @@ int view_cmd_processor(Init *init) {
                     n_cmd = 1;
             }
             shift = (uint)n_cmd;
-            max_pmincol = (view->maxcol > view->cols) ? (view->maxcol - view->cols) : 0;
-            if (view->pmincol + shift < max_pmincol)
-                view->pmincol += shift;
+            max_pmincol = view->maxcol - view->cols;
+            if ((view->pmincol + shift + view->cols) > view->maxcol)
+                view->pmincol = view->maxcol - view->cols + view->ln_win_cols;
             else
-                view->pmincol = max_pmincol;
+                view->pmincol += shift;
+            // max_pmincol = (view->maxcol > view->cols) ? (view->maxcol -
+            // view->cols) : 0;
+            // if (view->pmincol + shift < max_pmincol)
+            //     view->pmincol += shift;
+            // else
+            //     view->pmincol = max_pmincol;
             break;
         case 'k': /** 'k', UIKEY_UP - Scroll up one line */
         case UIKEY_SCROLL_UP:
@@ -2299,7 +2305,6 @@ int fmt_line(View *view) {
                 word_cells = 0;
             } // END WHILE - split long lines
         } // END IF - handle line wrapping
-        j > view->maxcol ? view->maxcol = j : 0;
     } // END WHILE - line
     if (view->wrap) { // finish and commit wrap state
         if (view->cur.sl_idx > 0) {
@@ -2314,6 +2319,8 @@ int fmt_line(View *view) {
             view->cur.sl_idx = 0;
         }
         view->cur.sl_ln_no = view->ln_no;
+    } else {
+        j > view->maxcol ? view->maxcol = j : 0;
     }
 #ifdef DEBUG_WRAP
     // log_split_lines(view);

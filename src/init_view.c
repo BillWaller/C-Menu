@@ -191,6 +191,15 @@ int init_view_boxwin(Init *init) {
     ui_idlok(view->sfc, CMDLN, false);
     ui_idcok(view->sfc, CMDLN, false);
     ui_scrollok(view->sfc, CMDLN, false);
+    // -------------------> 4. VIEWPORT <-------------------
+    ui_surface_addwin(view->sfc, VIEWPORT, WIN, view->lines, view->cols - view->ln_win_cols, 0, view->ln_win_cols);
+    if (!view->sfc->viewport) {
+        ssnprintf(em0, MAXLEN - 1, _("newwin(LINES, COLS, 0, 0) failed in init_view_full_screen"));
+        ui_log(INFO, "%s", em0);
+        exit(EXIT_FAILURE);
+        return -1;
+    }
+    ui_log(INFO, _("created view->sfc->viewport"));
     // -------------------> 4. PAD <-------------------
     ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols);
     ui_scrollok(view->sfc, PAD, true);

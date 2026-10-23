@@ -549,7 +549,7 @@ int sort_lf_output(LfCtx *lf, int argc, char **argv) {
         fprintf(stderr, _("Failed to execute sort: %s\n"), strerror(errno));
         return TS_ERROR;
     }
-    // fclose(stdout);
+    fclose(stdout);
     dup2(fds[1], STDOUT_FILENO);         // Clone write pipe to STDOUT_FILENO
     stdout = fdopen(STDOUT_FILENO, "w"); // Reopen STDOUT as a stream
     setvbuf(stdout, NULL, _IOLBF, 0);    //  line buffering
