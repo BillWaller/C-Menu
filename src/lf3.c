@@ -701,14 +701,11 @@ bool init_lf(LfCtx *lf, int argc, char **argv) {
     LogCtx x_log_ctx = {
         .start_nsec = 0,
         .start_sec = 0,
-        .prev_interval_nsec = 0,
-        .prev_interval_sec = 0,
+        .p_int_nsec = 0,
+        .p_int_sec = 0,
         .record[0] = '\0',
     };
     LogCtx *log_ctx = &x_log_ctx;
-    initialize_timer(lf, &x_log_ctx);
-    if (lf->file_level_mask)
-        log_open(lf, log_ctx, 0);
     if (!lf->include_types)
         lf->include_types = 0xff;
     if (lf->include_types)
@@ -1140,22 +1137,18 @@ void *worker(void *arg) {
     char full_path[MAX_PATH_LEN];
     alignas(CACHE_LINE_SIZE) char directory_path[MAX_PATH_LEN];
     alignas(struct linux_dirent64) char dir_buf[DIR_BUF_SIZE];
-    size_t thread_id = atomic_fetch_add_explicit(&lf->thread_id, 1, memory_order_relaxed);
-    struct timespec tp;
-    clock_gettime(CLOCK_REALTIME, &tp);
-    LogCtx x_log_ctx = {
-        .thread_id = thread_id,
-        .start_nsec = tp.tv_nsec,
-        .start_sec = tp.tv_sec,
-        .prev_interval_nsec = tp.tv_nsec,
-        .prev_interval_sec = tp.tv_sec,
-        .record[0] = '\0',
-    };
+    LogCtx x_log_ctx;
     LogCtx *log_ctx = &x_log_ctx;
+    size_t thread_id = atomic_fetch_add_explicit(&lf->thread_id, 1, memory_order_relaxed);
+    log_ctx->thread_id = thread_id;
+    if (lf->log_fd == -1)
+        initialize_timer(lf, log_ctx);
+    else
+        initialize_thread_timer(lf, log_ctx);
     if ((lf->file_level_mask & ll_t[DEQUEUE].bits) ||
         (lf->disp_level_mask & ll_t[DEQUEUE].bits)) {
         char log_record[MAXLEN];
-        snprintf(log_record, MAXLEN - 1, "      thread %3lu  %s", thread_id, "worker starting");
+        snprintf(log_record, MAXLEN - 1, "      thread %3lu  %s", log_ctx->thread_id, "worker starting");
         lf_log(DEQUEUE, "%s", log_record);
     }
     while (1) {
@@ -1736,20 +1729,28 @@ static inline char *write_interval_sec(char *p, long val) {
     return p;
 }
 
+void initialize_thread_timer(LfCtx *lf, LogCtx *log_ctx) {
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
+    log_ctx->start_sec = lf->start_sec;
+    log_ctx->start_nsec = lf->start_nsec;
+    log_ctx->p_int_sec = tp.tv_sec;
+    log_ctx->p_int_nsec = tp.tv_nsec;
+}
 void initialize_timer(LfCtx *lf, LogCtx *log_ctx) {
     struct timespec tp;
     clock_gettime(CLOCK_REALTIME, &tp);
     log_ctx->start_sec = tp.tv_sec;
     log_ctx->start_nsec = tp.tv_nsec;
-    log_ctx->prev_interval_sec = tp.tv_sec;
-    log_ctx->prev_interval_nsec = tp.tv_nsec;
+    log_ctx->p_int_sec = tp.tv_sec;
+    log_ctx->p_int_nsec = tp.tv_nsec;
     lf->start_sec = tp.tv_sec;
     lf->start_nsec = tp.tv_nsec;
-    lf->prev_interval_sec = tp.tv_sec;
-    lf->prev_interval_nsec = tp.tv_nsec;
+    lf->p_int_sec = tp.tv_sec;
+    lf->p_int_nsec = tp.tv_nsec;
 }
 
-void coder_timestamp(LfCtx *lf, LogCtx *log_ctx) {
+void coder_timestamp(LogCtx *log_ctx) {
     struct timespec tp;
     clock_gettime(CLOCK_REALTIME, &tp);
 
@@ -1758,17 +1759,30 @@ void coder_timestamp(LfCtx *lf, LogCtx *log_ctx) {
     long cur_ms = (cur_nsec / 1000000);
     long cur_us = (cur_nsec / 1000) % 1000;
     long cur_ns = cur_nsec % 1000;
-    long interval_sec = tp.tv_sec - log_ctx->prev_interval_sec;
-    long interval_nsec = tp.tv_nsec - log_ctx->prev_interval_nsec;
-    if (interval_nsec < 0) {
-        interval_sec -= 1;
-        interval_nsec += 1000000000L;
+
+    fprintf(stderr, "DEBUG: thread: %2ld, start_sec: %010ld, start_nsec: %09ld, tp.tv_sec: %010ld, tp.tv_nsec: %09ld, cur: %02ld.%03ld_%03ld_%03ld\n",
+            log_ctx->thread_id, log_ctx->start_sec, log_ctx->start_nsec, tp.tv_sec, tp.tv_nsec,
+            cur_sec, cur_ms, cur_us, cur_ns);
+    // Interval calculation: time since last log entry
+    long int_sec = tp.tv_sec - log_ctx->p_int_sec;
+    long int_nsec = tp.tv_nsec - log_ctx->p_int_nsec;
+    if (int_nsec < 0) {
+        int_sec -= 1;
+        int_nsec += 1000000000L;
     }
-    long int_ms = (interval_nsec / 1000000);
-    long int_us = (interval_nsec / 1000) % 1000;
-    long int_ns = interval_nsec % 1000;
-    log_ctx->prev_interval_sec = tp.tv_sec;
-    log_ctx->prev_interval_nsec = tp.tv_nsec;
+    long int_ms = (int_nsec / 1000000);
+    long int_us = (int_nsec / 1000) % 1000;
+    long int_ns = int_nsec % 1000;
+
+    fprintf(stderr, "DEBUG: thread: %2ld, p_int_sec: %010ld, p_int_nsec: %09ld, tp.tv_sec: %010ld, tp.tv_nsec: %09ld, int: %02ld.%03ld_%03ld_%03ld\n",
+            log_ctx->thread_id, log_ctx->p_int_sec, log_ctx->p_int_nsec, tp.tv_sec, tp.tv_nsec,
+            int_sec, int_ms, int_us, int_ns);
+
+    log_ctx->p_int_sec = tp.tv_sec;
+    log_ctx->p_int_nsec = tp.tv_nsec;
+
+    fprintf(stderr, "DEBUG: thread: %2ld, p_int_sec: %010ld, p_int_nsec: %09ld\n",
+            log_ctx->thread_id, log_ctx->p_int_sec, log_ctx->p_int_nsec);
     char *p = log_ctx->time_buf;
 
     // --- Block 1: Current Time Timestamp ---
@@ -1786,7 +1800,7 @@ void coder_timestamp(LfCtx *lf, LogCtx *log_ctx) {
 
     // --- Block 2: Interval Time Timestamp ---
     *p++ = '[';
-    p = write_interval_sec(p, interval_sec); // Handles arbitrary size safely
+    p = write_interval_sec(p, int_sec); // Handles arbitrary size safely
     *p++ = '.';
     WRITE_STR(p, sgr_c[YELLOW]);
     p = write_uint3d(p, int_ms);
@@ -1814,6 +1828,14 @@ void log_open(LfCtx *lf, LogCtx *log_ctx, size_t thread_id) {
         char time_s[16];
         struct timespec tp;
         clock_gettime(CLOCK_REALTIME, &tp);
+        log_ctx->start_sec = tp.tv_sec;
+        log_ctx->start_nsec = tp.tv_nsec;
+        log_ctx->p_int_sec = tp.tv_sec;
+        log_ctx->p_int_nsec = tp.tv_nsec;
+        lf->start_sec = tp.tv_sec;
+        lf->start_nsec = tp.tv_nsec;
+        lf->p_int_sec = tp.tv_sec;
+        lf->p_int_nsec = tp.tv_nsec;
         struct tm *tm = local ? localtime(&tp.tv_sec) : gmtime(&tp.tv_sec);
         strftime(time_s, sizeof(time_s), "%Y%m%dT%H%M%S", tm);
         if (local) {
@@ -1839,7 +1861,7 @@ void log_open(LfCtx *lf, LogCtx *log_ctx, size_t thread_id) {
     if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)
         strnz__cpy(log_record, ttyname, MAXLEN - 1);
     ssnprintf(log_record, MAXLEN - 1, _("Lf_Log started by user %s, thread %lu, on terminal '%s'"), cmenu_user, thread_id, ttyname);
-    lf_log(INFO, "%s:", log_record);
+    lf_log(ALL, "%s:", log_record);
     return;
 }
 
@@ -1871,7 +1893,7 @@ void log_write(const ll_e level, LfCtx *lf, LogCtx *log_ctx, const char *file, c
         iso8601_timestamp(lf, log_ctx);
         break;
     case CODER:
-        coder_timestamp(lf, log_ctx);
+        coder_timestamp(log_ctx);
         break;
     case TIMESTAMP_STYLE_COUNT:
         break;

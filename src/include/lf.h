@@ -197,8 +197,8 @@ const char *sgr_c[] = {
 typedef struct {
     long start_nsec;
     long start_sec;
-    long prev_interval_nsec;
-    long prev_interval_sec;
+    long p_int_nsec;
+    long p_int_sec;
     size_t thread_id;
     char time_buf[MAX_TIMESTAMP_LEN];
     char record[MAX_LOG_REC_LEN];
@@ -510,8 +510,8 @@ typedef struct {
     long flags;
     long start_nsec;
     long start_sec;
-    long prev_interval_nsec;
-    long prev_interval_sec;
+    long p_int_nsec;
+    long p_int_sec;
     time_t after;
     time_t before;
     int max_depth;
@@ -549,8 +549,9 @@ typedef struct {
 // 1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, 6-QUEUE, 7-ONLY_ERRORS,
 // 8-COUNT_ERRORS, 9-ALL, S-SPIN_COUNT, T-STAGE
 extern void iso8601_timestamp(LfCtx *lf, LogCtx *log_ctx);
-void coder_timestamp(LfCtx *lf, LogCtx *log_ctx);
+void coder_timestamp(LogCtx *log_ctx);
 void initialize_timer(LfCtx *lf, LogCtx *log_ctx);
+void initialize_thread_timer(LfCtx *lf, LogCtx *log_ctx);
 extern void log_open(LfCtx *lf, LogCtx *log_ctx, size_t thread_id);
 ATTR_FORMAT(printf, 7, 8)
 void log_write(const ll_e level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...);
