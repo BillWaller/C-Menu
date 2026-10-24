@@ -87,14 +87,14 @@ bool build_current_dir_path(char *, size_t, const char *, const char *, size_t *
 void flush_output_buffer(LfCtx *, OutputBuffer *);
 bool append_output_buffer(LfCtx *, OutputBuffer *, const char *, size_t,
                           bool);
-__attribute__((format(printf, 7, 8))) void log_write(const LogLevel level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...);
+__attribute__((format(printf, 7, 8))) void log_write(const ll_e level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...);
 void get_filename(PathArena *path_arena, QueuePayload *qnode, char *current_dir_path, size_t len);
 void finalize_directory_node(LfCtx *lf, size_t node_offset);
 void queue_arena_create(LfCtx *lf, size_t max_nodes);
 void queue_arena_destroy(LfCtx *lf);
 uint32_t queue_arena_push_root(LfCtx *lf, size_t path_offset, size_t path_len, dev_t dev, ino_t ino);
 bool mpmc_enqueue(LfCtx *, const QueuePayload *new_node, size_t thread_id, LogCtx *log_ctx);
-bool mpmc_dequeue(LfCtx *lf, QueuePayload *dequeued_node, size_t thread_id, LogCtx *log_ctx);
+bool mpmc_dequeue(LfCtx *lf, QueuePayload *dequeued_node, size_t thread_id);
 void path_arena_init(LfCtx *lf, LogCtx *log_ctx);
 void path_arena_destroy(LfCtx *lf);
 static size_t path_arena_alloc(LfCtx *lf, const char *path, size_t len);
@@ -106,7 +106,6 @@ void cycle_arena_destroy(LfCtx *lf);
 CycleNode *cycle_arena_alloc(LfCtx *lf, dev_t dev, ino_t ino, size_t parent_idx);
 void flush_ch(LfCtx *lf, QueuePayload *stage, size_t stage_buffer_count, size_t thread_id, LogCtx *log_ctx);
 void iso8601_timestamp(LfCtx *lf, LogCtx *log_ctx);
-void coder_timestamp(LogCtx *log_ctx);
 // ---------------------------------------------------------------
 
 static struct argp_option options[] = {
@@ -115,7 +114,6 @@ static struct argp_option options[] = {
     {_("max_depth"), 'd', _("number"), 0, _("Depth into directory tree"), 0},
     {_("depth_first"), 'W', _("bool"), 0, _("Depth first order (widdershins)"), 0},
     {_("unlink"), 'U', _("bool"), 0, _("unlink (delete) implies depth_first"), 0},
-    {_("error_file_spec"), 'E', _("file_spec"), 0, _("Error message output file"), 0},
     {_("ere"), 'e', _("regex"), 0, _("Exclude regular expression"), 0},
     {_("ignore_case"), 'i', 0, 0, _("Search ignore case"), 0},
     {_("include_perms"), 'p', _("sgrwx"), 0,
@@ -128,11 +126,11 @@ static struct argp_option options[] = {
      _("No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes"), 0},
     {_("user"), 'u', _("user name"), 0, _("User Name of file owner "), 0},
 
-    {_("file_log"), 'l', "12345EDACO", 0, _("1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE, D-DEQUEUE, A-ALL, C-COUNT_ERRORS, O-ONLY_ERRORS"), 0},
+    {_("file_level_mask"), 'l', "2345EDAC", 0, _("2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE, D-DEQUEUE, A-ALL, C-COUNT_ERRORS"), 0},
 
     {_("timestamp_style"), 'y', "CZL", 0, _("timestamp_style for logging 1-CODER, 2-ISO8601_ZULU, 3-ISO8601_LOCAL"), 0},
 
-    {_("display_log"), 'D', "12345EDACO", 0, _("1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE, D-DEQUEUE, A-ALL, C-COUNT_ERRORS, O-ONLY_ERRORS"), 0},
+    {_("disp_level_mask"), 'D', "12345EDACO", 0, _("1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE, D-DEQUEUE, A-ALL, C-COUNT_ERRORS, O-ONLY_ERRORS"), 0},
 
     {_("include_hidden"), 'H', "o", OPTION_ARG_OPTIONAL, _("Include hidden files (o=hidden only)"), 0},
     {_("follow_links"), 'L', 0, 0, _("Follow symbolic links"), 0},
@@ -178,9 +176,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         lf->ere = strdup(arg);
         lf->flags |= LF_EXC_REGEX;
         break;
-    case 'E':
-        strncpy(lf->error_file_spec, arg, MAX_PATH_LEN - 1);
-        break;
     case 'H':
         lf->include_hidden = true; // Include hidden files
         if (arg && arg[0] == 'o') {
@@ -195,7 +190,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         lf->ignore_case = true;
         break;
     case 'D':
-        lf->display_log = true;
         // "1-CONFIG, 2-INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE
         // D-DEQUEUE, A-ALL, C-COUNT_ERRORS, O-ONLY_ERRORS"
         // "12345EDACO"
@@ -204,34 +198,34 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             while (log_p[i]) {
                 switch (log_p[i]) {
                 case '1': // CONFIG
-                    lf->disp_level |= ll_t[CONFIG].bits;
+                    lf->disp_level_mask |= ll_t[CONFIG].bits;
                     break;
                 case '2': // INFO:
-                    lf->disp_level |= ll_t[INFO].bits;
+                    lf->disp_level_mask |= ll_t[INFO].bits;
                     break;
                 case '3': // ERROR
-                    lf->disp_level |= ll_t[ERROR].bits;
+                    lf->disp_level_mask |= ll_t[ERROR].bits;
                     break;
                 case '4': // DEBUG
-                    lf->disp_level |= ll_t[DEBUG].bits;
+                    lf->disp_level_mask |= ll_t[DEBUG].bits;
                     break;
                 case '5': // CYCLE
-                    lf->disp_level |= ll_t[CYCLE].bits;
+                    lf->disp_level_mask |= ll_t[CYCLE].bits;
                     break;
                 case 'E': // ENQUEUE
-                    lf->disp_level |= ll_t[ENQUEUE].bits;
+                    lf->disp_level_mask |= ll_t[ENQUEUE].bits;
                     break;
                 case 'D': // DEQUEUE
-                    lf->disp_level |= ll_t[DEQUEUE].bits;
+                    lf->disp_level_mask |= ll_t[DEQUEUE].bits;
                     break;
                 case 'A': // ALL
-                    lf->disp_level |= ll_t[ALL].bits;
+                    lf->disp_level_mask |= ll_t[ALL].bits;
                     break;
                 case 'C': // COUNT_ERRORS
-                    lf->disp_level |= ll_t[COUNT_ERRORS].bits;
+                    lf->disp_level_mask |= ll_t[COUNT_ERRORS].bits;
                     break;
                 case 'O': // ONLY_ERRORS
-                    lf->disp_level |= ll_t[ONLY_ERRORS].bits;
+                    lf->disp_level_mask |= ll_t[ONLY_ERRORS].bits;
                     break;
                 default:
                     break;
@@ -240,46 +234,41 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             }
             free(log_p);
         }
-        lf->level |= lf->disp_level;
         break;
     case 'l':
-        lf->file_log = true;
-        // "1-CONFIG, 2-INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE
+        // "          2-INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE
         // D-DEQUEUE, A-ALL, C-COUNT_ERRORS, O-ONLY_ERRORS"
         // "12345EDACO"
         if (arg && arg[0] != '\0') {
             log_p = strdup(arg);
             while (log_p[i]) {
                 switch (log_p[i]) {
-                case '1': // CONFIG
-                    lf->file_level |= ll_t[CONFIG].bits;
-                    break;
                 case '2': // INFO:
-                    lf->file_level |= ll_t[INFO].bits;
+                    lf->file_level_mask |= ll_t[INFO].bits;
                     break;
                 case '3': // ERROR
-                    lf->file_level |= ll_t[ERROR].bits;
+                    lf->file_level_mask |= ll_t[ERROR].bits;
                     break;
                 case '4': // DEBUG
-                    lf->file_level |= ll_t[DEBUG].bits;
+                    lf->file_level_mask |= ll_t[DEBUG].bits;
                     break;
                 case '5': // CYCLE
-                    lf->file_level |= ll_t[CYCLE].bits;
+                    lf->file_level_mask |= ll_t[CYCLE].bits;
                     break;
                 case 'E': // ENQUEUE
-                    lf->file_level |= ll_t[ENQUEUE].bits;
+                    lf->file_level_mask |= ll_t[ENQUEUE].bits;
                     break;
                 case 'D': // DEQUEUE
-                    lf->file_level |= ll_t[DEQUEUE].bits;
+                    lf->file_level_mask |= ll_t[DEQUEUE].bits;
                     break;
                 case 'A': // ALL
-                    lf->file_level |= ll_t[ALL].bits;
+                    lf->file_level_mask |= ll_t[ALL].bits;
                     break;
                 case 'C': // COUNT_ERRORS
-                    lf->file_level |= ll_t[COUNT_ERRORS].bits;
+                    lf->file_level_mask |= ll_t[COUNT_ERRORS].bits;
                     break;
                 case 'O': // ONLY_ERRORS
-                    lf->file_level |= ll_t[ONLY_ERRORS].bits;
+                    lf->file_level_mask |= ll_t[ONLY_ERRORS].bits;
                     break;
                 default:
                     break;
@@ -288,7 +277,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             }
             free(log_p);
         }
-        lf->level |= lf->file_level;
         break;
     case 'L':
         lf->follow_links = true; // follow symbolic links
@@ -416,9 +404,8 @@ int main(int argc, char **argv) {
     lf->count = 0;
     termination_status = TS_ERROR;
     lf->error_count = 0;
-    lf->level = 0;
-    lf->disp_level = 0;
-    lf->file_level = 0;
+    lf->disp_level_mask = 0;
+    lf->file_level_mask = 0;
     lf->log_fd = -1;
     lf->log_error_count = false;
     lf->nthreads = 0;
@@ -432,12 +419,9 @@ int main(int argc, char **argv) {
     lf->depth_first = false;
     lf->unlink = false;
     lf->follow_links = false;
-    lf->file_log = false;
     lf->count = false;
     lf->count_silently = false;
     lf->sbuffer = _("4G");
-    lf->error_file_spec[0] = '\0';
-    lf->error_file_open = false;
 
     setlocale(LC_NUMERIC, "");
     char tmp_str[MAX_PATH_LEN];
@@ -576,130 +560,127 @@ void debug_out(LfCtx *lf, int argc, char **argv) {
     int len = 0;
     int i;
     bool addspace_before = false;
-    if ((lf->display_log || lf->file_log) && (lf->level & ll_t[CONFIG].bits)) {
-        fprintf(stderr, "%s,%s,%s,", get_local_timestamp(), get_user_str(user_str, 100), get_ip_addresses(ip_str, MAXLEN));
-        for (i = 0; i < argc; i++) {
-            len = len + strlen(argv[i]);
-            if (len > 72) {
-                fprintf(stderr, "\n");
-                len = strlen(argv[i]);
-                addspace_before = false;
-            }
-            if (addspace_before) {
-                fprintf(stderr, " ");
-                len++;
-            }
-            fprintf(stderr, "%s", argv[i]);
-            addspace_before = true;
+    if (!(lf->disp_level_mask & ll_t[CONFIG].bits))
+        return;
+    fprintf(stderr, "%s,%s,%s,", get_local_timestamp(), get_user_str(user_str, 100), get_ip_addresses(ip_str, MAXLEN));
+    for (i = 0; i < argc; i++) {
+        len = len + strlen(argv[i]);
+        if (len > 72) {
+            fprintf(stderr, "\n");
+            len = strlen(argv[i]);
+            addspace_before = false;
         }
-        // "1-CONFIG, 2-INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE
-        // D-DEQUEUE, C-COUNT_ERRORS, A-ALL, O-ONLY_ERRORS"
-        // "12345EDCAO"
-        fprintf(stderr, "\n\n");
-        fprintf(stderr, "%s\n\n", CM_VERSION);
-        fprintf(stderr, _("log to file      %s\n"),
-                lf->file_log ? _("true") : _("     false"));
-        fprintf(stderr, _("log to display   %s\n"),
-                lf->display_log ? _("true") : _("     false"));
-        fprintf(stderr, _("  1-config       %s\n"),
-                lf->level & ll_t[CONFIG].bits ? _("true") : _("|    false"));
-        fprintf(stderr, _("  2-info         %s\n"),
-                lf->level & ll_t[INFO].bits ? _("true") : _("|    false"));
-        fprintf(stderr, _("  3-errors       %s\n"),
-                lf->level & ll_t[ERROR].bits ? _("true") : _("|    false"));
-        fprintf(stderr, _("  4-debug        %s\n"),
-                lf->level & ll_t[DEBUG].bits ? _("true") : _("|    false"));
-        fprintf(stderr, _("  5-cycle        %s\n"),
-                lf->level & ll_t[CYCLE].bits ? _("true") : _("|    false"));
-        fprintf(stderr, _("  E-enqueue      %s\n"),
-                lf->level & ll_t[ENQUEUE].bits ? _("true") : _("|    false"));
-        fprintf(stderr, _("  D-dequeue      %s\n"),
-                lf->level & ll_t[DEQUEUE].bits ? _("true") : _("|    false"));
-        fprintf(stderr, _("  C-count errors %s\n"),
-                lf->level & ll_t[COUNT_ERRORS].bits ? _("true") : _("|    false"));
-        fprintf(stderr, _("  A-all           %s\n"),
-                lf->level & ll_t[ALL].bits ? _("true") : _("|    false"));
-        fprintf(stderr, _("  O-only errors   %s\n"),
-                lf->level & ll_t[ONLY_ERRORS].bits ? _("true") : _("|    false"));
-
-        fprintf(stderr, "\n");
-        fprintf(stderr, _("Search directory: %s\n\n"), lf->base_path);
-        if (lf->max_depth == 0)
-            fprintf(stderr, _("Max depth 0 (unlimited)\n\n"));
-        else
-            fprintf(stderr, _("Max depth %d\n\n"), lf->max_depth);
-        fprintf(stderr, _("Using %d threads\n\n"), lf->nthreads);
-        fprintf(stderr, _("File types preceeded by an asterisk (\"*\") will be included:\n\n"));
-        fprintf(stderr, _("  LF type        DT type\n"));
-        print_file_type(lf->include_types, LF_FIFO, DT_FIFO, _("FIFO    p-named pipe"));
-        print_file_type(lf->include_types, LF_CHR, DT_CHR, _("CHR     c-character device"));
-        print_file_type(lf->include_types, LF_DIR, DT_DIR, _("DIR     d-directory"));
-        print_file_type(lf->include_types, LF_BLK, DT_BLK, _("BLK     b-block device"));
-        print_file_type(lf->include_types, LF_REG, DT_REG, _("REG     f-regular file"));
-        print_file_type(lf->include_types, LF_LNK, DT_LNK, _("LINK    l-symbolic link"));
-        print_file_type(lf->include_types, LF_SOCK, DT_SOCK, _("SOCK    s-socket"));
-        print_file_type(lf->include_types, LF_UNKNOWN, DT_UNKNOWN, _("UNKNOWN u-unknown"));
-        fprintf(stderr, "\n");
-        fprintf(stderr, "f->include_types  = %08b\n", lf->include_types);
-        fprintf(stderr, "f->suppress_types = %08b\n", lf->suppress_types);
-        fprintf(stderr, "\n");
-        if (lf->flags & LF_USER)
-            fprintf(stderr, _("User: %s (%ju)\n"), lf->user_name, lf->user_id);
-        if (lf->include_perms) {
-            if (lf->include_perms & LF_IXUSR)
-                fprintf(stderr, _("    %08b Execute\n"), LF_IXUSR);
-            if (lf->include_perms & LF_IWUSR)
-                fprintf(stderr, _("    %08b Write\n"), LF_IWUSR);
-            if (lf->include_perms & LF_IRUSR)
-                fprintf(stderr, _("    %08b Read\n"), LF_IRUSR);
-            if (lf->include_perms & LF_ISUID)
-                fprintf(stderr, _("    %08b SETUID\n"), LF_ISUID);
-            if (lf->include_perms & LF_ISGID)
-                fprintf(stderr, _("    %08b SETGID\n"), LF_ISGID);
+        if (addspace_before) {
+            fprintf(stderr, " ");
+            len++;
         }
-        fprintf(stderr, "\n");
-        if (lf->flags & LF_REGEX)
-            fprintf(stderr, _("Include regex: %s\n\n"), lf->re);
-        if (lf->flags & LF_EXC_REGEX)
-            fprintf(stderr, _("Exclude regex: %s\n\n"), lf->ere);
-
-        if (lf->after) {
-            char buf[32];
-            format_local_timestamp(lf->after, buf, sizeof(buf));
-            fprintf(stderr, _("Modified after: %s\n\n"), buf);
-        }
-
-        if (lf->before) {
-            char buf[32];
-            format_local_timestamp(lf->before, buf, sizeof(buf));
-            fprintf(stderr, _("Modified before: %s\n\n"), buf);
-        }
-
-        if (lf->file_size_min) {
-            const char *units[] = {"b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
-            off_t size = lf->file_size_min;
-            i = 0;
-            while (size >= 1024 && i < 6) {
-                size /= 1024;
-                i++;
-            }
-            char buffer[32];
-            ssnprintf(buffer, 32, "%ld %s", size, units[i]);
-            fprintf(stderr, _("Minimum file size: %s\n\n"), buffer);
-        }
-        if (lf->max_depth)
-            fprintf(stderr, _("Max depth: %d\n\n"), lf->max_depth);
-        if (lf->ignore_case)
-            fprintf(stderr, _("Ignore case in regex matching.\n\n"));
-        if (lf->include_hidden)
-            fprintf(stderr, _("Include hidden files.\n\n"));
-        if (lf->follow_links)
-            fprintf(stderr, _("Follow symbolic links.\n\n"));
-        if (lf->sort)
-            fprintf(stderr, _("Sort output in ascending order.\n\n"));
-        if (lf->sort_reverse)
-            fprintf(stderr, _("Sort output in reverse order.\n\n"));
+        fprintf(stderr, "%s", argv[i]);
+        addspace_before = true;
     }
+    // "1-CONFIG, 2-INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE
+    // D-DEQUEUE, C-COUNT_ERRORS, A-ALL, O-ONLY_ERRORS"
+    // "12345EDCAO"
+    fprintf(stderr, "\n\n");
+    fprintf(stderr, "%s\n\n", CM_VERSION);
+    fprintf(stderr, "%s\n", _("Display Log Level"));
+    fprintf(stderr, _("  1-config       %s\n"),
+            lf->disp_level_mask & ll_t[CONFIG].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  2-info         %s\n"),
+            lf->disp_level_mask & ll_t[INFO].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  3-errors       %s\n"),
+            lf->disp_level_mask & ll_t[ERROR].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  4-debug        %s\n"),
+            lf->disp_level_mask & ll_t[DEBUG].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  5-cycle        %s\n"),
+            lf->disp_level_mask & ll_t[CYCLE].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  E-enqueue      %s\n"),
+            lf->disp_level_mask & ll_t[ENQUEUE].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  D-dequeue      %s\n"),
+            lf->disp_level_mask & ll_t[DEQUEUE].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  A-all           %s\n"),
+            lf->disp_level_mask & ll_t[ALL].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  C-count errors %s\n"),
+            lf->disp_level_mask & ll_t[COUNT_ERRORS].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  O-only errors   %s\n"),
+            lf->disp_level_mask & ll_t[ONLY_ERRORS].bits ? _("true") : _("|    false"));
+
+    fprintf(stderr, "\n");
+    fprintf(stderr, _("Search directory: %s\n\n"), lf->base_path);
+    if (lf->max_depth == 0)
+        fprintf(stderr, _("Max depth 0 (unlimited)\n\n"));
+    else
+        fprintf(stderr, _("Max depth %d\n\n"), lf->max_depth);
+    fprintf(stderr, _("Using %d threads\n\n"), lf->nthreads);
+    fprintf(stderr, _("File types preceeded by an asterisk (\"*\") will be included:\n\n"));
+    fprintf(stderr, _("  LF type        DT type\n"));
+    print_file_type(lf->include_types, LF_FIFO, DT_FIFO, _("FIFO    p-named pipe"));
+    print_file_type(lf->include_types, LF_CHR, DT_CHR, _("CHR     c-character device"));
+    print_file_type(lf->include_types, LF_DIR, DT_DIR, _("DIR     d-directory"));
+    print_file_type(lf->include_types, LF_BLK, DT_BLK, _("BLK     b-block device"));
+    print_file_type(lf->include_types, LF_REG, DT_REG, _("REG     f-regular file"));
+    print_file_type(lf->include_types, LF_LNK, DT_LNK, _("LINK    l-symbolic link"));
+    print_file_type(lf->include_types, LF_SOCK, DT_SOCK, _("SOCK    s-socket"));
+    print_file_type(lf->include_types, LF_UNKNOWN, DT_UNKNOWN, _("UNKNOWN u-unknown"));
+    fprintf(stderr, "\n");
+    fprintf(stderr, "f->include_types  = %08b\n", lf->include_types);
+    fprintf(stderr, "f->suppress_types = %08b\n", lf->suppress_types);
+    fprintf(stderr, "\n");
+    if (lf->flags & LF_USER)
+        fprintf(stderr, _("User: %s (%ju)\n"), lf->user_name, lf->user_id);
+    if (lf->include_perms) {
+        if (lf->include_perms & LF_IXUSR)
+            fprintf(stderr, _("    %08b Execute\n"), LF_IXUSR);
+        if (lf->include_perms & LF_IWUSR)
+            fprintf(stderr, _("    %08b Write\n"), LF_IWUSR);
+        if (lf->include_perms & LF_IRUSR)
+            fprintf(stderr, _("    %08b Read\n"), LF_IRUSR);
+        if (lf->include_perms & LF_ISUID)
+            fprintf(stderr, _("    %08b SETUID\n"), LF_ISUID);
+        if (lf->include_perms & LF_ISGID)
+            fprintf(stderr, _("    %08b SETGID\n"), LF_ISGID);
+    }
+    fprintf(stderr, "\n");
+    if (lf->flags & LF_REGEX)
+        fprintf(stderr, _("Include regex: %s\n\n"), lf->re);
+    if (lf->flags & LF_EXC_REGEX)
+        fprintf(stderr, _("Exclude regex: %s\n\n"), lf->ere);
+
+    if (lf->after) {
+        char buf[32];
+        format_local_timestamp(lf->after, buf, sizeof(buf));
+        fprintf(stderr, _("Modified after: %s\n\n"), buf);
+    }
+
+    if (lf->before) {
+        char buf[32];
+        format_local_timestamp(lf->before, buf, sizeof(buf));
+        fprintf(stderr, _("Modified before: %s\n\n"), buf);
+    }
+
+    if (lf->file_size_min) {
+        const char *units[] = {"b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
+        off_t size = lf->file_size_min;
+        i = 0;
+        while (size >= 1024 && i < 6) {
+            size /= 1024;
+            i++;
+        }
+        char buffer[32];
+        ssnprintf(buffer, 32, "%ld %s", size, units[i]);
+        fprintf(stderr, _("Minimum file size: %s\n\n"), buffer);
+    }
+    if (lf->max_depth)
+        fprintf(stderr, _("Max depth: %d\n\n"), lf->max_depth);
+    if (lf->ignore_case)
+        fprintf(stderr, _("Ignore case in regex matching.\n\n"));
+    if (lf->include_hidden)
+        fprintf(stderr, _("Include hidden files.\n\n"));
+    if (lf->follow_links)
+        fprintf(stderr, _("Follow symbolic links.\n\n"));
+    if (lf->sort)
+        fprintf(stderr, _("Sort output in ascending order.\n\n"));
+    if (lf->sort_reverse)
+        fprintf(stderr, _("Sort output in reverse order.\n\n"));
     return;
 }
 // ----------------------------------------------------------------------
@@ -718,13 +699,15 @@ void debug_out(LfCtx *lf, int argc, char **argv) {
    */
 bool init_lf(LfCtx *lf, int argc, char **argv) {
     LogCtx x_log_ctx = {
-        .start = 0,
-        .prev_nsec = 0,
-        .prev_sec = 0,
+        .start_nsec = 0,
+        .start_sec = 0,
+        .prev_interval_nsec = 0,
+        .prev_interval_sec = 0,
         .record[0] = '\0',
     };
     LogCtx *log_ctx = &x_log_ctx;
-    if (lf->file_log)
+    initialize_timer(lf, &x_log_ctx);
+    if (lf->file_level_mask)
         log_open(lf, log_ctx, 0);
     if (!lf->include_types)
         lf->include_types = 0xff;
@@ -838,9 +821,6 @@ bool init_lf(LfCtx *lf, int argc, char **argv) {
         fprintf(stderr, _("Out of memory allocating threads\n"));
         goto endlf;
     }
-    struct timespec tp;
-    clock_gettime(CLOCK_MONOTONIC, &tp);
-    lf->start = tp.tv_nsec;
     for (unsigned int i = 0; i < lf->nthreads; i++) {
         rc = pthread_create(&lf->threads[i], NULL,
                             worker, lf);
@@ -852,9 +832,9 @@ bool init_lf(LfCtx *lf, int argc, char **argv) {
             goto endlf;
         }
     }
-    // ------------------------------------------------------------
-    // THREAD SHUTDOWN
-    // ------------------------------------------------------------
+// ------------------------------------------------------------
+// THREAD SHUTDOWN
+// ------------------------------------------------------------
 endlf:
     lf_log(INFO, "Waiting for threads to finish...");
     for (unsigned int i = 0; i < lf->nthreads; i++)
@@ -1063,15 +1043,16 @@ bool append_output_buffer(LfCtx *lf, OutputBuffer *output, const char *path,
 bool mpmc_enqueue(LfCtx *lf, const QueuePayload *new_node, size_t thread_id, LogCtx *log_ctx) {
     size_t pos = atomic_load_explicit(&lf->q->enqueue_pos, memory_order_acquire);
     int spin_count = 0;
-    const int SPIN_LIMIT = 16;
+    const int SPIN_LIMIT = 32;
     while (true) {
         size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)pos;
         if (diff == 0) {
-            if (atomic_compare_exchange_weak_explicit(&lf->q->enqueue_pos, &pos, pos + 1, memory_order_release, memory_order_relaxed))
+            if (atomic_compare_exchange_strong_explicit(&lf->q->enqueue_pos, &pos, pos + 1, memory_order_release, memory_order_relaxed))
                 break;
         } else if (diff < 0) { // Queue is full
-            if (lf->level & ll_t[ENQUEUE].bits) {
+            if ((lf->file_level_mask & ll_t[ENQUEUE].bits) ||
+                (lf->disp_level_mask & ll_t[ENQUEUE].bits)) {
                 char log_record[MAXLEN];
                 snprintf(log_record, MAXLEN - 1, "thread %3lu <%10s %12p %6u %6u %6lu/%-6lu %s",
                          thread_id,
@@ -1097,7 +1078,8 @@ bool mpmc_enqueue(LfCtx *lf, const QueuePayload *new_node, size_t thread_id, Log
 #endif
     }
     memcpy(&lf->q->nodes[pos & QUEUE_MASK], new_node, sizeof(QueuePayload));
-    if (lf->level & ll_t[ENQUEUE].bits) {
+    if ((lf->file_level_mask & ll_t[ENQUEUE].bits) ||
+        (lf->disp_level_mask & ll_t[ENQUEUE].bits)) {
         char log_record[MAX_LOG_REC_LEN];
         snprintf(log_record, MAX_LOG_REC_LEN - 1, "thread %3lu  -> %12p idx %6u pidx %6u off/len %6lu/%-6lu path %s",
                  thread_id,
@@ -1107,16 +1089,21 @@ bool mpmc_enqueue(LfCtx *lf, const QueuePayload *new_node, size_t thread_id, Log
                  new_node->dir_ctx->path_len,
                  &lf->path_arena->bytes[new_node->dir_ctx->path_offset]);
         lf_log(ENQUEUE, "%s", log_record);
+        if (spin_count > 0) {
+            snprintf(log_record, MAX_LOG_REC_LEN - 1, "thread %3lu  -> %12p idx %6u spin_count %3d",
+                     thread_id,
+                     &new_node,
+                     new_node->self_idx,
+                     spin_count);
+            lf_log(ENQUEUE, "%s", log_record);
+        }
     }
-    // 3. This release store pairs with dequeue's acquire load of the sequence
     atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + 1, memory_order_release);
-
     return true;
 }
 
-bool mpmc_dequeue(LfCtx *lf, QueuePayload *dequeued_node, size_t thread_id, LogCtx *log_ctx) {
+bool mpmc_dequeue(LfCtx *lf, QueuePayload *dequeued_node, size_t thread_id) {
     (void)thread_id;
-    // 4. Change to acquire to see valid changes to dequeue_pos
     size_t pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_acquire);
     while (true) {
         if (atomic_load_explicit(&lf->q->shut_down, memory_order_relaxed))
@@ -1124,9 +1111,7 @@ bool mpmc_dequeue(LfCtx *lf, QueuePayload *dequeued_node, size_t thread_id, LogC
         size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)(pos + 1);
         if (diff == 0) {
-            // 5. Change to release on success to publish the step forward
-            //
-            if (atomic_compare_exchange_weak_explicit(&lf->q->dequeue_pos, &pos, pos + 1, memory_order_release, memory_order_relaxed)) {
+            if (atomic_compare_exchange_strong_explicit(&lf->q->dequeue_pos, &pos, pos + 1, memory_order_release, memory_order_relaxed)) {
                 break;
             }
         } else if (diff < 0) {
@@ -1142,7 +1127,6 @@ bool mpmc_dequeue(LfCtx *lf, QueuePayload *dequeued_node, size_t thread_id, LogC
     }
     if (dequeued_node)
         *dequeued_node = lf->q->nodes[pos & QUEUE_MASK];
-    // 6. Release tells producers this slot is safely evacuated and ready to re-fill
     atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + QUEUE_NODES, memory_order_release);
     return true;
 }
@@ -1157,19 +1141,28 @@ void *worker(void *arg) {
     alignas(CACHE_LINE_SIZE) char directory_path[MAX_PATH_LEN];
     alignas(struct linux_dirent64) char dir_buf[DIR_BUF_SIZE];
     size_t thread_id = atomic_fetch_add_explicit(&lf->thread_id, 1, memory_order_relaxed);
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
     LogCtx x_log_ctx = {
-        .start = 0,
-        .prev_nsec = 0,
-        .prev_sec = 0,
+        .thread_id = thread_id,
+        .start_nsec = tp.tv_nsec,
+        .start_sec = tp.tv_sec,
+        .prev_interval_nsec = tp.tv_nsec,
+        .prev_interval_sec = tp.tv_sec,
         .record[0] = '\0',
     };
-    if (lf->file_log)
-        log_open(lf, &x_log_ctx, lf->thread_id);
     LogCtx *log_ctx = &x_log_ctx;
+    if ((lf->file_level_mask & ll_t[DEQUEUE].bits) ||
+        (lf->disp_level_mask & ll_t[DEQUEUE].bits)) {
+        char log_record[MAXLEN];
+        snprintf(log_record, MAXLEN - 1, "      thread %3lu  %s", thread_id, "worker starting");
+        lf_log(DEQUEUE, "%s", log_record);
+    }
     while (1) {
-        if (mpmc_dequeue(lf, &dqnode, lf->thread_id, log_ctx) == false)
+        if (mpmc_dequeue(lf, &dqnode, lf->thread_id) == false)
             break;
-        if (lf->level & ll_t[DEQUEUE].bits) {
+        if ((lf->file_level_mask & ll_t[DEQUEUE].bits) ||
+            (lf->disp_level_mask & ll_t[DEQUEUE].bits)) {
             char log_record[MAXLEN];
             snprintf(log_record, MAXLEN - 1, "      thread %3lu  <- %12p idx %6u pidx %6u off/len %6lu/%-6lu path %s",
                      thread_id,
@@ -1254,11 +1247,12 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
 
     int dir_fd = open(current_dir_path, O_RDONLY | O_DIRECTORY | O_CLOEXEC);
     if (dir_fd == -1) {
-        if (lf->level & ll_t[ERROR].bits) {
+        if ((lf->file_level_mask & ll_t[ERROR].bits) ||
+            (lf->disp_level_mask & ll_t[ERROR].bits)) {
             lf_log(ERROR, "OPEN_FAIL,%s,%s", current_dir_path, strerror(errno));
         }
         flush_output_buffer(lf, output);
-        // NOT_IMPLEMENTED
+        // delete goes here - NOT YET IMPLEMENTED
         // if (lf->unlink)
         //     finalize_directory_node(&dequeued_node->dir_ctx);
         return NULL;
@@ -1268,9 +1262,7 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
         nread = syscall(SYS_getdents64, dir_fd, dir_buf, DIR_BUF_SIZE);
         if (nread == -1) {
             atomic_fetch_add(&lf->error_count, 1);
-            if (lf->level & ll_t[ERROR].bits) {
-                lf_log(ERROR, "READDIR_FAIL,%s,%s", current_dir_path, strerror(errno));
-            }
+            lf_log(ERROR, "READDIR_FAIL,%s,%s", current_dir_path, strerror(errno));
             break;
         }
         if (nread == 0)
@@ -1304,16 +1296,17 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
             // -------------------------------------------------------------------
             // GET ADVANCED METADATA
             // -------------------------------------------------------------------
-            if (((lf->follow_links || (lf->level & ll_t[CYCLE].bits)) &&
-                 (actual_type == DT_LNK || actual_type == DT_DIR)) ||
-                actual_type == DT_UNKNOWN) {
+            if (lf->follow_links ||
+                (lf->file_level_mask & ll_t[CYCLE].bits) ||
+                (lf->disp_level_mask & ll_t[CYCLE].bits) ||
+                (actual_type == DT_LNK) ||
+                (actual_type == DT_DIR) ||
+                (actual_type == DT_UNKNOWN)) {
                 memset(&sb, 0, sizeof(struct stat));
                 rc = fstatat(dir_fd, entry->d_name, &sb, AT_SYMLINK_NOFOLLOW);
                 if (rc == -1) {
                     atomic_fetch_add(&lf->error_count, 1);
-                    if (lf->level & ll_t[CYCLE].bits) {
-                        lf_log(ERROR, "LSTAT_FAIL,%s/%s,%s", current_dir_path, entry->d_name, strerror(errno));
-                    }
+                    lf_log(ERROR, "LSTAT_FAIL,%s/%s,%s", current_dir_path, entry->d_name, strerror(errno));
                 } else {
                     actual_ino = sb.st_ino;
                     actual_dev = sb.st_dev;
@@ -1330,9 +1323,7 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
                         rc = fstatat(dir_fd, entry->d_name, &sb, 0);
                         if (rc == -1) {
                             atomic_fetch_add(&lf->error_count, 1);
-                            if (lf->level & ll_t[ERROR].bits) {
-                                lf_log(ERROR, _("STAT_FAIL,%s,%s\n"), full_path, strerror(errno));
-                            }
+                            lf_log(ERROR, _("STAT_FAIL,%s,%s\n"), full_path, strerror(errno));
                         } else {
                             effective_ino = sb.st_ino;
                             effective_dev = sb.st_dev;
@@ -1356,7 +1347,8 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
                 // ----------------------------------------------------------------
                 if (lf->follow_links && actual_type == DT_LNK) {
                     char target_path[MAX_PATH_LEN] = {'\0'};
-                    if (lf->level & ll_t[CYCLE].bits) {
+                    if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
+                        (lf->disp_level_mask & ll_t[CYCLE].bits)) {
                         ssize_t len = readlinkat(dir_fd, entry->d_name, target_path, sizeof(target_path) - 1);
                         if (len != -1)
                             target_path[len] = '\0';
@@ -1372,7 +1364,8 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
                     while (current_parent_idx != NO_PARENT) {
                         // Resolve the parent node safely from the stable global arena
                         QueuePayload *ancestor = &lf->queue_arena->nodes[current_parent_idx];
-                        if (lf->level & ll_t[CYCLE].bits) {
+                        if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
+                            (lf->disp_level_mask & ll_t[CYCLE].bits)) {
                             ssnprintf(lf->log_record,
                                       MAX_LOG_REC_LEN - 1,
                                       "Checking Ancestor Index [%u] -> dev: %lu, ino: %lu\n",
@@ -1390,7 +1383,8 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
                         current_parent_idx = ancestor->cycle_ctx->parent_idx;
                     }
                     if (cycle_found) {
-                        if (lf->level & ll_t[CYCLE].bits) {
+                        if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
+                            (lf->disp_level_mask & ll_t[CYCLE].bits)) {
                             ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, ("CYCLER,%lu/%lu,%s/%s,%lu/%lu,%s\n"),
                                       effective_dev,
                                       effective_ino,
@@ -1425,10 +1419,11 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
                 // generations can resolve it
                 lf->queue_arena->nodes[global_node_idx] = *child_task;
 #ifdef DEBUG_CHILD_STAGING
-                if ((lf->display_log || lf->file_log) && DEBUG_CHILD_STAGING) {
+                if ((lf->file_level_mask & ll_t[STAGING].bits) ||
+                    (lf->disp_level_mask & ll_t[STAGING].bits)) {
                     ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, "thread %3lu >%10s %12p %6u %6u %6lu/%-6lu %s",
                               thread_id,
-                              "child_task",
+                              "stage",
                               (void *)&child_task,
                               child_task->self_idx,
                               child_task->dir_ctx->parent_idx,
@@ -1436,7 +1431,7 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
                               child_task->dir_ctx->path_len,
                               &lf->path_arena->bytes[child_task->dir_ctx->path_offset]);
 
-                    lf_log(DEBUG, "%s", lf->log_record);
+                    lf_log(STAGING, "%s", lf->log_record);
                 }
 #endif
                 // --------------------------------------------------------
@@ -1523,7 +1518,8 @@ void flush_ch(LfCtx *lf, QueuePayload *stage, size_t stage_buffer_count, size_t 
             //      handle_queue_overflow_fallback(stage, stage_buffer_count);
             //  }
 #ifdef DEBUG_CHILD_STAGING
-            if (lf->display_log || lf->file_log) {
+            if ((lf->file_level_mask & ll_t[STAGING].bits) ||
+                (lf->disp_level_mask & ll_t[STAGING].bits)) {
                 ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, "    thread %3lu stage[%lu] %12p, >self_idx %6u, parent_idx %6u, offest/len %6lu/%-6lu, path %s",
                           thread_id,
                           i,
@@ -1533,7 +1529,7 @@ void flush_ch(LfCtx *lf, QueuePayload *stage, size_t stage_buffer_count, size_t 
                           stage[i].dir_ctx->path_offset,
                           stage[i].dir_ctx->path_len,
                           &lf->path_arena->bytes[stage[i].dir_ctx->path_offset]);
-                lf_log(ENQUEUE, "%s", lf->log_record);
+                lf_log(STAGING, "%s", lf->log_record);
             }
 #endif
             if (!mpmc_enqueue(lf, &stage[i], thread_id, log_ctx)) {
@@ -1721,7 +1717,7 @@ static inline char *write_uint2d(char *p, long val) {
 }
 
 // Dynamically writes interval seconds. Fits 2 digits or expands gracefully if > 99.
-static inline char *write_interval_secs(char *p, long val) {
+static inline char *write_interval_sec(char *p, long val) {
     if (val <= 99) {
         return write_uint2d(p, val);
     }
@@ -1740,35 +1736,44 @@ static inline char *write_interval_secs(char *p, long val) {
     return p;
 }
 
-void coder_timestamp(LogCtx *log_ctx) {
+void initialize_timer(LfCtx *lf, LogCtx *log_ctx) {
     struct timespec tp;
-    clock_gettime(CLOCK_MONOTONIC, &tp);
+    clock_gettime(CLOCK_REALTIME, &tp);
+    log_ctx->start_sec = tp.tv_sec;
+    log_ctx->start_nsec = tp.tv_nsec;
+    log_ctx->prev_interval_sec = tp.tv_sec;
+    log_ctx->prev_interval_nsec = tp.tv_nsec;
+    lf->start_sec = tp.tv_sec;
+    lf->start_nsec = tp.tv_nsec;
+    lf->prev_interval_sec = tp.tv_sec;
+    lf->prev_interval_nsec = tp.tv_nsec;
+}
 
-    long cur_secs = tp.tv_sec % 60;
-    long cur_ms = tp.tv_nsec / 1000000;
-    long cur_us = (tp.tv_nsec / 1000) % 1000;
-    long cur_ns = tp.tv_nsec % 1000;
+void coder_timestamp(LfCtx *lf, LogCtx *log_ctx) {
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
 
-    long interval_secs = tp.tv_sec - log_ctx->prev_sec;
-    long interval_nsecs = tp.tv_nsec - log_ctx->prev_nsec;
-
-    if (interval_nsecs < 0) {
-        interval_secs -= 1;
-        interval_nsecs += 1000000000L;
+    long cur_sec = (tp.tv_sec - log_ctx->start_sec) % 60;
+    long cur_nsec = (tp.tv_nsec - log_ctx->start_nsec);
+    long cur_ms = (cur_nsec / 1000000);
+    long cur_us = (cur_nsec / 1000) % 1000;
+    long cur_ns = cur_nsec % 1000;
+    long interval_sec = tp.tv_sec - log_ctx->prev_interval_sec;
+    long interval_nsec = tp.tv_nsec - log_ctx->prev_interval_nsec;
+    if (interval_nsec < 0) {
+        interval_sec -= 1;
+        interval_nsec += 1000000000L;
     }
-
-    long int_ms = interval_nsecs / 1000000;
-    long int_us = (interval_nsecs / 1000) % 1000;
-    long int_ns = interval_nsecs % 1000;
-
-    log_ctx->prev_sec = tp.tv_sec;
-    log_ctx->prev_nsec = tp.tv_nsec;
-
+    long int_ms = (interval_nsec / 1000000);
+    long int_us = (interval_nsec / 1000) % 1000;
+    long int_ns = interval_nsec % 1000;
+    log_ctx->prev_interval_sec = tp.tv_sec;
+    log_ctx->prev_interval_nsec = tp.tv_nsec;
     char *p = log_ctx->time_buf;
 
     // --- Block 1: Current Time Timestamp ---
     *p++ = '[';
-    p = write_uint2d(p, cur_secs);
+    p = write_uint2d(p, cur_sec);
     *p++ = '.';
     WRITE_STR(p, sgr_c[YELLOW]);
     p = write_uint3d(p, cur_ms);
@@ -1781,7 +1786,7 @@ void coder_timestamp(LogCtx *log_ctx) {
 
     // --- Block 2: Interval Time Timestamp ---
     *p++ = '[';
-    p = write_interval_secs(p, interval_secs); // Handles arbitrary size safely
+    p = write_interval_sec(p, interval_sec); // Handles arbitrary size safely
     *p++ = '.';
     WRITE_STR(p, sgr_c[YELLOW]);
     p = write_uint3d(p, int_ms);
@@ -1794,21 +1799,29 @@ void coder_timestamp(LogCtx *log_ctx) {
 
     *p = '\0';
 }
-
 /** log_open
     @brief Open the log file for writing
     @ingroup logging
     @return FILE pointer to the opened log file */
 void log_open(LfCtx *lf, LogCtx *log_ctx, size_t thread_id) {
+    bool local = true;
+    if (!lf->disp_level_mask && !lf->file_level_mask)
+        return;
     char log_record[MAXLEN];
     if (lf->log_fd == -1) {
         char *user = getenv("USER");
-        time_t t = time(NULL);
-        struct tm tp;
-        localtime_r(&t, &tp);
+        char tz_buf[16];
         char time_s[16];
-        strftime(time_s, 100, "%Y%m%d%H%M%S", &tp);
-        ssnprintf(lf->log_file_spec, MAXLEN - 1, "/tmp/%s_lf_%s.log", user, time_s);
+        struct timespec tp;
+        clock_gettime(CLOCK_REALTIME, &tp);
+        struct tm *tm = local ? localtime(&tp.tv_sec) : gmtime(&tp.tv_sec);
+        strftime(time_s, sizeof(time_s), "%Y%m%dT%H%M%S", tm);
+        if (local) {
+            strftime(tz_buf, sizeof(tz_buf), "%z", tm);
+        } else {
+            snprintf(tz_buf, sizeof(tz_buf), "Z");
+        }
+        ssnprintf(lf->log_file_spec, MAXLEN - 1, "/tmp/%s_lf_%s%s.log", user, time_s, tz_buf);
         lf->log_fd = open(lf->log_file_spec, O_WRONLY | O_CREAT | O_APPEND, 0644);
         if (lf->log_fd == -1) {
             ssnprintf(em0, MAXLEN - 1, _("Failed to open log file: %s"), lf->log_file_spec);
@@ -1819,11 +1832,6 @@ void log_open(LfCtx *lf, LogCtx *log_ctx, size_t thread_id) {
             exit(EXIT_FAILURE);
         }
     }
-    struct timespec tp;
-    clock_gettime(CLOCK_MONOTONIC, &tp);
-    log_ctx->prev_nsec = tp.tv_nsec;
-    log_ctx->prev_sec = tp.tv_sec;
-    log_ctx->start = tp.tv_sec;
     char ttyname[MAXLEN];
     char cmenu_user[MAXLEN];
     char *p = getenv(_("USER"));
@@ -1831,25 +1839,22 @@ void log_open(LfCtx *lf, LogCtx *log_ctx, size_t thread_id) {
     if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)
         strnz__cpy(log_record, ttyname, MAXLEN - 1);
     ssnprintf(log_record, MAXLEN - 1, _("Lf_Log started by user %s, thread %lu, on terminal '%s'"), cmenu_user, thread_id, ttyname);
-    if (lf->level & ll_t[INFO].bits)
-        lf_log(INFO, "%s:", log_record);
+    lf_log(INFO, "%s:", log_record);
     return;
 }
 
-void log_write_atomic(const LogLevel level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...);
+void log_write(const ll_e level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...) {
 
-void log_write(const LogLevel level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...) {
-    if (!(ll_t[level].bits & lf->level))
-        return;
-    if (!(lf->display_log || lf->file_log))
+    if (!(lf->file_level_mask & ll_t[level].bits) && !(lf->disp_level_mask & ll_t[level].bits))
         return;
     va_list args;
     va_start(args, fmt);
-    if (lf->log_fd == -1)
+    if ((lf->file_level_mask & ll_t[level].bits) && lf->log_fd == -1)
         log_open(lf, log_ctx, log_ctx->thread_id);
-    LogLevel safe_level = (level >= LOG_LEVEL_COUNT) ? INFO : level;
     struct stat st;
-    if (lf->log_fd == -1 || (stat(lf->log_file_spec, &st) == 0 && st.st_size >= MAX_LOG_SIZE)) {
+    fstat(lf->log_fd, &st);
+    if (lf->log_fd == -1 ||
+        ((fstat(lf->log_fd, &st) == 0) && (st.st_size >= MAX_LOG_SIZE))) {
         if (lf->log_fd != -1) {
             close(lf->log_fd);
             lf->log_fd = -1;
@@ -1862,13 +1867,11 @@ void log_write(const LogLevel level, LfCtx *lf, LogCtx *log_ctx, const char *fil
     }
     switch (lf->timestamp_style) {
     case ISO8601_ZULU:
-        iso8601_timestamp(lf, log_ctx);
-        break;
     case ISO8601_LOCAL:
         iso8601_timestamp(lf, log_ctx);
         break;
     case CODER:
-        coder_timestamp(log_ctx);
+        coder_timestamp(lf, log_ctx);
         break;
     case TIMESTAMP_STYLE_COUNT:
         break;
@@ -1876,21 +1879,22 @@ void log_write(const LogLevel level, LfCtx *lf, LogCtx *log_ctx, const char *fil
     char log_record[MAX_LOG_REC_LEN];
     ssnprintf(log_record, sizeof(log_record), "%s[%s%s%s]<%s:%s:%d> ",
               log_ctx->time_buf,
-              log_c[safe_level],
-              log_s[safe_level],
+              ll_t[level].SGR,
+              ll_t[level].name,
               ANSI_RESET,
               file, func, line);
     size_t len = strlen(log_record);
     vsnprintf(log_record + len, sizeof(log_record) - len, fmt, args);
     len = strlen(log_record);
     log_record[len++] = '\n';
-    if (lf->log_fd != -1) {
+    if (lf->file_level_mask & ll_t[level].bits) {
         if (write(lf->log_fd, log_record, len) == -1)
             perror("Failed to write atomic log record");
     }
-    if (lf->display_log)
+    if (lf->disp_level_mask & ll_t[level].bits) {
         if (write(lf->err_fd, log_record, len) == -1)
             perror("Failed to write atomic error record");
-    va_end(args);
-    return;
+        va_end(args);
+        return;
+    }
 }

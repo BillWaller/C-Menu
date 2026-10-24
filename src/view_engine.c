@@ -226,7 +226,6 @@ int view_cmd_processor(Init *init) {
     char shell_cmd_spec[MAXLEN];
     off_t n_cmd = 0L;
     off_t prev_file_pos;
-    uint max_pmincol;
     View *view = init->view;
     UiSurface *sfc = view->sfc;
     view->cmd[0] = '\0';
@@ -303,7 +302,6 @@ int view_cmd_processor(Init *init) {
                     n_cmd = 1;
             }
             shift = (uint)n_cmd;
-            max_pmincol = view->maxcol - view->cols;
             if ((view->pmincol + shift + view->cols) > view->maxcol)
                 view->pmincol = view->maxcol - view->cols + view->ln_win_cols;
             else
@@ -1141,11 +1139,15 @@ bool search(View *view, int search_cmd, char *regex_pattern) {
     while (1) {
         /** initialize iteration */
         if (search_cmd == '/') {
-            if (view->srch_curr_ln_no == view->file_size)
+            if (view->srch_curr_ln_no == view->ln_no_max)
                 view->srch_curr_ln_no = 0;
         } else {
-            if (view->srch_curr_ln_no == 0)
-                view->srch_curr_ln_no = view->file_size;
+            if (view->srch_curr_ln_no == 0) {
+                if (view->ln_no_max < view->scroll_lines)
+                    view->srch_curr_ln_no = view->ln_no_max;
+                else
+                    view->srch_curr_ln_no = 0;
+            }
         }
         if (view->srch_curr_ln_no == view->srch_beg_ln_no) {
             if (view->f_first_iter == true) {

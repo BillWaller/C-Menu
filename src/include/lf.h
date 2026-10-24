@@ -31,12 +31,12 @@ extern "C" {
 
 #define MAX_PATH_LEN _POSIX_PATH_MAX
 #define MAX_DEPTH 64
-#define DIR_BUF_SIZE 65536
+#define DIR_BUF_SIZE 131072
 #define CACHE_LINE_SIZE 64
 
-#define QUEUE_NODES (4 * 1024 * 1024)       // 4194304 * 16 = 64 MB
-#define CYCLE_NODES (1024 * 1024)           // 1048576 * 24 = 24 MB
-#define DIRECTORY_NODES (1024 * 1024)       // 1048576 * 32 = 32 MB
+#define QUEUE_NODES (2 * 1024 * 1024)       // 4194304 * 16 = 64 MB
+#define CYCLE_NODES (2 * 1024 * 1024)       // 4194304 & 16 = 64 MB
+#define DIRECTORY_NODES (2 * 1024 * 1024)   // 4194304 * 32 = 128 MB
 #define PATH_ARENA_BYTES (32 * 1024 * 1024) // 33554432 = 32 MB
 
 #define QUEUE_MASK (QUEUE_NODES - 1)
@@ -44,9 +44,24 @@ extern "C" {
 #define CYCLE_MASK (CYCLE_NODES - 1)
 #define PATH_ARENA_MASK (PATH_ARENA_BYTES - 1)
 
-#define STAGE_BUFFER_SIZE 64
-// #define DEBUG_CHILD_STAGING
+#define STAGE_BUFFER_SIZE 256
+#define DEBUG_CHILD_STAGING
 #define MAX_LOG_RECORD_LEN 4096
+
+#if defined(__has_c_attribute)
+#if __has_c_attribute(gnu::format)
+#define ATTR_FORMAT(archetype, fmt_idx, first_arg) [[gnu::format(archetype, fmt_idx, first_arg)]]
+#endif
+#endif
+
+// Fallback for older compilers (C11, C99, etc.) using legacy GCC syntax
+#ifndef ATTR_FORMAT
+#if defined(__GNUC__) || defined(__clang__)
+#define ATTR_FORMAT(archetype, fmt_idx, first_arg) __attribute__((format(archetype, fmt_idx, first_arg)))
+#else
+#define ATTR_FORMAT(archetype, fmt_idx, first_arg) /* Unsupported compiler, strip attribute */
+#endif
+#endif
 
 // Don't set __USE_GNU_GETTEXT as the translations are not yet complete
 #ifdef __USE_GNU_GETTEXT
@@ -88,38 +103,35 @@ extern "C" {
     X(DEQUEUE)            \
     X(ALL)                \
     X(COUNT_ERRORS)       \
-    X(ONLY_ERRORS)
+    X(ONLY_ERRORS)        \
+    X(SPIN_COUNT)         \
+    X(STAGING)
 const char *log_s[] = {LOG_LEVEL_LIST(AS_STRINGS)};
 typedef enum : uint16_t {
     LOG_LEVEL_LIST(AS_ENUM)
         LOG_LEVEL_COUNT
-} log_enum;
+} ll_e;
 
 typedef struct {
+    char key;
     const char *name;
     uint16_t bits;
+    char SGR[64];
 } log_level;
 log_level ll_t[] = {
-    [CONFIG] = {"CONFIG", 0b1},
-    [INFO] = {"INFO", 0b10},
-    [ERROR] = {"ERROR", 0b100},
-    [DEBUG] = {"DEBUG", 0b1000},
-    [CYCLE] = {"CYCLE", 0b10000},
-    [ENQUEUE] = {"ENQUEUE", 0b100000},
-    [DEQUEUE] = {"DEQUEUE", 0b1000000},
-    [ALL] = {"ALL", 0b1111111},
-    [COUNT_ERRORS] = {"COUNT_ERRORS", 0b100000000},
-    [ONLY_ERRORS] = {"ONLY_ERRORS", 0b1000000000},
-    [LOG_LEVEL_COUNT] = {"LOG_LEVEL_COUNT", 0b10000000000},
-};
-const char *log_c[] = {
-    [CONFIG] = "\033[37m",
-    [INFO] = "\033[1;30;46m",
-    [ERROR] = "\033[1;38;2;255;150;0m",
-    [DEBUG] = "\033[31m",
-    [CYCLE] = "\033[33m",
-    [ENQUEUE] = "\033[35m",
-    [DEQUEUE] = "\033[36m",
+    [CONFIG] = {'1', "CONFIG", 0b1, "\033[37m"},
+    [INFO] = {'2', "INFO", 0b10, "\033[1;30;46m"},
+    [ERROR] = {'3', "ERROR", 0b100, "\033[1;38;2;255;150;0m"},
+    [DEBUG] = {'4', "DEBUG", 0b1000, "\033[31m"},
+    [CYCLE] = {'5', "CYCLE", 0b10000, "\033[33m"},
+    [ENQUEUE] = {'6', "ENQUEUE", 0b100000, "\033[35m"},
+    [DEQUEUE] = {'7', "DEQUEUE", 0b1000000, "\033[36m"},
+    [ALL] = {'A', "ALL", 0b1111111, ""},
+    [COUNT_ERRORS] = {'C', "COUNT_ERRORS", 0b100000000, ""},
+    [ONLY_ERRORS] = {'O', "ONLY_ERRORS", 0b1000000000, ""},
+    [SPIN_COUNT] = {'S', "SPIN_COUNT", 0b10000000000, "\033[1;40;35m"},
+    [STAGING] = {'T', "STAGING", 0b100000000000, "\033[1;40;35m"},
+    [LOG_LEVEL_COUNT] = {'\0', "LOG_LEVEL_COUNT", 0, ""},
 };
 
 typedef uint16_t LogLevel;
@@ -183,9 +195,10 @@ const char *sgr_c[] = {
 };
 #define MAX_TIMESTAMP_LEN 64
 typedef struct {
-    long start;
-    long prev_nsec;
-    long prev_sec;
+    long start_nsec;
+    long start_sec;
+    long prev_interval_nsec;
+    long prev_interval_sec;
     size_t thread_id;
     char time_buf[MAX_TIMESTAMP_LEN];
     char record[MAX_LOG_REC_LEN];
@@ -494,9 +507,11 @@ typedef struct {
     int err_fd;
     int log_fd;
     char log_file_spec[MAX_PATH_LEN];
-    char error_file_spec[MAX_PATH_LEN];
-    bool error_file_open;
     long flags;
+    long start_nsec;
+    long start_sec;
+    long prev_interval_nsec;
+    long prev_interval_sec;
     time_t after;
     time_t before;
     int max_depth;
@@ -523,26 +538,28 @@ typedef struct {
     tss_e timestamp_style;
     bool display_log;
     bool file_log;
-    uint16_t disp_level;
-    uint16_t file_level;
-    uint16_t level;
+    ll_e disp_level_mask;
+    ll_e file_level_mask;
     bool only_errors;
     bool count_errors;
-    // 1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, 6-QUEUE, 7-ONLY_ERRORS,
-    // 8-COUNT_ERRORS, 9-ALL
     bool count;
     bool count_silently;
 } LfCtx;
 
+// 1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, 6-QUEUE, 7-ONLY_ERRORS,
+// 8-COUNT_ERRORS, 9-ALL, S-SPIN_COUNT, T-STAGE
 extern void iso8601_timestamp(LfCtx *lf, LogCtx *log_ctx);
-void coder_timestamp(LogCtx *log_ctx);
+void coder_timestamp(LfCtx *lf, LogCtx *log_ctx);
+void initialize_timer(LfCtx *lf, LogCtx *log_ctx);
 extern void log_open(LfCtx *lf, LogCtx *log_ctx, size_t thread_id);
-__attribute__((format(printf, 7, 8))) void log_write(const LogLevel level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...);
+ATTR_FORMAT(printf, 7, 8)
+void log_write(const ll_e level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...);
 
-#define lf_log(level, fmt, ...)                                                          \
-    do {                                                                                 \
-        log_write(level, lf, log_ctx, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__); \
-    } while (0)
+#define lf_log(level, fmt, ...)                                     \
+    {                                                               \
+        log_write(level, lf, log_ctx, __FILE__, __func__, __LINE__, \
+                  fmt, ##__VA_ARGS__);                              \
+    }
 
 #ifdef __cplusplus
 }

@@ -188,8 +188,7 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
 int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf, const unsigned char, struct stat *, bool stat_cached, OutputBuffer *);
 bool build_full_path(char *, size_t, const char *, const char *, size_t *);
 void flush_output_buffer(LfContext *, OutputBuffer *);
-bool append_output_buffer(LfContext *, OutputBuffer *, const char *, size_t,
-                          bool);
+bool append_output_buffer(LfContext *, OutputBuffer *, const char *, size_t, bool);
 int err_out(LfContext *lf, const char *format, ...);
 void cycle_arena_init(void);
 void cycle_arena_destroy(void);

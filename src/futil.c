@@ -105,7 +105,6 @@ bool verify_file(char *, uint);
 bool verify_dir(char *, uint);
 bool locate_file_in_path(char *, char *);
 size_t canonicalize_file_spec(char *);
-size_t ssnprintf(char *, size_t, const char *, ...);
 size_t string_cpy(String *, const String *);
 size_t string_cat(String *, const String *);
 size_t string_ncat(String *, const String *, size_t);
@@ -372,33 +371,39 @@ size_t trim(char *s) {
     *d = '\0';
     return (size_t)(d - s);
 }
-/** @brief ssnprintf was designed to be a safer alternative to snprintf.
-    @ingroup utility_functions
-    @details It ensures that the buffer is not overflowed by taking the buffer
-   size as a parameter and using vsnprintf internally. It also returns the
-   number of characters that would have been written if enough space had been
-   available, allowing the caller to detect truncation. This function is
-   particularly useful in situations where the formatted string may exceed the
-   buffer size, as it prevents buffer overflows and provides a way to handle
-   such cases gracefully.
-    @param buf - buffer to receive formatted string
-    @param buf_size - size of buffer
-    @param format - printf-style format string
-    @param ... - arguments
-    @returns number of characters that would have been written if enough space
-   had been available */
+/**
+ * @brief Custom safe string formatting utility (va_list version).
+ */
+size_t vssnprintf(char *buf, size_t buf_size, const char *format, va_list args) {
+    /* Handle edge cases: an explicit NULL buffer or zero size */
+    if (buf == NULL || buf_size == 0)
+        return 0;
+    int result = vsnprintf(buf, buf_size, format, args);
+    if (result < 0) {
+        buf[0] = '\0';
+        return 0;
+    }
+    size_t bytes_written = (size_t)result;
+    /* Check if the output was truncated due to buffer limits.
+     * vsnprintf returns the total bytes *needed*, not bytes written. */
+    if (bytes_written >= buf_size)
+        return buf_size - 1; // Return the exact length of the truncated string
+    return bytes_written;
+}
 
-__attribute__((format(printf, 3, 4))) size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
+/**
+ * @brief Custom safe string formatting utility (Variadic version).
+ */
+ATTR_FORMAT(printf, 3, 4)
+size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
     if (buf == nullptr || format == nullptr || buf_size == 0)
         return 0;
-    size_t n;
     va_list args;
-
+    size_t result;
     va_start(args, format);
-    n = vsnprintf(buf, buf_size, format, args);
+    result = vssnprintf(buf, buf_size, format, args);
     va_end(args);
-
-    return n;
+    return result;
 }
 /** @brief Converts a string into an array of argument strings.
     @ingroup utility_functions

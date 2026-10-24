@@ -62,6 +62,10 @@ View is the modern, high-performance file viewer/pager designed to handle large 
 C-Menu Menu, Form, Pick, and View read configuration data from $CMENU_HOME/.minitrc
 Many options, colors for instance, are more suited for .minitrc than for the command line.
 
+# TIPS
+
+To copy text from the view window to the clipboard, hold down the shift key and press the left mouse button while dragging the cursor over the text you want to copy. Then, continuing to hold down the shift key, right click to copy the selected text to the clipboard. This is a standard feature of many terminal emulators, but it is not supported by all terminal emulators.
+
 # GEOMETRY
 
 By default, C-Menu determines the size and position of various windows based on content and terminal size. The following options allow you to specify the location and size of Windows, but C-Menu may override if the specified geometry is too large for the terminal.

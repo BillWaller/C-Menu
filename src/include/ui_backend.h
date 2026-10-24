@@ -36,6 +36,20 @@ extern "C" {
 #include <unistd.h>
 #include <wchar.h>
 
+#if defined(__has_c_attribute)
+#if __has_c_attribute(gnu::format)
+#define ATTR_FORMAT(archetype, fmt_idx, first_arg) [[gnu::format(archetype, fmt_idx, first_arg)]]
+#endif
+#endif
+
+#ifndef ATTR_FORMAT
+#if defined(__GNUC__) || defined(__clang__)
+#define ATTR_FORMAT(archetype, fmt_idx, first_arg) __attribute__((format(archetype, fmt_idx, first_arg)))
+#else
+#define ATTR_FORMAT(archetype, fmt_idx, first_arg) /* Unsupported compiler, strip attribute */
+#endif
+#endif
+
 extern int sfc_ptr;
 extern int win_ptr;
 extern bool f_ncurses_open;
@@ -1118,10 +1132,10 @@ int ui_assign_chyron_win(UiChyron *chyron, UiSurface *sfc, ss_t w, char *y);
 void ui_deactivate_chyron_key(UiChyron *chyron, uint k);
 void ui_deactivate_all_chyron_keys(UiChyron *chyron);
 UiChyron *ui_destroy_chyron(UiChyron *chyron);
+UiChyron *ui_new_chyron(UiSurface *sfc, ss_t w);
 void ui_display_chyron(UiSurface *sfc, ss_t w, UiChyron *chyron, uint line, uint col);
 int ui_get_chyron_key(UiChyron *chyron, uint x);
 bool ui_is_set_chyron_key(UiChyron *chyron, uint k);
-UiChyron *ui_new_chyron(UiSurface *sfc, ss_t w);
 void ui_set_chyron_key(UiChyron *chyron, uint k, char *s, uint kc);
 void ui_set_chyron_key_cb(UiChyron *chyron, uint k, char *s, uint kc, UiCell cell_base);
 void ui_unset_chyron_key(UiChyron *chyron, uint k);
@@ -1134,14 +1148,15 @@ void ui_compile_chyron(UiChyron *);
 extern char *ui_iso8601_timestamp(char *buf, size_t n, bool local);
 extern int ui_open_log();
 
-void ui_log_write(const UiLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...) __attribute__((format(printf, 5, 6)));
+ATTR_FORMAT(printf, 5, 6)
+void ui_log_write(const UiLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...);
 
 #define ui_log(level, fmt, ...)                                                    \
-    do {                                                                           \
+    {                                                                              \
         if (level <= ui_log_ctx.min_level) {                                       \
             ui_log_write(level, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__); \
         }                                                                          \
-    } while (0)
+    }
 
 #ifdef __cplusplus
 extern "C" {
