@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-24T16:51:42-05:00* - FIX: #1040 lf3: There was an issue with the consistency of timestamps in the lf3 log that resulted from sharing a context between threads. The fix was to create a new context for each thread, which resolved the timestamp inconsistency. lf3 is the candidate to replace lf prior to the 1.0 release, and this fix was necessary to ensure that the log timestamps are accurate and reliable. 
+
+*2026-10-24T12:20:30-05:00* - Update CHANGELOG.md 
+
 *2026-10-24T12:19:16-05:00* - FIX: #1039 View: When searching for a term that is not found, view failed to wrap vertically and core dumped due to comparing a line number index with a file position offset. After changing the comparison to be between two line number indices, the problem was fixed. 
 
 *2026-10-22T23:26:50-05:00* - Update CHANGELOG.md 
