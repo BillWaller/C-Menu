@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-24T12:19:16-05:00* - FIX: #1039 View: When searching for a term that is not found, view failed to wrap vertically and core dumped due to comparing a line number index with a file position offset. After changing the comparison to be between two line number indices, the problem was fixed. 
+
+*2026-10-22T23:26:50-05:00* - Update CHANGELOG.md 
+
 *2026-10-22T23:25:49-05:00* - FIXES: #1037 View: Horizontal scrolling wasn't accounting for offset due to the line number pane, so it wouldn't scroll to the last 8 columns of content. The fix was to add the line number pane's width to the horizontal offset. This is the same problem as #1036, except in the NCurses backend. 
 
 *2026-10-22T17:18:44-05:00* - Update CHANGELOG.md 
