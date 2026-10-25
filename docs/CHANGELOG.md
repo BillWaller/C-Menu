@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-25T15:54:57-05:00* - FIXES: #1041, #1042, #1043 pipeline with view, lines longer than 1024 bytes may cause the highlighting program to stall indefinitely. This is not a bug in view, but rather a limitation of the highlighting programs. There is possibly one fix and two known workarounds. The fix is to use a highlighting program that can handle long lines. I have not been able to find one. The workarounds are 1) break up the long lines before passing them to the highlighting program, or 2) don't use the highlighting program and pass the raw text to view. 
+
+*2026-10-24T20:49:15-05:00* - Update CHANGELOG.md 
+
 *2026-10-24T20:48:33-05:00* - CLEANUP: General tidying up of lf3.c 
 
 *2026-10-24T16:52:23-05:00* - Update CHANGELOG.md 
