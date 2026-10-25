@@ -94,6 +94,7 @@ extern "C" {
 #define AS_ENUM(NAME) NAME,
 
 #define LOG_LEVEL_LIST(X) \
+    X(NONE)               \
     X(CONFIG)             \
     X(INFO)               \
     X(ERROR)              \
@@ -119,6 +120,7 @@ typedef struct {
     char SGR[64];
 } log_level;
 log_level ll_t[] = {
+    [NONE] = {'1', "NONE", 0, "\033[37m"},
     [CONFIG] = {'1', "CONFIG", 0b1, "\033[37m"},
     [INFO] = {'2', "INFO", 0b10, "\033[1;30;46m"},
     [ERROR] = {'3', "ERROR", 0b100, "\033[1;38;2;255;150;0m"},
@@ -131,9 +133,8 @@ log_level ll_t[] = {
     [ONLY_ERRORS] = {'O', "ONLY_ERRORS", 0b1000000000, ""},
     [SPIN_COUNT] = {'S', "SPIN_COUNT", 0b10000000000, "\033[1;40;35m"},
     [STAGING] = {'T', "STAGING", 0b100000000000, "\033[1;40;35m"},
-    [LOG_LEVEL_COUNT] = {'\0', "LOG_LEVEL_COUNT", 0, ""},
+    [LOG_LEVEL_COUNT] = {'T', "LOG_LEVEL_COUNT", 0b1000000000000, ""},
 };
-
 typedef uint16_t LogLevel;
 
 #define TIMESTAMP_STYLE(X) \
@@ -536,8 +537,7 @@ typedef struct {
     bool hidden_only;
     bool follow_links;
     tss_e timestamp_style;
-    bool display_log;
-    bool file_log;
+    bool f_logging;
     ll_e disp_level_mask;
     ll_e file_level_mask;
     bool only_errors;

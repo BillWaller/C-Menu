@@ -406,6 +406,7 @@ int main(int argc, char **argv) {
     lf->error_count = 0;
     lf->disp_level_mask = 0;
     lf->file_level_mask = 0;
+    lf->f_logging = false;
     lf->log_fd = -1;
     lf->log_error_count = false;
     lf->nthreads = 0;
@@ -698,6 +699,8 @@ void debug_out(LfCtx *lf, int argc, char **argv) {
     It also initializes threads for concurrent processing of directory entries.
    */
 bool init_lf(LfCtx *lf, int argc, char **argv) {
+    if (lf->disp_level_mask || lf->file_level_mask)
+        lf->f_logging = true;
     LogCtx x_log_ctx = {
         .start_nsec = 0,
         .start_sec = 0,
@@ -705,6 +708,7 @@ bool init_lf(LfCtx *lf, int argc, char **argv) {
         .p_int_sec = 0,
         .record[0] = '\0',
     };
+    lf->f_logging = true;
     LogCtx *log_ctx = &x_log_ctx;
     if (!lf->include_types)
         lf->include_types = 0xff;
@@ -720,7 +724,8 @@ bool init_lf(LfCtx *lf, int argc, char **argv) {
         if (reti) {
             ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, _("lf->re: '%s' Invalid pattern\n"), lf->re);
             fprintf(stderr, "%s", lf->log_record);
-            lf_log(ERROR, "%s", lf->log_record);
+            if (lf->f_logging)
+                lf_log(ERROR, "%s", lf->log_record);
             regfree(&lf->compiled_re);
             return false;
         }
@@ -1048,20 +1053,22 @@ bool mpmc_enqueue(LfCtx *lf, const QueuePayload *new_node, size_t thread_id, Log
             if (atomic_compare_exchange_strong_explicit(&lf->q->enqueue_pos, &pos, pos + 1, memory_order_release, memory_order_relaxed))
                 break;
         } else if (diff < 0) { // Queue is full
-            if ((lf->file_level_mask & ll_t[ENQUEUE].bits) ||
-                (lf->disp_level_mask & ll_t[ENQUEUE].bits)) {
-                char log_record[MAXLEN];
-                snprintf(log_record, MAXLEN - 1, "thread %3lu <%10s %12p %6u %6u %6lu/%-6lu %s",
-                         thread_id,
-                         "waiting",
-                         &new_node,
-                         new_node->self_idx,
-                         (new_node->dir_ctx->parent_idx != NO_PARENT ? new_node->dir_ctx->parent_idx : 0),
-                         new_node->dir_ctx->path_offset,
-                         new_node->dir_ctx->path_len,
-                         &lf->path_arena->bytes[new_node->dir_ctx->path_offset]);
-                lf_log(ENQUEUE, "%s", log_record);
-                lf_log(ENQUEUE, "Queue full, thread %zu waiting to enqueue", thread_id);
+            if (lf->f_logging) {
+                if ((lf->file_level_mask & ll_t[ENQUEUE].bits) ||
+                    (lf->disp_level_mask & ll_t[ENQUEUE].bits)) {
+                    char log_record[MAXLEN];
+                    snprintf(log_record, MAXLEN - 1, "thread %3lu <%10s %12p %6u %6u %6lu/%-6lu %s",
+                             thread_id,
+                             "waiting",
+                             &new_node,
+                             new_node->self_idx,
+                             (new_node->dir_ctx->parent_idx != NO_PARENT ? new_node->dir_ctx->parent_idx : 0),
+                             new_node->dir_ctx->path_offset,
+                             new_node->dir_ctx->path_len,
+                             &lf->path_arena->bytes[new_node->dir_ctx->path_offset]);
+                    lf_log(ENQUEUE, "%s", log_record);
+                    lf_log(ENQUEUE, "Queue full, thread %zu waiting to enqueue", thread_id);
+                }
             }
             return false;
         } else {
@@ -1075,24 +1082,26 @@ bool mpmc_enqueue(LfCtx *lf, const QueuePayload *new_node, size_t thread_id, Log
 #endif
     }
     memcpy(&lf->q->nodes[pos & QUEUE_MASK], new_node, sizeof(QueuePayload));
-    if ((lf->file_level_mask & ll_t[ENQUEUE].bits) ||
-        (lf->disp_level_mask & ll_t[ENQUEUE].bits)) {
-        char log_record[MAX_LOG_REC_LEN];
-        snprintf(log_record, MAX_LOG_REC_LEN - 1, "thread %3lu  -> %12p idx %6u pidx %6u off/len %6lu/%-6lu path %s",
-                 thread_id,
-                 &new_node,
-                 new_node->self_idx,
-                 new_node->dir_ctx->parent_idx != NO_PARENT ? new_node->dir_ctx->parent_idx : 0, new_node->dir_ctx->path_offset,
-                 new_node->dir_ctx->path_len,
-                 &lf->path_arena->bytes[new_node->dir_ctx->path_offset]);
-        lf_log(ENQUEUE, "%s", log_record);
-        if (spin_count > 0) {
-            snprintf(log_record, MAX_LOG_REC_LEN - 1, "thread %3lu  -> %12p idx %6u spin_count %3d",
+    if (lf->f_logging) {
+        if ((lf->file_level_mask & ll_t[ENQUEUE].bits) ||
+            (lf->disp_level_mask & ll_t[ENQUEUE].bits)) {
+            char log_record[MAX_LOG_REC_LEN];
+            snprintf(log_record, MAX_LOG_REC_LEN - 1, "thread %3lu  -> %12p idx %6u pidx %6u off/len %6lu/%-6lu path %s",
                      thread_id,
                      &new_node,
                      new_node->self_idx,
-                     spin_count);
+                     new_node->dir_ctx->parent_idx != NO_PARENT ? new_node->dir_ctx->parent_idx : 0, new_node->dir_ctx->path_offset,
+                     new_node->dir_ctx->path_len,
+                     &lf->path_arena->bytes[new_node->dir_ctx->path_offset]);
             lf_log(ENQUEUE, "%s", log_record);
+            if (spin_count > 0) {
+                snprintf(log_record, MAX_LOG_REC_LEN - 1, "thread %3lu  -> %12p idx %6u spin_count %3d",
+                         thread_id,
+                         &new_node,
+                         new_node->self_idx,
+                         spin_count);
+                lf_log(ENQUEUE, "%s", log_record);
+            }
         }
     }
     atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + 1, memory_order_release);
@@ -1141,31 +1150,35 @@ void *worker(void *arg) {
     LogCtx *log_ctx = &x_log_ctx;
     size_t thread_id = atomic_fetch_add_explicit(&lf->thread_id, 1, memory_order_relaxed);
     log_ctx->thread_id = thread_id;
-    if (lf->log_fd == -1)
+    if (lf->f_logging && lf->log_fd == -1)
         initialize_timer(lf, log_ctx);
     else
         initialize_thread_timer(lf, log_ctx);
-    if ((lf->file_level_mask & ll_t[DEQUEUE].bits) ||
-        (lf->disp_level_mask & ll_t[DEQUEUE].bits)) {
-        char log_record[MAXLEN];
-        snprintf(log_record, MAXLEN - 1, "      thread %3lu  %s", log_ctx->thread_id, "worker starting");
-        lf_log(DEQUEUE, "%s", log_record);
+    if (lf->f_logging) {
+        if ((lf->file_level_mask & ll_t[DEQUEUE].bits) ||
+            (lf->disp_level_mask & ll_t[DEQUEUE].bits)) {
+            char log_record[MAXLEN];
+            snprintf(log_record, MAXLEN - 1, "      thread %3lu  %s", log_ctx->thread_id, "worker starting");
+            lf_log(DEQUEUE, "%s", log_record);
+        }
     }
     while (1) {
         if (mpmc_dequeue(lf, &dqnode, lf->thread_id) == false)
             break;
-        if ((lf->file_level_mask & ll_t[DEQUEUE].bits) ||
-            (lf->disp_level_mask & ll_t[DEQUEUE].bits)) {
-            char log_record[MAXLEN];
-            snprintf(log_record, MAXLEN - 1, "      thread %3lu  <- %12p idx %6u pidx %6u off/len %6lu/%-6lu path %s",
-                     thread_id,
-                     &dqnode,
-                     dqnode.self_idx,
-                     dqnode.dir_ctx->parent_idx != NO_PARENT ? dqnode.dir_ctx->parent_idx : 0,
-                     dqnode.dir_ctx->path_offset,
-                     dqnode.dir_ctx->path_len,
-                     &lf->path_arena->bytes[dqnode.dir_ctx->path_offset]);
-            lf_log(DEQUEUE, "%s", log_record);
+        if (lf->f_logging) {
+            if ((lf->file_level_mask & ll_t[DEQUEUE].bits) ||
+                (lf->disp_level_mask & ll_t[DEQUEUE].bits)) {
+                char log_record[MAXLEN];
+                snprintf(log_record, MAXLEN - 1, "      thread %3lu  <- %12p idx %6u pidx %6u off/len %6lu/%-6lu path %s",
+                         thread_id,
+                         &dqnode,
+                         dqnode.self_idx,
+                         dqnode.dir_ctx->parent_idx != NO_PARENT ? dqnode.dir_ctx->parent_idx : 0,
+                         dqnode.dir_ctx->path_offset,
+                         dqnode.dir_ctx->path_len,
+                         &lf->path_arena->bytes[dqnode.dir_ctx->path_offset]);
+                lf_log(DEQUEUE, "%s", log_record);
+            }
         }
         // STEP 1: Calculate Total Path Length via Index
         // Backtracking
@@ -1233,19 +1246,20 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
     unsigned char actual_type;
     unsigned char effective_type;
     int rc;
-    // Track subdirectories discovered during this syscall iteration
     QueuePayload stage[STAGE_BUFFER_SIZE];
     size_t directory_count = 0;
     size_t stage_buffer_count = 0;
 
     int dir_fd = open(current_dir_path, O_RDONLY | O_DIRECTORY | O_CLOEXEC);
     if (dir_fd == -1) {
-        if ((lf->file_level_mask & ll_t[ERROR].bits) ||
-            (lf->disp_level_mask & ll_t[ERROR].bits)) {
-            lf_log(ERROR, "OPEN_FAIL,%s,%s", current_dir_path, strerror(errno));
+        if (lf->f_logging) {
+            if ((lf->file_level_mask & ll_t[ERROR].bits) ||
+                (lf->disp_level_mask & ll_t[ERROR].bits)) {
+                lf_log(ERROR, "OPEN_FAIL,%s,%s", current_dir_path, strerror(errno));
+            }
         }
         flush_output_buffer(lf, output);
-        // delete goes here - NOT YET IMPLEMENTED
+        // delete goes here - TO BE IMPLEMENTED IN FUTURE
         // if (lf->unlink)
         //     finalize_directory_node(&dequeued_node->dir_ctx);
         return NULL;
@@ -1340,15 +1354,17 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
                 // ----------------------------------------------------------------
                 if (lf->follow_links && actual_type == DT_LNK) {
                     char target_path[MAX_PATH_LEN] = {'\0'};
-                    if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
-                        (lf->disp_level_mask & ll_t[CYCLE].bits)) {
-                        ssize_t len = readlinkat(dir_fd, entry->d_name, target_path, sizeof(target_path) - 1);
-                        if (len != -1)
-                            target_path[len] = '\0';
-                        ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1,
-                                  "Target item: dev: %lu, ino: %lu, Name: %s/%s\n",
-                                  effective_dev, effective_ino, current_dir_path, entry->d_name);
-                        lf_log(CYCLE, "%s", lf->log_record);
+                    if (lf->f_logging) {
+                        if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
+                            (lf->disp_level_mask & ll_t[CYCLE].bits)) {
+                            ssize_t len = readlinkat(dir_fd, entry->d_name, target_path, sizeof(target_path) - 1);
+                            if (len != -1)
+                                target_path[len] = '\0';
+                            ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1,
+                                      "Target item: dev: %lu, ino: %lu, Name: %s/%s\n",
+                                      effective_dev, effective_ino, current_dir_path, entry->d_name);
+                            lf_log(CYCLE, "%s", lf->log_record);
+                        }
                     }
                     // ------------------------------------------------------------
                     // BACKTRACK TO CHECK FOR CYCLE
@@ -1357,15 +1373,17 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
                     while (current_parent_idx != NO_PARENT) {
                         // Resolve the parent node safely from the stable global arena
                         QueuePayload *ancestor = &lf->queue_arena->nodes[current_parent_idx];
-                        if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
-                            (lf->disp_level_mask & ll_t[CYCLE].bits)) {
-                            ssnprintf(lf->log_record,
-                                      MAX_LOG_REC_LEN - 1,
-                                      "Checking Ancestor Index [%u] -> dev: %lu, ino: %lu\n",
-                                      current_parent_idx,
-                                      ancestor->cycle_ctx->dev,
-                                      ancestor->cycle_ctx->ino);
-                            lf_log(CYCLE, "%s", lf->log_record);
+                        if (lf->f_logging) {
+                            if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
+                                (lf->disp_level_mask & ll_t[CYCLE].bits)) {
+                                ssnprintf(lf->log_record,
+                                          MAX_LOG_REC_LEN - 1,
+                                          "Checking Ancestor Index [%u] -> dev: %lu, ino: %lu\n",
+                                          current_parent_idx,
+                                          ancestor->cycle_ctx->dev,
+                                          ancestor->cycle_ctx->ino);
+                                lf_log(CYCLE, "%s", lf->log_record);
+                            }
                         }
                         // If both the device and inode match an ancestor, we
                         // found a cycle loop!
@@ -1376,15 +1394,17 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
                         current_parent_idx = ancestor->cycle_ctx->parent_idx;
                     }
                     if (cycle_found) {
-                        if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
-                            (lf->disp_level_mask & ll_t[CYCLE].bits)) {
-                            ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, ("CYCLER,%lu/%lu,%s/%s,%lu/%lu,%s\n"),
-                                      effective_dev,
-                                      effective_ino,
-                                      current_dir_path,
-                                      entry->d_name,
-                                      effective_dev, effective_ino, target_path);
-                            lf_log(CYCLE, "%s", lf->log_record);
+                        if (lf->f_logging) {
+                            if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
+                                (lf->disp_level_mask & ll_t[CYCLE].bits)) {
+                                ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, ("CYCLER,%lu/%lu,%s/%s,%lu/%lu,%s\n"),
+                                          effective_dev,
+                                          effective_ino,
+                                          current_dir_path,
+                                          entry->d_name,
+                                          effective_dev, effective_ino, target_path);
+                                lf_log(CYCLE, "%s", lf->log_record);
+                            }
                         }
                         atomic_fetch_add(&lf->error_count, 1);
                         print_file(lf, effective_type, &sb, stat_cached, output, full_path);
@@ -1412,19 +1432,21 @@ void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char 
                 // generations can resolve it
                 lf->queue_arena->nodes[global_node_idx] = *child_task;
 #ifdef DEBUG_CHILD_STAGING
-                if ((lf->file_level_mask & ll_t[STAGING].bits) ||
-                    (lf->disp_level_mask & ll_t[STAGING].bits)) {
-                    ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, "thread %3lu >%10s %12p %6u %6u %6lu/%-6lu %s",
-                              thread_id,
-                              "stage",
-                              (void *)&child_task,
-                              child_task->self_idx,
-                              child_task->dir_ctx->parent_idx,
-                              child_task->dir_ctx->path_offset,
-                              child_task->dir_ctx->path_len,
-                              &lf->path_arena->bytes[child_task->dir_ctx->path_offset]);
+                if (lf->f_logging) {
+                    if ((lf->file_level_mask & ll_t[STAGING].bits) ||
+                        (lf->disp_level_mask & ll_t[STAGING].bits)) {
+                        ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, "thread %3lu >%10s %12p %6u %6u %6lu/%-6lu %s",
+                                  thread_id,
+                                  "stage",
+                                  (void *)&child_task,
+                                  child_task->self_idx,
+                                  child_task->dir_ctx->parent_idx,
+                                  child_task->dir_ctx->path_offset,
+                                  child_task->dir_ctx->path_len,
+                                  &lf->path_arena->bytes[child_task->dir_ctx->path_offset]);
 
-                    lf_log(STAGING, "%s", lf->log_record);
+                        lf_log(STAGING, "%s", lf->log_record);
+                    }
                 }
 #endif
                 // --------------------------------------------------------
@@ -1511,18 +1533,20 @@ void flush_ch(LfCtx *lf, QueuePayload *stage, size_t stage_buffer_count, size_t 
             //      handle_queue_overflow_fallback(stage, stage_buffer_count);
             //  }
 #ifdef DEBUG_CHILD_STAGING
-            if ((lf->file_level_mask & ll_t[STAGING].bits) ||
-                (lf->disp_level_mask & ll_t[STAGING].bits)) {
-                ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, "    thread %3lu stage[%lu] %12p, >self_idx %6u, parent_idx %6u, offest/len %6lu/%-6lu, path %s",
-                          thread_id,
-                          i,
-                          &stage[i],
-                          stage[i].self_idx,
-                          stage[i].dir_ctx->parent_idx,
-                          stage[i].dir_ctx->path_offset,
-                          stage[i].dir_ctx->path_len,
-                          &lf->path_arena->bytes[stage[i].dir_ctx->path_offset]);
-                lf_log(STAGING, "%s", lf->log_record);
+            if (lf->f_logging) {
+                if ((lf->file_level_mask & ll_t[STAGING].bits) ||
+                    (lf->disp_level_mask & ll_t[STAGING].bits)) {
+                    ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, "    thread %3lu stage[%lu] %12p, >self_idx %6u, parent_idx %6u, offest/len %6lu/%-6lu, path %s",
+                              thread_id,
+                              i,
+                              &stage[i],
+                              stage[i].self_idx,
+                              stage[i].dir_ctx->parent_idx,
+                              stage[i].dir_ctx->path_offset,
+                              stage[i].dir_ctx->path_len,
+                              &lf->path_arena->bytes[stage[i].dir_ctx->path_offset]);
+                    lf_log(STAGING, "%s", lf->log_record);
+                }
             }
 #endif
             if (!mpmc_enqueue(lf, &stage[i], thread_id, log_ctx)) {
