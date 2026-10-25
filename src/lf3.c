@@ -1158,7 +1158,7 @@ void *worker(void *arg) {
         if ((lf->file_level_mask & ll_t[DEQUEUE].bits) ||
             (lf->disp_level_mask & ll_t[DEQUEUE].bits)) {
             char log_record[MAXLEN];
-            snprintf(log_record, MAXLEN - 1, "      thread %3lu  %s", log_ctx->thread_id, "worker starting");
+            snprintf(log_record, MAXLEN - 1, "thread %3lu  %s", log_ctx->thread_id, "worker starting");
             lf_log(DEQUEUE, "%s", log_record);
         }
     }
@@ -1169,7 +1169,7 @@ void *worker(void *arg) {
             if ((lf->file_level_mask & ll_t[DEQUEUE].bits) ||
                 (lf->disp_level_mask & ll_t[DEQUEUE].bits)) {
                 char log_record[MAXLEN];
-                snprintf(log_record, MAXLEN - 1, "      thread %3lu  <- %12p idx %6u pidx %6u off/len %6lu/%-6lu path %s",
+                snprintf(log_record, MAXLEN - 1, "thread %3lu  <- %12p idx %6u pidx %6u off/len %6lu/%-6lu path %s",
                          thread_id,
                          &dqnode,
                          dqnode.self_idx,
@@ -1536,7 +1536,7 @@ void flush_ch(LfCtx *lf, QueuePayload *stage, size_t stage_buffer_count, size_t 
             if (lf->f_logging) {
                 if ((lf->file_level_mask & ll_t[STAGING].bits) ||
                     (lf->disp_level_mask & ll_t[STAGING].bits)) {
-                    ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, "    thread %3lu stage[%lu] %12p, >self_idx %6u, parent_idx %6u, offest/len %6lu/%-6lu, path %s",
+                    ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, "thread %3lu stage[%lu] %12p, >self_idx %6u, parent_idx %6u, offest/len %6lu/%-6lu, path %s",
                               thread_id,
                               i,
                               &stage[i],
@@ -1784,9 +1784,11 @@ void coder_timestamp(LogCtx *log_ctx) {
     long cur_us = (cur_nsec / 1000) % 1000;
     long cur_ns = cur_nsec % 1000;
 
+#ifdef DEBUG_INTERVAL_LOGGING
     fprintf(stderr, "DEBUG: thread: %2ld, start_sec: %010ld, start_nsec: %09ld, tp.tv_sec: %010ld, tp.tv_nsec: %09ld, cur: %02ld.%03ld_%03ld_%03ld\n",
             log_ctx->thread_id, log_ctx->start_sec, log_ctx->start_nsec, tp.tv_sec, tp.tv_nsec,
             cur_sec, cur_ms, cur_us, cur_ns);
+#endif
     // Interval calculation: time since last log entry
     long int_sec = tp.tv_sec - log_ctx->p_int_sec;
     long int_nsec = tp.tv_nsec - log_ctx->p_int_nsec;
@@ -1797,16 +1799,18 @@ void coder_timestamp(LogCtx *log_ctx) {
     long int_ms = (int_nsec / 1000000);
     long int_us = (int_nsec / 1000) % 1000;
     long int_ns = int_nsec % 1000;
-
+#ifdef DEBUG_INTERVAL_LOGGING
     fprintf(stderr, "DEBUG: thread: %2ld, p_int_sec: %010ld, p_int_nsec: %09ld, tp.tv_sec: %010ld, tp.tv_nsec: %09ld, int: %02ld.%03ld_%03ld_%03ld\n",
             log_ctx->thread_id, log_ctx->p_int_sec, log_ctx->p_int_nsec, tp.tv_sec, tp.tv_nsec,
             int_sec, int_ms, int_us, int_ns);
-
+#endif
     log_ctx->p_int_sec = tp.tv_sec;
     log_ctx->p_int_nsec = tp.tv_nsec;
 
+#ifdef DEBUG_INTERVAL_LOGGING
     fprintf(stderr, "DEBUG: thread: %2ld, p_int_sec: %010ld, p_int_nsec: %09ld\n",
             log_ctx->thread_id, log_ctx->p_int_sec, log_ctx->p_int_nsec);
+#endif
     char *p = log_ctx->time_buf;
 
     // --- Block 1: Current Time Timestamp ---
@@ -1923,7 +1927,7 @@ void log_write(const ll_e level, LfCtx *lf, LogCtx *log_ctx, const char *file, c
         break;
     }
     char log_record[MAX_LOG_REC_LEN];
-    ssnprintf(log_record, sizeof(log_record), "%s[%s%s%s]<%s:%s:%d> ",
+    ssnprintf(log_record, sizeof(log_record), "%s[%s%-8s%s]<%s:%-12s:%5d> ",
               log_ctx->time_buf,
               ll_t[level].SGR,
               ll_t[level].name,

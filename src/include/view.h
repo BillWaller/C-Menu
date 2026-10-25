@@ -108,91 +108,93 @@ typedef struct {
     bool f_full_screen;     /**< default mode if lines and columns not specified */
     bool f_timer;           /**< time commands and display elapsed time in prompt */
 
-    bool f_cmd;                       /**< cmd is verified */
-    bool f_cmd_all;                   /**< cmd_all is verified */
-    char cur_file_str[MAXLEN];        /**< file currently open for viewing */
-    char line_in_s[PAD_COLS];         /**< raw input line from buffer */
-    char line_out_s[PAD_COLS];        /**< scratch buffer */
-    char stripped_line_out[PAD_COLS]; /**< printable characters only */
-    UiCell cmplx_buf[PAD_COLS];       /**< complex character buffer */
-    char *line_out_p;                 /**< pointer to current position in line_out_s */
-    char *line_in_beg_p;              /**< pointer used in matching search targets */
-    char *line_in_end_p;              /**< pointer used in matching search targets */
-    uint cury;                        /**< cury is the pad row of the cursor location */
-    uint curx;                        /**< curx is the pad column of the cursor location */
-    uint scroll_lines;                /**< number of lines to scroll */
-    uint cmd_line;                    /**< command line location on pad */
-    uint maxcol;                      /**< length of longest line on pad */
-    uint pminrow;                     /**< first pad row displayed in view window */
-    uint pmincol;                     /**< first pad column displayed in view window */
-    uint sminrow;                     /**< screen position of first row of pad displayed in view
-                                        window */
-    uint smincol;                     /**< screen position of first column of pad displayed in view
-                                        window */
-    uint smaxrow;                     /**< screen position of last row of pad displayed in view
-                                        windiow */
-    uint smaxcol;                     /**< screen position of last column of pad displayed in view
-                                        window */
-    uint first_match_x;               /**< first column of current search match in
-                                        stripped_line_out */
-    uint last_match_x;                /**< last column of current search match in
-                                        stripped_line_out */
-    char in_spec[MAXLEN];             /**< input file spec */
-    char out_spec[MAXLEN];            /**< output file spec */
-    char help_spec[MAXLEN];           /**< help file spec */
-    bool f_in_spec;                   /**< input file verified */
-    bool f_out_spec;                  /**< output file verified */
-    bool f_help_spec;                 /**< output file verified */
-    char *file_spec_ptr;              /**< pointer to current file spec */
-    char *next_file_spec_ptr;         /**< pointer to next file spec */
-    char *tmp_file_name_ptr;          /**< pointer to temporary file spec */
-    off_t file_size;                  /**< size of file being viewed */
-    off_t file_pos;                   /**< current file position */
-    off_t prev_file_pos;              /**< previous file position */
-    off_t page_top_pos;               /**< file position of top line displayed */
-    off_t page_bot_pos;               /**< file position of last line displayed */
-    off_t page_bot_end_pos;           /**< file position of last line displayed */
-    off_t srch_curr_pos;              /**< current search position */
-    off_t srch_beg_pos;               /**< file position when search started */
-    off_t page_top_ln_no;             /**< line number of top line displayed */
-    off_t page_bot_ln_no;             /**< line number of last line displayed */
-    off_t srch_curr_ln_no;            /**< current search position */
-    off_t srch_beg_ln_no;             /**< file position when search started */
-    off_t mark_tbl[NMARKS];           /**< not implemented */
-    bool f_in_pipe;                   /**< input is from a pipe */
-    int in_fd;                        /**< input file descriptor */
-    int tmp_fd;                       /**< temporary file descriptor */
-    int out_fd;                       /**< output file descriptor */
-    FILE *in_fp;                      /**< pointer to input stream data structure */
-    int stdin_fd;                     /**< standard input file descriptor */
-    FILE *stdin_fp;                   /**< pointer to standard input stream data structure */
-    int stdout_fd;                    /**< standard output file descriptor */
-    FILE *stdout_fp;                  /**< pointer to standard output stream data structure */
-    char *buf;                        /**< pointer to first byte of virtual buffer */
-    char *buf_curr_ptr;               /**< pointer to current position in virtual buffer */
-    char *buf_end_ptr;                /**< pointer to first byte after end of data in virtual
-                                         buffer */
-    char *lnbuf;                      /**< pointer to first byte of virtual buffer */
-    char *lnbuf_curr_ptr;             /**< pointer to first byte of virtual buffer */
-    char *lnbuf_end_ptr;              /**< pointer to first byte after end of data in virtual
-                                       buffer */
-    uint ln_win_lines;                /**< number of lines in line number window */
-    uint ln_win_cols;                 /**< number of columns in line number window */
-    bool f_ln;                        /**< flag - number lines */
-    off_t ln_no;                      /**< line number */
-    char ln_s[10];                    /**< line number formatted string */
-    off_t *ln_tbl;                    /**< line number table - array of file positions */
-    off_t ln_tbl_size;                /**< number of entries allocated in line_tbl */
-    off_t ln_no_max;                  /**< last line number */
-    off_t ln_pos_max;                 /**< position of last page number increment */
-    bool wrap;                        /** flag - wrap lines longer than window width */
-    SplitLine cur;                    /**< split line structure for current line displayed */
-    bool page_top_sl;                 /**< flag - flag top line split */
-    bool page_bot_sl;                 /**< flag - flag bottom line split */
-    uint page_top_sl_idx;             /**< flag - top line split index */
-    uint page_bot_sl_idx;             /**< flag - bottom line split index */
-    uint page_top_sl_cnt;             /**< flag - top line split count */
-    uint page_bot_sl_cnt;             /**< flag - bottom line split count */
+    bool f_cmd;                           /**< cmd is verified */
+    bool f_cmd_all;                       /**< cmd_all is verified */
+    char cur_file_str[MAXLEN];            /**< file currently open for viewing */
+    char line_in_s[PAD_COLS + 1];         /**< raw input line from buffer */
+    char line_out_s[PAD_COLS + 1];        /**< scratch buffer */
+    char stripped_line_out[PAD_COLS + 1]; /**< printable characters only */
+    UiCell cmplx_buf[PAD_COLS + 1];       /**< complex character buffer */
+
+    char *line_out_p;         /**< pointer to current position in line_out_s */
+    char *line_in_beg_p;      /**< pointer used in matching search targets */
+    char *line_in_end_p;      /**< pointer used in matching search targets */
+    uint cury;                /**< cury is the pad row of the cursor location */
+    uint curx;                /**< curx is the pad column of the cursor location */
+    uint scroll_lines;        /**< number of lines to scroll */
+    uint cmd_line;            /**< command line location on pad */
+    uint maxcol;              /**< length of longest line on pad */
+    uint pminrow;             /**< first pad row displayed in view window */
+    uint pmincol;             /**< first pad column displayed in view window */
+    uint sminrow;             /**< screen position of first row of pad displayed in view
+                                window */
+    uint smincol;             /**< screen position of first column of pad displayed in view
+                                window */
+    uint smaxrow;             /**< screen position of last row of pad displayed in view
+                                windiow */
+    uint smaxcol;             /**< screen position of last column of pad displayed in view
+                                window */
+    uint first_match_x;       /**< first column of current search match in
+                                stripped_line_out */
+    uint last_match_x;        /**< last column of current search match in
+                                stripped_line_out */
+    char in_spec[MAXLEN];     /**< input file spec */
+    char out_spec[MAXLEN];    /**< output file spec */
+    char help_spec[MAXLEN];   /**< help file spec */
+    bool f_in_spec;           /**< input file verified */
+    bool f_out_spec;          /**< output file verified */
+    bool f_help_spec;         /**< output file verified */
+    char *file_spec_ptr;      /**< pointer to current file spec */
+    char *next_file_spec_ptr; /**< pointer to next file spec */
+    char *tmp_file_name_ptr;  /**< pointer to temporary file spec */
+    off_t file_size;          /**< size of file being viewed */
+    off_t file_pos;           /**< current file position */
+    off_t prev_file_pos;      /**< previous file position */
+    off_t page_top_pos;       /**< file position of top line displayed */
+    off_t page_bot_pos;       /**< file position of last line displayed */
+    off_t page_bot_end_pos;   /**< file position of last line displayed */
+    off_t srch_curr_pos;      /**< current search position */
+    off_t srch_beg_pos;       /**< file position when search started */
+    off_t page_top_ln_no;     /**< line number of top line displayed */
+    off_t page_bot_ln_no;     /**< line number of last line displayed */
+    off_t srch_curr_ln_no;    /**< current search position */
+    off_t srch_beg_ln_no;     /**< file position when search started */
+    off_t mark_tbl[NMARKS];   /**< not implemented */
+    bool f_in_pipe;           /**< input is from a pipe */
+
+    int in_fd;            /**< input file descriptor */
+    int tmp_fd;           /**< temporary file descriptor */
+    int out_fd;           /**< output file descriptor */
+    FILE *in_fp;          /**< pointer to input stream data structure */
+    int stdin_fd;         /**< standard input file descriptor */
+    FILE *stdin_fp;       /**< pointer to standard input stream data structure */
+    int stdout_fd;        /**< standard output file descriptor */
+    FILE *stdout_fp;      /**< pointer to standard output stream data structure */
+    char *buf;            /**< pointer to first byte of virtual buffer */
+    char *buf_curr_ptr;   /**< pointer to current position in virtual buffer */
+    char *buf_end_ptr;    /**< pointer to first byte after end of data in virtual
+                             buffer */
+    char *lnbuf;          /**< pointer to first byte of virtual buffer */
+    char *lnbuf_curr_ptr; /**< pointer to first byte of virtual buffer */
+    char *lnbuf_end_ptr;  /**< pointer to first byte after end of data in virtual
+                           buffer */
+    uint ln_win_lines;    /**< number of lines in line number window */
+    uint ln_win_cols;     /**< number of columns in line number window */
+    bool f_ln;            /**< flag - number lines */
+    off_t ln_no;          /**< line number */
+    char ln_s[10];        /**< line number formatted string */
+    off_t *ln_tbl;        /**< line number table - array of file positions */
+    off_t ln_tbl_size;    /**< number of entries allocated in line_tbl */
+    off_t ln_no_max;      /**< last line number */
+    off_t ln_pos_max;     /**< position of last page number increment */
+    bool wrap;            /** flag - wrap lines longer than window width */
+    SplitLine cur;        /**< split line structure for current line displayed */
+    bool page_top_sl;     /**< flag - flag top line split */
+    bool page_bot_sl;     /**< flag - flag bottom line split */
+    uint page_top_sl_idx; /**< flag - top line split index */
+    uint page_bot_sl_idx; /**< flag - bottom line split index */
+    uint page_top_sl_cnt; /**< flag - top line split count */
+    uint page_bot_sl_cnt; /**< flag - bottom line split count */
 } View;
 // extern View *view;
 

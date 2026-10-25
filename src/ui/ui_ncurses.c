@@ -746,6 +746,15 @@ int ui_wscrl(UiSurface *s, ss_t w, int n) {
 // -------------------------------------------------------------------------
 // Configuration Control
 // -------------------------------------------------------------------------
+int ui_immedok(UiSurface *s, ss_t w, bool enable) {
+    if (!s->mwin[w])
+        return -1;
+    if (enable)
+        immedok(s->mwin[w], true);
+    else
+        immedok(s->mwin[w], false);
+    return 0;
+}
 /** @brief Enable or disable scrolling for a UiSurface.
  *
  * @param s Pointer to the UiSurface for which to enable or disable scrolling.

@@ -1390,7 +1390,10 @@ void view_display_page(View *view) {
         if (view->wrap && view->cury == 0)
             view->cur.sl_idx = view->page_top_sl_idx;
         display_line(view);
+#ifdef DEBUG_IMMED_UI
         ui_render();
+        pad_refresh(view);
+#endif
         view->ln_no++;
     }
     if (view->f_eod) {
@@ -1435,13 +1438,16 @@ void display_line(View *view) {
         ui_wclrtoeol(sfc, LNNO);
         ui_mvwaddstr(sfc, LNNO, view->cury, 0, ln_s);
     }
-    ui_render();
     ui_cursor_move(sfc, PAD, view->cury, 0);
     ui_wclrtoeol(sfc, PAD);
 #ifdef UAL_UI
     ui_mvwadd_wchstr(sfc, PAD, view->cury, 0, view->cmplx_buf);
 #else
     ui_mvwadd_wchstr(sfc, PAD, view->cury, 0, (struct nccell *)view->cmplx_buf);
+#endif
+#ifdef DEBUG_IMMED_UI
+    ui_render();
+    pad_refresh(view);
 #endif
     if (view->cury == 0)
         view->page_top_ln_no = view->ln_no;
@@ -1804,14 +1810,17 @@ void scroll_prev(View *view, uint n) {
     }
     return;
 }
+
 /** __get_line
  */
 void get_line(View *view, off_t line) {
+    // if (view->f_eod)
+    //     return;
+    view->ln_no = line;
+    view->file_pos = view->ln_tbl[view->ln_no];
     char c;
     char *line_in_p;
 
-    view->ln_no = line;
-    view->file_pos = view->ln_tbl[view->ln_no];
     view->f_eod = false;
     get_next_char();
     if (view->f_eod) {
@@ -1821,12 +1830,16 @@ void get_line(View *view, off_t line) {
     }
     line_in_p = view->line_in_s;
     view->line_in_beg_p = view->line_in_s;
-    view->line_in_end_p = view->line_in_s + PAD_COLS;
+    view->line_in_end_p = view->line_in_s + PAD_COLS - 1;
     while (1) {
         if (c == '\n' || c == '\0')
             break;
-        if (line_in_p >= view->line_in_end_p)
+        if (line_in_p > view->line_in_end_p) {
+            *line_in_p = '\0';
+            increment_ln(view);
+            view->ln_no_max = view->ln_no;
             break;
+        }
         *line_in_p++ = c;
         get_next_char();
         if (view->f_eod) {
@@ -2097,7 +2110,9 @@ int pad_refresh(View *view) {
     (void)view;
     ncplane_move_yx(view->sfc->mplane[PAD], view->sminrow, -view->pmincol);
 #endif
+#ifdef IMMEDOK
     ui_render();
+#endif
     return 0;
 }
 
@@ -2152,9 +2167,9 @@ int fmt_line(View *view) {
     if (view->f_ln)
         sl_maxlen -= view->ln_win_cols;
     memset(view->stripped_line_out, 0, sizeof(view->stripped_line_out));
-    while (in_str[i] != '\0') {        // line
-        while (1) {                    // ANSI SGR, Character, and Word
-            if (in_str[i] == '\033') { // ANSI SGR
+    while (in_str[i] != '\0' && i <= PAD_COLS - 1) { // line
+        while (1) {                                  // ANSI SGR, Character, and Word
+            if (in_str[i] == '\033') {               // ANSI SGR
                 if (in_str[i + 1] == '[') {
                     len = strcspn(&in_str[i], "mK ") + 1;
                     memcpy(ansi_tok, &in_str[i], len + 1);
@@ -2240,22 +2255,29 @@ int fmt_line(View *view) {
                     wstr[1] = L'\0';
                     len = 1;
                 }
-                if (x > PAD_COLS - 1)
-                    return -1;
+                if (x > PAD_COLS - 1) {
+                    view->stripped_line_out[x++] = '\0';
+                    break;
+                }
                 view->stripped_line_out[x++] = in_str[i];
                 if (char_width > 1)
                     for (int n = 1; n < char_width; n++)
                         view->stripped_line_out[x++] = ' ';
+                if (j > PAD_COLS - 1) {
+                    char_width = 1;
+                    wstr[0] = L'\0';
+                    wstr[1] = L'\0';
+                    len = 1;
+                    ui_set_cell(view->sfc, PAD, &cc, wstr, attrs, cpx, nullptr);
+                    break;
+                }
                 ui_set_cell(view->sfc, PAD, &cc, wstr, attrs, cpx, nullptr);
-                if (j > PAD_COLS - 1)
-                    return -1;
                 cmplx_buf[j++] = cc;
                 i += len;
                 if (view->wrap) {
                     word_cols += char_width;
                     word_cells++;
                 }
-                continue;
             } // END Character and Word
         } // END WHILE - ANSI SGR, Character, and Word
         if (view->wrap) {        // handle line wrapping

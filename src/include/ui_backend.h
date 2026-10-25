@@ -896,6 +896,7 @@ int ui_wscrl(UiSurface *s, ss_t w, int rows);
 int ui_cursor_move(UiSurface *s, ss_t w, uint y, uint x);
 int ui_get_event_no_mouse(UiSurface *surface, ss_t w, UiEvent *ev);
 int ui_getch();
+int ui_immedok(UiSurface *s, ss_t w, bool enable);
 // ---------------------------------------------------------------
 // Screen Navigation
 // ---------------------------------------------------------------

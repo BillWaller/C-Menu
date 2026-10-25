@@ -29,10 +29,9 @@ ifeq ($(BUILD_TYPE), Release)
 	LINKOPT= -pthread -s
 #	EXTRA_CFLAGS=-flto
 else
-	DEBUG_FLAGS= -DDEBUG_COLOR
+#  	-DDEBUG_COLOR
 #	-DDEBUG_RESIZE -DDEBUG_LOG -DDEBUG_LAYOUT
-#	-DDEBUG_IMMEDOK
-	DEBUG_FLAGS=
+	DEBUG_FLAGS= -DDEBUG_IMMED_UI
 	CFLAGS:=-O0 -g3 -fPIC $(DEBUG_FLAGS) -pthread -fno-omit-frame-pointer \
 		-rdynamic $(UI)
 	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread
