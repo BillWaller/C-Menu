@@ -29,24 +29,23 @@ extern "C" {
 #include <unistd.h>
 #include <wait.h>
 
-#define MAX_PATH_LEN _POSIX_PATH_MAX
+// #define MAX_PATH_LEN _POSIX_PATH_MAX
 #define MAX_DEPTH 64
-#define DIR_BUF_SIZE 131072
 #define CACHE_LINE_SIZE 64
-
-#define QUEUE_NODES (2 * 1024 * 1024)       // 4194304 * 16 = 64 MB
-#define CYCLE_NODES (2 * 1024 * 1024)       // 4194304 & 16 = 64 MB
-#define DIRECTORY_NODES (2 * 1024 * 1024)   // 4194304 * 32 = 128 MB
-#define PATH_ARENA_BYTES (32 * 1024 * 1024) // 33554432 = 32 MB
+#define STAGE_BUFFER_SIZE 64
+#define MAX_PATH_LEN PATH_MAX
+#define MAX_LOG_RECORD_LEN MAX_PATH_LEN
+#define DIR_BUF_SIZE 131072
+#define QUEUE_NODES (2 * 1024 * 1024)
+#define CYCLE_NODES (2 * 1024 * 1024)
+#define DIRECTORY_NODES (2 * 1024 * 1024)
+#define PATH_ARENA_BYTES (32 * 1024 * 1024)
 
 #define QUEUE_MASK (QUEUE_NODES - 1)
 #define DIRECTORY_MASK (DIRECTORY_NODES - 1)
 #define CYCLE_MASK (CYCLE_NODES - 1)
 #define PATH_ARENA_MASK (PATH_ARENA_BYTES - 1)
-
-#define STAGE_BUFFER_SIZE 256
-#define DEBUG_CHILD_STAGING
-#define MAX_LOG_RECORD_LEN 4096
+// #define DEBUG_CHILD_STAGING
 
 #if defined(__has_c_attribute)
 #if __has_c_attribute(gnu::format)

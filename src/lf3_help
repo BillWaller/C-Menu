@@ -1,41 +1,24 @@
-lf list files
-
 v0.2.9
-
-Usage: lf3 [-iLRS?V] [-a time] [-b time] [-c[s]] [-d number] [-D 12345EDACO]
-            [-e regex] [-E file_spec] [-H[o]] [-l 12345EDACO] [-p sgrwx]
-            [-r regex] [-s size] [-t pcdbflsu] [-T threads] [-u user name]
-            [-U bool] [-W bool] [-y CZL] [--after=time] [--before=time]
-            [--count[=s]] [--max_depth=number] [--display_log=12345EDACO]
-            [--ere=regex] [--error_file_spec=file_spec] [--include_hidden[=o]]
-            [--ignore_case] [--file_log=12345EDACO] [--follow_links]
-            [--include_perms=sgrwx] [--re=regex] [--sort_reverse]
-            [--file_size_min=size] [--sort] [--include_types=pcdbflsu]
-            [--nthreads=threads] [--user=user name] [--unlink=bool]
-            [--depth_first=bool] [--timestamp_style=CZL] [--help] [--usage]
-            [--version] [DIRECTORY] [REGULAR_EXPRESSION]
-
 Usage: lf3 [OPTION...] [DIRECTORY] [REGULAR_EXPRESSION]
-
-If specified, DIRECTORY is the top-level directory to search.
-REGULAR_EXPRESSION is a properly formatted regular expression
-for which matching files will be listed.
+lf list files
+If specified, DIRECTORY is the top-level
+ directory to search. REGULAR_EXPRESSION is a properly
+formatted regular expression for which matching files
+will be listed.
 
   -a, --after=time           Last Modified after YYYY-MM-DDTHH:MM:SS
   -b, --before=time          Last Modified before YYYY-MM-DDTHH:MM:SS
   -c, --count[=s]            Count (s only report count)
   -d, --max_depth=number     Depth into directory tree
-  -D, --display_log=12345EDACO   1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE,
+  -D, --disp_level_mask=12345EDACO
+                             1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE,
                              E-ENQUEUE, D-DEQUEUE, A-ALL, C-COUNT_ERRORS,
                              O-ONLY_ERRORS
   -e, --ere=regex            Exclude regular expression
-  -E, --error_file_spec=file_spec
-                             Error message output file
   -H, --include_hidden[=o]   Include hidden files (o=hidden only)
   -i, --ignore_case          Search ignore case
-  -l, --file_log=12345EDACO  1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE,
-                             E-ENQUEUE, D-DEQUEUE, A-ALL, C-COUNT_ERRORS,
-                             O-ONLY_ERRORS
+  -l, --file_level_mask=2345EDAC   2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE,
+                             E-ENQUEUE, D-DEQUEUE, A-ALL, C-COUNT_ERRORS
   -L, --follow_links         Follow symbolic links
   -p, --include_perms=sgrwx  x-execute, w-write, r-read, s-setuid, g-setgid
   -r, --re=regex             Regular expression to search for
@@ -60,3 +43,14 @@ Mandatory or optional arguments to long options are also mandatory or optional
 for any corresponding short options.
 
 Report bugs to billxwaller@gmail.com.
+Usage: lf3 [-iLRS?V] [-a time] [-b time] [-c[s]] [-d number] [-D 12345EDACO]
+            [-e regex] [-H[o]] [-l 2345EDAC] [-p sgrwx] [-r regex] [-s size]
+            [-t pcdbflsu] [-T threads] [-u user name] [-U bool] [-W bool]
+            [-y CZL] [--after=time] [--before=time] [--count[=s]]
+            [--max_depth=number] [--disp_level_mask=12345EDACO] [--ere=regex]
+            [--include_hidden[=o]] [--ignore_case] [--file_level_mask=2345EDAC]
+            [--follow_links] [--include_perms=sgrwx] [--re=regex]
+            [--sort_reverse] [--file_size_min=size] [--sort]
+            [--include_types=pcdbflsu] [--nthreads=threads] [--user=user name]
+            [--unlink=bool] [--depth_first=bool] [--timestamp_style=CZL]
+            [--help] [--usage] [--version] [DIRECTORY] [REGULAR_EXPRESSION]

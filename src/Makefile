@@ -6,8 +6,8 @@
 # billxwaller@gmail.com
 # @date 2026-06-10
 #
-BUILD_TYPE=Release
 BUILD_TYPE=Debug
+BUILD_TYPE=Release
 # UI?=-DUAL_UI
 # UI?=-DNCURSES_UI
 # UI?=-DNOTCURSES_UI
@@ -31,7 +31,7 @@ ifeq ($(BUILD_TYPE), Release)
 else
 #  	-DDEBUG_COLOR
 #	-DDEBUG_RESIZE -DDEBUG_LOG -DDEBUG_LAYOUT
-	DEBUG_FLAGS= -DDEBUG_IMMED_UI
+#	DEBUG_FLAGS= -DDEBUG_IMMED_UI
 	CFLAGS:=-O0 -g3 -fPIC $(DEBUG_FLAGS) -pthread -fno-omit-frame-pointer \
 		-rdynamic $(UI)
 	LINKOPT= -g3 -fno-omit-frame-pointer -rdynamic -pthread

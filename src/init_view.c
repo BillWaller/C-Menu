@@ -39,9 +39,10 @@ ViewStack view_stack;
    creates a new pad for the view.
    @verbatim
    The function creates the following windows:
-   1. view->cmdln_win: Status or Command Line
-   2. view->lnno_win: Line Number Window
-   3. view->pad: Main Content Pad
+   1. view->win: Top Level Container
+   2. view->lnno: Line numbers
+   1. view->cmdln: Command Line
+   3. view->pad: Content
    @endverbatim
  */
 int init_view_full_screen(Init *init) {
@@ -67,10 +68,7 @@ int init_view_full_screen(Init *init) {
     ui_idlok(view->sfc, CMDLN, false);
     ui_idcok(view->sfc, CMDLN, false);
     ui_scrollok(view->sfc, CMDLN, false);
-    // -------------------> 4. VIEWPORT <-------------------
-    // ui_surface_addwin(view->sfc, VIEWPORT, WIN, view->lines - 1, view->cols -
-    // view->ln_win_cols, 0, view->ln_win_cols);
-    // -------------------> 5. PAD <-------------------
+    // -------------------> 4. PAD <-------------------
     ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols + 1, false);
     // ui_scrollok(view->sfc, PAD, true);
     // ui_setscrreg(view->sfc, PAD, 0, view->scroll_lines);
@@ -147,8 +145,8 @@ void view_calc_full_screen_dimensions(Init *init) {
 int init_view_boxwin(Init *init) {
     View *view = init->view;
     view->f_full_screen = false;
-    // -------------------> 1. BOX / WIN <-------------------
     view_calc_boxwin_dimensions(init);
+    // -------------------> 1. BOX <-------------------
     view->sfc = ui_surface_box(NULL, BOX, view->lines + 2, view->cols + 2, view->begy, view->begx, NULL);
 #ifdef DEBUG_Z_STACK
     ui_bkgd(view->sfc, BOX, &cell_magenta_bg);
@@ -158,6 +156,7 @@ int init_view_boxwin(Init *init) {
 #ifdef DEBUG_IMMED_UI
     ui_render();
 #endif
+    // -------------------> 2. WIN <-------------------
     ui_surface_addwin(view->sfc, WIN, BOX, view->lines, view->cols, 1, 1);
     ui_bkgd(view->sfc, WIN, &cell_nt);
     ui_werase(view->sfc, WIN);
@@ -168,7 +167,7 @@ int init_view_boxwin(Init *init) {
 #ifdef DEBUG_IMMED_UI
     ui_render();
 #endif
-    // -------------------> 2. LNNO <-------------------
+    // -------------------> 3. LNNO <-------------------
     if (view->f_ln) {
         ui_surface_addwin(view->sfc, LNNO, WIN, view->lines - 1, view->ln_win_cols, 0, 0);
         ui_bkgd(view->sfc, LNNO, &cell_ln);
@@ -184,7 +183,7 @@ int init_view_boxwin(Init *init) {
         ui_render();
 #endif
     }
-    // -------------------> 3. CMDLN <-------------------
+    // -------------------> 4. CMDLN <-------------------
     ui_surface_addwin(view->sfc, CMDLN, WIN, 1, view->cols, view->lines - 1, 0);
     ui_bkgd(view->sfc, CMDLN, &cell_nt);
     ui_keypad(view->sfc, CMDLN, true);
@@ -199,23 +198,7 @@ int init_view_boxwin(Init *init) {
 #ifdef DEBUG_IMMED_UI
     ui_render();
 #endif
-    // -------------------> 4. VIEWPORT <-------------------
-#ifdef NOT_NEEDED
-    ui_surface_addwin(view->sfc, VIEWPORT, WIN, view->lines, view->cols - view->ln_win_cols, 0, view->ln_win_cols);
-    if (!view->sfc->viewport) {
-        ssnprintf(em0, MAXLEN - 1, _("newwin(LINES, COLS, 0, 0) failed in init_view_full_screen"));
-        ui_log(INFO, "%s", em0);
-        exit(EXIT_FAILURE);
-        return -1;
-    }
-#endif
-#ifdef DEBUG_Z_STACK
-    ui_bkgd(view->sfc, VIEWPORT, &cell_green_bg);
-    ui_bkgdset(view->sfc, VIEWPORT, &cell_green_bg);
-    ui_mvwaddstr(view->sfc, VIEWPORT, 1, 1, "-- VIEWPORT --");
-#endif
-    ui_log(INFO, _("created view->sfc->viewport"));
-    // -------------------> 4. PAD <-------------------
+    // -------------------> 5. PAD <-------------------
     ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols + 1, true);
     ui_bkgd(view->sfc, PAD, &cell_nt);
     UiCaps caps;

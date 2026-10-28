@@ -378,7 +378,8 @@ void fast_exit(UiSurface *s) {
  * @param begx The x-coordinate (column) for the new pad's position (ignored in this implementation).
  * @return 0 on success, or -1 on failure.
  */
-int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t v, uint lines, uint cols, uint begy, uint begx, hidden) {
+int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t p, uint lines, uint cols, uint begy, uint begx, bool hidden) {
+    (void)p;
     (void)hidden;
     (void)begy;
     (void)begx;
@@ -389,7 +390,7 @@ int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t v, uint lines, uint cols, uin
         ui_log(level, "%s = newpad(lines=%d, cols=%d, hidden=%s) failed", ss_n[pad], lines, cols, hidden ? "true" : "false");
         return -1;
     }
-    ui_log(level, "%s = newpad(lines=%d, cols=%d, hidden=%s) success", lines, cols, hidden ? "true" : "false");
+    ui_log(level, "%s = newpad(lines=%d, cols=%d) success", ss_n[pad], lines, cols);
 #ifdef ASDFJKL
     s->mwin[v] = subpad(s->mwin[PAD], lines, cols, 0, 0);
     if (s->mwin[v] == nullptr) {
