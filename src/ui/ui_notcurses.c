@@ -64,13 +64,13 @@ void ui_get_caps(UiCaps *caps) {
     memset(caps, 0, sizeof(*caps));
     if (!ui)
         return;
-    // I don't know that it isn't truecolor
     caps->truecolor = true;
     caps->palette256 = true;
     caps->mouse = ui->mouse_enabled;
     caps->unicode = true;
     caps->resize = true;
-    caps->color_pairs = 0;
+    caps->color_pairs = UI_PAIRS;
+    caps->pad_relative_yx = true;
 }
 /* -------------------------------------------------------------------------
    Lifecycle
@@ -232,6 +232,7 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, ss_t p, uint lines, uint co
     ui_log(INFO, _("Memory allocated for new surface"));
     s->runtime = ui;
     s->parent = parent;
+    UiLogLevel level = INFO;
     ncplane_options plane_opts = {
         .y = y,
         .x = x,
@@ -245,16 +246,28 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, ss_t p, uint lines, uint co
     if (parent && parent->mplane[p]) {
         s->mplane[w] = ncplane_create(parent->mplane[p], &plane_opts);
         if (!s->mplane[w]) {
-            ui_log(ERROR, _("Failed to create mplane: %d"), w);
+            level = ERROR;
+            ui_log(level, "%s = ncplane_create(parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], ss_n[p], lines, cols, y, x);
+            notcurses_stop(ui->nc);
+            f_notcurses_open = false;
+            return NULL;
+        }
+        ui_log(level, "%s = ncplane_create(parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) success", ss_n[w], ss_n[p], lines, cols, y, x);
+        ncplane_set_base(s->mplane[PAD], " ", 0, cell_nt.channels);
+        ncplane_set_channels(s->mplane[PAD], cell_nt.channels);
+        if (!s->mplane[w]) {
+            return NULL;
         }
     } else {
         stdplane = notcurses_stdplane(ui->nc);
         s->mplane[w] = ncplane_create(stdplane, &plane_opts);
         if (!s->mplane[w]) {
-            ui_log(ERROR, _("Failed to create stdplane"));
+            level = ERROR;
+            ui_log(level, "%s = ncplane_create(parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], "stdplane", lines, cols, y, x);
+            return NULL;
         }
+        ui_log(level, "%s = ncplane_create(parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) success", ss_n[w], ss_n[p], lines, cols, y, x);
     }
-    ui_log(ERROR, _("mplane[%d] created"), w);
     if (!s->mplane[w]) {
         notcurses_stop(ui->nc);
         f_notcurses_open = false;
@@ -284,6 +297,7 @@ UiSurface *ui_surface_box(UiSurface *parent, ss_t p, uint lines, uint cols, uint
         return NULL;
     s->runtime = ui;
     s->parent = parent;
+    UiLogLevel level = INFO;
     ncplane_options plane_opts = {
         .y = y,
         .x = x,
@@ -295,24 +309,26 @@ UiSurface *ui_surface_box(UiSurface *parent, ss_t p, uint lines, uint cols, uint
     s->meta[BOX].lines = lines + 2;
     s->meta[BOX].cols = cols + 2;
     s->meta[BOX].hidden = false;
+    strnz__cpy(s->meta[BOX].title, wtitle, MAXLEN - 1);
     strnz__cpy(s->meta[BOX].name, "BOX", XLEN - 1);
+    ss_t w = BOX;
     if (parent && parent->mplane[p]) {
-        s->mplane[BOX] = ncplane_create(parent->mplane[p], &plane_opts);
+        s->mplane[w] = ncplane_create(parent->mplane[p], &plane_opts);
     } else {
         stdplane = notcurses_stdplane(ui->nc);
-        s->mplane[BOX] = ncplane_create(stdplane, &plane_opts);
+        s->mplane[w] = ncplane_create(stdplane, &plane_opts);
     }
-    if (!s->mplane[BOX]) {
+    if (!s->mplane[w]) {
+        level = ERROR;
+        ui_log(level, "ss_n[%s] = ncplane_create(%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], ss_n[p], lines, cols, y, x);
         free(s);
         return NULL;
     }
-    ncplane_set_base(s->mplane[BOX],
-                     " ",
-                     0,
-                     cell_box.channels);
-    ncplane_set_channels(s->mplane[BOX], cell_box.channels);
-    ui_border_draw(s);
-    ui_border_title(s, wtitle);
+    ui_log(level, "ss_n[%s] = ncplane_create(%s, lines=%d, cols=%d, begy=%d, begx=%d) success", ss_n[w], ss_n[p], lines, cols, y, x);
+    ncplane_set_channels(s->mplane[w], cell_box.channels);
+    ui_border_draw(s, w);
+    ui_border_title(s, w, wtitle);
+    ui_render();
     return s;
 }
 /** @brief Add padding to an existing UI surface.
@@ -330,39 +346,41 @@ UiSurface *ui_surface_box(UiSurface *parent, ss_t p, uint lines, uint cols, uint
  * for the new padded surface and sets its background and scrolling properties.
  * If any step fails, it cleans up and returns -1.
  */
-int ui_surface_addpad(UiSurface *s, ss_t w, ss_t p, uint lines, uint cols, uint y, uint x) {
+int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t win, uint lines, uint cols, uint y, uint x) {
     uint plines, pcols;
-    ncplane_dim_yx(s->mplane[p], &plines, &pcols);
-    plines = max(plines, lines);
-    pcols = max(pcols, cols);
-    ncplane_options plane_opts = {
-        .y = y,
-        .x = x,
-        .rows = lines,
-        .cols = cols,
-        // .margin_b = plines - y,
-        // .margin_r = cols - s->meta[p].cols - x,
-        .name = NULL,
-        // .flags = NCPLANE_OPTION_MARGINALIZED,
-    };
-    s->meta[w].y = y;
-    s->meta[w].x = x;
-    s->meta[w].lines = lines - y;
-    s->meta[w].cols = cols - x;
-    s->meta[w].hidden = false;
-    s->mplane[w] = ncplane_create(s->mplane[p], &plane_opts);
-    if (!s->mplane[w]) {
-        ui_log(ERROR, _("failed to create mplane[%d]"), w);
+    s->meta[pad].hidden = false;
+    ui_surface_addwin(s, VIEWPORT, win, s->meta[win].lines, s->meta[win].cols - x, y, x);
+    ui_surface_addwin(s, pad, VIEWPORT, lines, cols, 0, 0);
+    if (!s->mplane[pad]) {
+        ui_log(INFO, "ui_surface_addwin(%s, parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[pad], ss_n[VIEWPORT], lines, cols, 0, 0);
         notcurses_stop(ui->nc);
         f_notcurses_open = false;
         return -1;
     }
-    ncplane_set_base(s->mplane[w], " ", 0, cell_nt.channels);
-    ncplane_set_channels(s->mplane[w], cell_nt.channels);
-    ui_bkgd(s, w, &cell_nt);
-    ui_bkgdset(s, w, &cell_nt);
-    ui_render();
-    // ui_scrollok(s, w, false);
+    ui_log(INFO, "ui_surface_addwin(%s, parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) success", ss_n[pad], ss_n[VIEWPORT], lines, cols, 0, 0);
+    ncplane_dim_yx(stdplane, &plines, &pcols);
+    if (y != 0 || x != 0 || lines != plines) {
+        s->meta[pad].hidden = true;
+        ncplane_move_yx(s->mplane[pad], -s->meta[pad].lines - 1, 0);
+        ui_log(INFO, "ncplane_move(%s, begy=%d, begx=%d) success", ss_n[pad], 0, 0);
+    }
+    uint64_t channels = cell_nt.channels;
+    ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
+    ncplane_set_base(s->mplane[pad], " ", 0, cell_nt.channels);
+    // Step 6 fix: Ensure UI elements are stacked safely above the
+    // bleeding PAD
+    if (!s->meta[pad].hidden) {
+        ncplane_move_above(s->mplane[pad], s->mplane[VIEWPORT]);
+        ui_log(INFO, "ncplane_move_above(s->mplane[%s], s->mplane[%s]) success", ss_n[pad], ss_n[VIEWPORT]);
+        // PAD sits right on top of its background
+        ncplane_move_above(s->mplane[LNNO], s->mplane[pad]);
+        // Line numbers sit above PAD, clipping it on the left
+        ncplane_move_above(s->mplane[CMDLN], s->mplane[pad]);
+        // Command line sits above PAD, clipping it on the bottom
+        if (s->mplane[BOX])
+            ncplane_move_above(s->mplane[BOX], s->mplane[pad]);
+        ui_scrollok(s, pad, true);
+    }
     return 0;
 }
 /** @brief Add a new window to an existing UI surface.
@@ -393,16 +411,14 @@ int ui_surface_addwin(UiSurface *s, ss_t w, ss_t p, uint lines, uint cols, uint 
     s->meta[w].cols = cols;
     s->meta[w].hidden = false;
     s->mplane[w] = ncplane_create(s->mplane[p], &plane_opts);
+    UiLogLevel level = INFO;
     if (!s->mplane[w]) {
-        ui_log(ERROR, _("failed to create mplane[%d]"), w);
+        ui_log(level, "%s = ncplane_create(parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], ss_n[p], lines, cols, y, x);
         notcurses_stop(ui->nc);
         f_notcurses_open = false;
         return -1;
     }
-    ncplane_set_base(s->mplane[w], " ", 0, cell_nt.channels);
-    ncplane_set_channels(s->mplane[w], cell_nt.channels);
-    ui_bkgd(s, w, &cell_nt);
-    ui_bkgdset(s, w, &cell_nt);
+    ui_log(level, "%s = ncplane_create(parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) success", ss_n[w], ss_n[p], lines, cols, y, x);
     return 0;
 }
 /** @brief Destroy a UI surface and free its resources.
@@ -923,6 +939,7 @@ void ui_get_screen_size(uint *lines, uint *cols) {
         *lines = ui->lines;
     if (cols)
         *cols = ui->cols;
+    ui_log(INFO, "ui_get_screen_size(lines=%u, cols=%u)", *lines, *cols);
 }
 /** @brief Update the panels and render the UI.
  *
@@ -932,7 +949,23 @@ void ui_update_panels() {
     if (!ui)
         return;
     notcurses_render(ui->nc);
+    ui_log(INFO, "notcurses_render(ui->nc)");
 }
+
+int ui_plane_cpy(NcPlane *dst, NcPlane *src, int dst_y, int dst_x, int src_y, int src_x, int ylen, int xlen) {
+    if (!dst || !src)
+        return -1;
+    for (int y = 0; y < ylen; y++) {
+        for (int x = 0; x < xlen; x++) {
+            nccell c = NCCELL_TRIVIAL_INITIALIZER;
+            ncplane_at_yx_cell(src, src_y + y, src_x + x, &c);
+            ncplane_putc_yx(dst, dst_y + y, dst_x + x, &c);
+            nccell_release(src, &c);
+        }
+    }
+    return 0;
+}
+
 /** @brief Render the UI.
  *
  * This function renders the UI.
@@ -941,6 +974,26 @@ void ui_render() {
     if (!ui)
         return;
     notcurses_render(ui->nc);
+    ui_log(INFO, "notcurses_render(ui->nc)");
+}
+int ui_prefresh(UiSurface *s, ss_t w, int pminrow, int pmincol, int sminrow, int smincol, int smaxrow, int smaxcol) {
+    if (!ui)
+        return -1;
+    if (s->meta[PAD].hidden == false)
+        ncplane_move_yx(s->mplane[w], -pminrow, -pmincol);
+    else {
+        int dst_y = sminrow;
+        int dst_x = smincol;
+        int src_y = pminrow;
+        int src_x = pmincol;
+        int ylen = smaxrow - sminrow + 1;
+        int xlen = smaxcol - smincol + 1;
+        ui_plane_cpy(s->mplane[VIEWPORT], s->mplane[PAD], dst_y, dst_x, src_y, src_x, ylen, xlen);
+        ui_log(INFO, "ui_plane_cpy(dst: %s, src: %s, pminrow=%d, pmincol=%d, sminrow=%d, smincol=%d, smaxrow=%d, smaxcol=%d success)", ss_n[VIEWPORT], ss_n[PAD], pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol);
+    }
+    notcurses_render(ui->nc);
+    ui_log(INFO, "notcurses_render(ui->nc)");
+    return 0;
 }
 /** @brief Suspend the UI and leave the alternate screen.
  *

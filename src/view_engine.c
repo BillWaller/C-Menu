@@ -187,7 +187,7 @@ int view_file(Init *init) {
                 view->file_pos = 0;
                 strnz__cpy(view->title, view->cur_file_str, MAXLEN - 1);
                 if (!view->f_full_screen)
-                    ui_border_title(view->sfc, view->title);
+                    ui_border_title(view->sfc, BOX, view->title);
                 initialize_line_table(view);
                 page_next(view);
                 view_cmd_processor(init);
@@ -306,12 +306,6 @@ int view_cmd_processor(Init *init) {
                 view->pmincol = view->maxcol - view->cols + view->ln_win_cols;
             else
                 view->pmincol += shift;
-            // max_pmincol = (view->maxcol > view->cols) ? (view->maxcol -
-            // view->cols) : 0;
-            // if (view->pmincol + shift < max_pmincol)
-            //     view->pmincol += shift;
-            // else
-            //     view->pmincol = max_pmincol;
             break;
         case 'k': /** 'k', UIKEY_UP - Scroll up one line */
         case UIKEY_SCROLL_UP:
@@ -742,6 +736,7 @@ int get_cmd_char(View *view, off_t *n) {
     UiSurface *sfc = view->sfc;
     UiEvent event;
     pad_refresh(view);
+    ui_render();
     ui_mvwadd_wch(sfc, CMDLN, view->cmd_line, view->curx++, &cell_ran);
     ui_top_surface(sfc, CMDLN);
     ui_cursor_enable_yx(sfc, CMDLN, 0, view->curx, true);
@@ -1391,8 +1386,8 @@ void view_display_page(View *view) {
             view->cur.sl_idx = view->page_top_sl_idx;
         display_line(view);
 #ifdef DEBUG_IMMED_UI
-        ui_render();
         pad_refresh(view);
+        ui_render();
 #endif
         view->ln_no++;
     }
@@ -1404,6 +1399,8 @@ void view_display_page(View *view) {
     view->page_bot_end_pos = view->file_pos - 1;
     view->page_bot_pos = view->file_pos;
     view->page_bot_ln_no = view->ln_no;
+    // pad_refresh(view);
+    // ui_render();
 }
 /** @brief Display Line on Pad
     @ingroup view_display
@@ -1444,10 +1441,6 @@ void display_line(View *view) {
     ui_mvwadd_wchstr(sfc, PAD, view->cury, 0, view->cmplx_buf);
 #else
     ui_mvwadd_wchstr(sfc, PAD, view->cury, 0, (struct nccell *)view->cmplx_buf);
-#endif
-#ifdef DEBUG_IMMED_UI
-    ui_render();
-    pad_refresh(view);
 #endif
     if (view->cury == 0)
         view->page_top_ln_no = view->ln_no;
@@ -2088,28 +2081,22 @@ void sync_pos(View *view, off_t pos) {
     __pad_refresh
 */
 int pad_refresh(View *view) {
-#ifdef UAL_UI
     int rc = 0;
     // touchwin(view->sfc->mwin[WIN2]);
     // rc = pnoutrefresh(view->sfc->mwin[WIN2], view->pminrow, view->pmincol,
     // view->sminrow,
     //                  view->smincol, view->smaxrow, view->smaxcol);
-    rc = prefresh(view->sfc->mwin[PAD],
-                  view->pminrow,
-                  view->pmincol,
-                  view->sminrow,
-                  view->smincol,
-                  view->smaxrow,
-                  view->smaxcol);
+    rc = ui_prefresh(view->sfc,
+                     PAD,
+                     view->pminrow,
+                     view->pmincol,
+                     view->sminrow,
+                     view->smincol,
+                     view->smaxrow,
+                     view->smaxcol);
     if (rc == ERR) {
-        ssnprintf(em0, MAXLEN - 1, _("%s:%d prefresh(view->sfc->mwin[WIN2], pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n"),
-                  __FILE__, __LINE__ - 1, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
-        ui_perror(em0);
+        ui_log(ERROR, _("%s:%d prefresh(view->sfc->mwin[WIN2], pminrow=%d, pmincol=%d, smaxrow=%d, smaxcol=%d) returned %d\n"), __FILE__, __LINE__ - 1, view->pminrow, view->pmincol, view->smaxrow, view->smaxcol, rc);
     }
-#else
-    (void)view;
-    ncplane_move_yx(view->sfc->mplane[PAD], view->sminrow, -view->pmincol);
-#endif
 #ifdef IMMEDOK
     ui_render();
 #endif

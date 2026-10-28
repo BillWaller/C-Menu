@@ -85,6 +85,9 @@ typedef enum {
     SUB_SURFACE_LIST(AS_ENUM)
         SUB_SFC_MAX
 } ss_t;
+#define AS_STRINGS(NAME) #NAME,
+static const char *ss_n[] = {
+    SUB_SURFACE_LIST(AS_STRINGS)};
 #define CHYRON_KEY_MAXLEN 64 /**< maximum length of the command text */
 #define CHYRON_KEYS 20       /**< maximum number of key bindings for the chyron */
 
@@ -183,6 +186,7 @@ typedef uint16_t UiPairIdx;
 typedef uint UiColorIdx;
 typedef struct ncinput NcInput;
 typedef struct ncvisual NcVisual;
+typedef struct ncplane NcPlane;
 
 typedef struct {
     wchar_t wc;       // Wide character    4-bytes
@@ -491,12 +495,13 @@ typedef enum {
 } UiBackend;
 
 typedef struct {
-    bool truecolor;  /**< backend can display 24-bit RGB colors */
-    bool palette256; /**< backend supports at least 256 palette entries */
-    bool mouse;      /**< backend can deliver mouse events */
-    bool unicode;    /**< backend handles full Unicode / UTF-8 correctly */
-    bool resize;     /**< backend emits UIKEY_RESIZE on terminal resize */
-    int color_pairs; /**< max simultaneous color pairs; 0 = unlimited */
+    bool truecolor;       /**< backend can display 24-bit RGB colors */
+    bool palette256;      /**< backend supports at least 256 palette entries */
+    bool mouse;           /**< backend can deliver mouse events */
+    bool unicode;         /**< backend handles full Unicode / UTF-8 correctly */
+    bool resize;          /**< backend emits UIKEY_RESIZE on terminal resize */
+    int color_pairs;      /**< max simultaneous color pairs; 0 = unlimited */
+    bool pad_relative_yx; /**< pad coordinates relative to viewport */
 } UiCaps;
 
 extern int click_y; /**< the y coordinate of a mouse click */
@@ -521,10 +526,14 @@ extern ushort cp_ln_fg;     /**< line number color pair index */
 extern ushort cp_ln_bg;     /**< line number background color pair index */
 extern ushort cp_cmdln_fg;  /**< command line number color pair index */
 extern ushort cp_cmdln_bg;  /**< command line number background color pair index */
+extern ushort cp_black;     /**< red background color pair index */
 extern ushort cp_red;       /**< red background color pair index */
-extern ushort cp_green;     /**< green background color pair index */
+extern ushort cp_green;     /**< greenbackground color pair index */
 extern ushort cp_yellow;    /**< yellow background color pair index */
 extern ushort cp_blue;      /**< blue background color pair index */
+extern ushort cp_cyan;      /**< cyan background color pair index */
+extern ushort cp_magenta;   /**< magenta background color pair index */
+extern ushort cp_white;     /**< white background color pair index */
 extern uint clr_idx;        /**< current color index */
 extern uint clr_cnt;        /**< number of colors used */
 extern uint clr_pair_idx;   /**< current color pair index */
@@ -673,6 +682,14 @@ extern UiCell cell_tt;
 extern UiCell cell_bt;
 extern UiCell cell_cr;
 extern UiCell cell_sp;
+extern UiCell cell_black_bg;
+extern UiCell cell_red_bg;
+extern UiCell cell_green_bg;
+extern UiCell cell_yellow_bg;
+extern UiCell cell_blue_bg;
+extern UiCell cell_cyan_bg;
+extern UiCell cell_magenta_bg;
+extern UiCell cell_white_bg;
 
 #define XTERM_256COLOR 1
 #if defined(XTERM_256COLOR)
@@ -844,12 +861,12 @@ UiSurface *ui_surface_box(UiSurface *parent, ss_t p, uint lines, uint cols, uint
 int ui_tracked_sfc_box(uint wlines, uint wcols, uint wbegy, uint wbegx, const char *wtitle);
 int ui_tracked_sfc_split_box(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, const char *wtitle);
 int ui_surface_addwin(UiSurface *s, ss_t w, ss_t p, uint lines, uint cols, uint y, uint x);
-int ui_surface_addpad(UiSurface *s, ss_t w, ss_t view_win, uint lines, uint cols, uint begy, uint begx);
+int ui_surface_addpad(UiSurface *s, ss_t w, ss_t view_win, uint lines, uint cols, uint y, uint x);
 void ui_surface_destroy(UiSurface *s);
 int ui_cm_surface_destroy(UiSurface *sfc);
-int ui_border_draw(UiSurface *sfc);
-int ui_border_title(UiSurface *sfc, const char *title);
-int ui_border_ysplit(UiSurface *sfc, uint y);
+int ui_border_draw(UiSurface *sfc, ss_t w);
+int ui_border_title(UiSurface *sfc, ss_t w, const char *title);
+int ui_border_ysplit(UiSurface *sfc, ss_t w, uint y);
 int ui_border_ysplit_text(UiSurface *sfc, char *text, uint separator_line);
 void ui_shutdown();
 int ui_suspend();
@@ -897,6 +914,8 @@ int ui_cursor_move(UiSurface *s, ss_t w, uint y, uint x);
 int ui_get_event_no_mouse(UiSurface *surface, ss_t w, UiEvent *ev);
 int ui_getch();
 int ui_immedok(UiSurface *s, ss_t w, bool enable);
+int ui_prefresh(UiSurface *s, ss_t w, int pminrow, int pmincol, int sminrow, int smincol, int smaxrow, int smaxcol);
+int ui_plane_cpy(NcPlane *dst, NcPlane *src, int dst_y, int dst_x, int src_y, int src_x, int ylen, int xlen);
 // ---------------------------------------------------------------
 // Screen Navigation
 // ---------------------------------------------------------------

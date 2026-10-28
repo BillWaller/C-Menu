@@ -71,7 +71,8 @@ void ui_get_caps(UiCaps *caps) {
     caps->mouse = ui->mouse_enabled;
     caps->unicode = true;
     caps->resize = true;
-    caps->color_pairs = 0;
+    caps->color_pairs = UI_PAIRS;
+    caps->pad_relative_yx = false;
 }
 
 /* -------------------------------------------------------------------------
@@ -231,17 +232,15 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, ss_t p, uint lines, uint co
         return NULL;
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
-    if (lines > maxy || cols > maxx) {
-        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, _("ui_surface_new failed for lines: %d, cols: %d"), lines, cols);
-        ssnprintf(em2, MAXLEN - 1, _("maxy: %d, maxx: %d"), maxy, maxx);
-        ui_display_error(em0, em1, em2, nullptr);
+    if (lines > maxy)
+        lines = maxy;
+    if (cols > maxx)
+        cols = maxx;
+    UiSurface *s = calloc(1, sizeof(*s));
+    if (!s) {
+        ui_log(ERROR, _("calloc failed for UiSurface"));
         return NULL;
     }
-
-    UiSurface *s = calloc(1, sizeof(*s));
-    if (!s)
-        return NULL;
     for (int i = 0; i < SUB_SFC_MAX; i++) {
         s->mwin[i] = NULL;
         s->mpan[i] = NULL;
@@ -252,22 +251,28 @@ UiSurface *ui_surface_new(ss_t w, UiSurface *parent, ss_t p, uint lines, uint co
     s->meta[w].cols = cols;
     s->meta[w].y = y;
     s->meta[w].x = x;
-
+    UiLogLevel level = INFO;
     if (parent && parent->mwin[p]) {
         s->mwin[w] = derwin(parent->mwin[p], lines, cols, y, x);
         if (!s->mwin[w]) {
             free(s);
+            level = ERROR;
+            ui_log(level, "%s = derwin(%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], ss_n[p], lines, cols, y, x);
             return NULL;
         }
     } else {
         s->mwin[w] = newwin(lines, cols, y, x);
         if (!s->mwin[w]) {
             free(s);
+            level = ERROR;
+            ui_log(level, "%s = newwin(lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], lines, cols, y, x);
             return NULL;
         }
         s->mpan[w] = new_panel(s->mwin[w]);
         if (!s->mpan[w]) {
             delwin(s->mwin[w]);
+            level = ERROR;
+            ui_log(level, "%s = new_panel(lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], lines, cols, y, x);
             free(s);
             return NULL;
         }
@@ -290,43 +295,50 @@ UiSurface *ui_surface_box(UiSurface *parent, ss_t p, uint lines, uint cols, uint
         return NULL;
     uint maxy, maxx;
     ui_get_screen_size(&maxy, &maxx);
-    if (lines > maxy || cols > maxx) {
-        ssnprintf(em0, MAXLEN - 1, _("%s, line: %d"), __FILE__, __LINE__ - 1);
-        ssnprintf(em1, MAXLEN - 1, _("ui_surface_box failed for lines: %d, cols: %d"), lines, cols);
-        ssnprintf(em2, MAXLEN - 1, _("maxy: %d, maxx: %d"), maxy, maxx);
-        ui_display_error(em0, em1, em2, nullptr);
+    if (lines > maxy)
+        lines = maxy;
+    if (cols > maxx)
+        cols = maxx;
+    UiSurface *s = calloc(1, sizeof(*s));
+    if (!s) {
+        ui_log(ERROR, _("calloc failed for UiSurface"));
         return NULL;
     }
-    UiSurface *s = calloc(1, sizeof(*s));
-    if (!s)
-        return NULL;
+    ss_t w = BOX;
     s->runtime = ui;
     s->parent = parent;
     s->meta[BOX].y = y;
     s->meta[BOX].x = x;
     s->meta[BOX].lines = lines;
     s->meta[BOX].cols = cols;
+    UiLogLevel level = INFO;
     if (parent && parent->mwin[p]) {
         s->mwin[BOX] = derwin(parent->mwin[p], lines, cols, y, x);
         if (!s->mwin[BOX]) {
             free(s);
+            level = ERROR;
+            ui_log(level, "%s = derwin(%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], ss_n[p], lines, cols, y, x);
             return NULL;
         }
     } else {
         s->mwin[BOX] = newwin(lines, cols, y, x);
         if (!s->mwin[BOX]) {
             free(s);
+            level = ERROR;
+            ui_log(level, "%s = newwin(lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], lines, cols, y, x);
             return NULL;
         }
         s->mpan[BOX] = new_panel(s->mwin[BOX]);
         if (!s->mpan[BOX]) {
             delwin(s->mwin[BOX]);
+            level = ERROR;
+            ui_log(level, "%s = new_panel(lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], lines, cols, y, x);
             return NULL;
         }
     }
     ui_scrollok(s, BOX, false);
-    ui_border_draw(s);
-    ui_border_title(s, wtitle);
+    ui_border_draw(s, BOX);
+    ui_border_title(s, BOX, wtitle);
 #ifdef DEBUG_UI
     immedok(s->mwin[BOX], true);
 #endif
@@ -366,18 +378,31 @@ void fast_exit(UiSurface *s) {
  * @param begx The x-coordinate (column) for the new pad's position (ignored in this implementation).
  * @return 0 on success, or -1 on failure.
  */
-int ui_surface_addpad(UiSurface *s, ss_t w, ss_t view_win, uint lines, uint cols, uint begy, uint begx) {
+int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t v, uint lines, uint cols, uint begy, uint begx) {
     (void)begy;
     (void)begx;
-    s->mwin[w] = newpad(lines, cols);
-    if (s->mwin[w] == nullptr)
+    UiLogLevel level = INFO;
+    s->mwin[pad] = newpad(lines, cols);
+    if (s->mwin[pad] == nullptr) {
+        level = ERROR;
+        ui_log(level, "%s = newpad(lines=%d, cols=%d) failed", ss_n[pad], lines, cols);
         return -1;
-    s->mwin[view_win] = subpad(s->mwin[PAD], lines, cols, 0, 0);
-    if (s->mwin[view_win] == nullptr)
+    }
+    ui_log(level, "ui_surface_addpad(%s, %s, lines=%d, cols=%d) success", ss_n[pad], ss_n[v], lines, cols);
+#ifdef ASDFJKL
+    s->mwin[v] = subpad(s->mwin[PAD], lines, cols, 0, 0);
+    if (s->mwin[v] == nullptr) {
+        level = ERROR;
+        ui_log(level, "subpad(%s, %s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], ss_n[v], lines, cols, 0, 0);
         return -1;
-    s->mpan[w] = new_panel(s->mwin[view_win]);
-    immedok(s->mwin[w], true);
-    scrollok(s->mwin[w], true);
+    }
+    ui_log(level, "subpad(%s, %s, lines=%d, cols=%d) success", ss_n[w],
+           ss_n[v], lines, cols);
+    s->mpan[w] = new_panel(s->mwin[v]);
+    top_panel(s->mpan[w]);
+#endif
+    immedok(s->mwin[pad], true);
+    scrollok(s->mwin[pad], true);
 #ifdef DEBUG_UI
 #endif
     return 0;
@@ -394,16 +419,19 @@ int ui_surface_addpad(UiSurface *s, ss_t w, ss_t view_win, uint lines, uint cols
  * @return 0 on success, or -1 on failure.
  */
 int ui_surface_addwin(UiSurface *s, ss_t w, ss_t p, uint lines, uint cols, uint y, uint x) {
+    UiLogLevel level = INFO;
     s->mwin[w] = derwin(s->mwin[p], lines, cols, y, x);
     if (!s->mwin[w]) {
+        level = ERROR;
+        ui_log(level, "%s = derwin(%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[w], ss_n[p], lines, cols, y, x);
         free(s);
         return -1;
     }
+    ui_log(level, "%s = derwin(%s, lines=%d, cols=%d, begy=%d, begx=%d) success", ss_n[w], ss_n[p], lines, cols, y, x);
     s->mpan[w] = new_panel(s->mwin[w]);
     keypad(s->mwin[w], true);
-    // ui_bkgd(s, w, &cell_nt);
-    // ui_bkgdset(s, w, &cell_nt);
     immedok(s->mwin[w], true);
+
 #ifdef DEBUG_UI
 #endif
     return 0;
@@ -889,6 +917,12 @@ int ui_cursor_enable(UiSurface *s, ss_t w, bool visible) {
 /* -------------------------------------------------------------------------
    Rendering
    ------------------------------------------------------------------------- */
+int ui_prefresh(UiSurface *s, ss_t w, int pminrow, int pmincol, int sminrow, int smincol, int smaxrow, int smaxcol) {
+    if (!s)
+        return -1;
+    return prefresh(s->mwin[w], pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol);
+}
+
 /** @brief Render the UI by updating panels and refreshing the display.
  */
 void ui_render() {

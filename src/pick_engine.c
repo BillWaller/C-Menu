@@ -1600,7 +1600,7 @@ void new_view_file(Init *init, char *file) {
                 view->ln_no = 0;
                 view->page_bot_pos = 0;
                 view->file_pos = 0;
-                ui_border_title(view->sfc, view->title);
+                ui_border_title(view->sfc, BOX, view->title);
                 initialize_line_table(view);
                 page_next(view);
                 build_prompt(view);

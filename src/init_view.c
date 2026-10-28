@@ -48,26 +48,12 @@ int init_view_full_screen(Init *init) {
     View *view = init->view;
     view->f_full_screen = true;
     view_calc_full_screen_dimensions(init);
-    ui_log(INFO, _("lines=%d, cols=%d"), view->lines, view->cols);
     // -------------------> 1. WIN <-------------------
-    view->sfc = ui_surface_new(WIN, NULL, 0, view->lines, view->cols, 0, 0);
-    if (!view->sfc) {
-        ssnprintf(em0, MAXLEN - 1, _("newwin(LINES, COLS, 0, 0) failed in init_view_full_screen"));
-        ui_log(INFO, "%s", em0);
-        exit(EXIT_FAILURE);
-        return -1;
-    }
-    ui_log(INFO, _("created view->sfc->win"));
+    view->sfc = ui_surface_new(WIN, nullptr, 0, view->lines, view->cols, 0, 0);
     ui_bkgd(view->sfc, WIN, &cell_nt);
     // -------------------> 2. LNNO <-------------------
     if (view->f_ln) {
         ui_surface_addwin(view->sfc, LNNO, WIN, view->scroll_lines, view->ln_win_cols, 0, 0);
-        if (view->sfc->lnno == nullptr) {
-            ssnprintf(em0, MAXLEN - 1, _("ui_sfc_addwin(LNNO, LINES - 1, COLS, 0, 0) failed in init_view_full_screen"));
-            ui_log(INFO, "%s", em0);
-            exit(EXIT_FAILURE);
-        }
-        ui_log(INFO, _("created view->sfc->lnno"));
         ui_bkgd(view->sfc, LNNO, &cell_ln);
         ui_bkgdset(view->sfc, LNNO, &cell_ln);
         ui_scrollok(view->sfc, LNNO, true);
@@ -75,35 +61,25 @@ int init_view_full_screen(Init *init) {
     }
     // -------------------> 3. CMDLN <-------------------
     ui_surface_addwin(view->sfc, CMDLN, WIN, 1, view->cols, view->scroll_lines, 0);
-    if (view->sfc->cmdln == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, _("ui_sfc_addwin(CMDLN, 1, COLS, LINES - 1, 0) failed in init_view_full_screen"));
-        ui_log(INFO, "%s", em0);
-        exit(EXIT_FAILURE);
-    }
-    ui_log(INFO, _("created view->sfc->cmdln"));
     ui_bkgd(view->sfc, CMDLN, &cell_nt);
     ui_keypad(view->sfc, CMDLN, true);
     ui_idlok(view->sfc, CMDLN, false);
     ui_idcok(view->sfc, CMDLN, false);
     ui_scrollok(view->sfc, CMDLN, false);
     // -------------------> 4. VIEWPORT <-------------------
-    ui_surface_addwin(view->sfc, VIEWPORT, WIN, view->lines, view->cols - view->ln_win_cols, 0, view->ln_win_cols);
-    if (!view->sfc->viewport) {
-        ssnprintf(em0, MAXLEN - 1, _("newwin(LINES, COLS, 0, 0) failed in init_view_full_screen"));
-        ui_log(INFO, "%s", em0);
-        exit(EXIT_FAILURE);
-        return -1;
-    }
-    ui_log(INFO, _("created view->sfc->viewport"));
+    // ui_surface_addwin(view->sfc, VIEWPORT, WIN, view->lines - 1, view->cols -
+    // view->ln_win_cols, 0, view->ln_win_cols);
     // -------------------> 5. PAD <-------------------
-    ui_surface_addpad(view->sfc, PAD, VIEWPORT, view->lines - 1, PAD_COLS - 1, 0, 0);
-    if (view->sfc->pad == nullptr) {
-        ssnprintf(em0, MAXLEN - 1, _("ui_sfc_addpan(PAD, 1, COLS, LINES - 1, 0) failed in init_view_full_screen"));
-        ui_log(INFO, "%s", em0);
-        exit(EXIT_FAILURE);
+    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols + 1);
+    // ui_scrollok(view->sfc, PAD, true);
+    // ui_setscrreg(view->sfc, PAD, 0, view->scroll_lines);
+    ui_keypad(view->sfc, PAD, true);
+    UiCaps caps;
+    ui_get_caps(&caps);
+    if (caps.pad_relative_yx) {
+        view->sminrow = 0;
+        view->smincol = 0;
     }
-    ui_log(INFO, _("created view->sfc->mplane[PAD]"));
-    ui_scrollok(view->sfc, PAD, true);
     // ------------------------------------------------
     return 0;
 }
@@ -172,10 +148,21 @@ int init_view_boxwin(Init *init) {
     view->f_full_screen = false;
     // -------------------> 1. BOX / WIN <-------------------
     view_calc_boxwin_dimensions(init);
-
-    view->sfc = ui_surface_box(NULL, 0, view->lines + 2, view->cols + 2, view->begy, view->begx, NULL);
-
+    view->sfc = ui_surface_box(NULL, BOX, view->lines + 2, view->cols + 2, view->begy, view->begx, NULL);
+#ifdef DEBUG_Z_STACK
+    ui_bkgd(view->sfc, BOX, &cell_magenta_bg);
+    ui_bkgdset(view->sfc, BOX, &cell_magenta_bg);
+    ui_mvwaddstr(view->sfc, BOX, 1, 1, "-- BOX --");
+    ui_render();
+    getch();
+#endif
     ui_surface_addwin(view->sfc, WIN, BOX, view->lines, view->cols, 1, 1);
+#ifdef DEBUG_Z_STACK
+    ui_bkgd(view->sfc, WIN, &cell_cyan_bg);
+    ui_mvwaddstr(view->sfc, WIN, 1, 1, "-- WIN --");
+    ui_render();
+    getch();
+#endif
     // -------------------> 2. LNNO <-------------------
     if (view->f_ln) {
         ui_surface_addwin(view->sfc, LNNO, WIN, view->lines - 1, view->ln_win_cols, 0, 0);
@@ -183,6 +170,13 @@ int init_view_boxwin(Init *init) {
         ui_bkgdset(view->sfc, LNNO, &cell_ln);
         ui_scrollok(view->sfc, LNNO, true);
         ui_setscrreg(view->sfc, LNNO, 0, view->scroll_lines);
+#ifdef DEBUG_Z_STACK
+        ui_bkgd(view->sfc, LNNO, &cell_blue_bg);
+        ui_bkgdset(view->sfc, LNNO, &cell_blue_bg);
+        ui_mvwaddstr(view->sfc, LNNO, 1, 1, "-- LNNO --");
+        ui_render();
+        getch();
+#endif
     }
     // -------------------> 3. CMDLN <-------------------
     ui_surface_addwin(view->sfc, CMDLN, WIN, 1, view->cols, view->lines - 1, 0);
@@ -191,7 +185,15 @@ int init_view_boxwin(Init *init) {
     ui_idlok(view->sfc, CMDLN, false);
     ui_idcok(view->sfc, CMDLN, false);
     ui_scrollok(view->sfc, CMDLN, false);
+#ifdef DEBUG_Z_STACK
+    ui_bkgd(view->sfc, CMDLN, &cell_red_bg);
+    ui_bkgdset(view->sfc, CMDLN, &cell_red_bg);
+    ui_mvwaddstr(view->sfc, CMDLN, 1, 1, "-- CMDLN --");
+    ui_render();
+    getch();
+#endif
     // -------------------> 4. VIEWPORT <-------------------
+#ifdef NOT_NEEDED
     ui_surface_addwin(view->sfc, VIEWPORT, WIN, view->lines, view->cols - view->ln_win_cols, 0, view->ln_win_cols);
     if (!view->sfc->viewport) {
         ssnprintf(em0, MAXLEN - 1, _("newwin(LINES, COLS, 0, 0) failed in init_view_full_screen"));
@@ -199,11 +201,33 @@ int init_view_boxwin(Init *init) {
         exit(EXIT_FAILURE);
         return -1;
     }
+#endif
+#ifdef DEBUG_Z_STACK
+    ui_bkgd(view->sfc, VIEWPORT, &cell_green_bg);
+    ui_bkgdset(view->sfc, VIEWPORT, &cell_green_bg);
+    ui_mvwaddstr(view->sfc, VIEWPORT, 1, 1, "-- VIEWPORT --");
+    ui_render();
+    getch();
+#endif
     ui_log(INFO, _("created view->sfc->viewport"));
     // -------------------> 4. PAD <-------------------
-    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols);
-    ui_scrollok(view->sfc, PAD, true);
-    // ------------------------------------------------
+    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols + 1);
+    UiCaps caps;
+    ui_get_caps(&caps);
+    if (caps.pad_relative_yx) {
+        view->sminrow = 0;
+        view->smincol = 0;
+    }
+    // ui_scrollok(view->sfc, PAD, true)
+    //
+#ifdef DEBUG_Z_STACK
+    ui_bkgd(view->sfc, PAD, &cell_yellow_bg);
+    ui_bkgdset(view->sfc, PAD, &cell_yellow_bg);
+    ui_mvwaddstr(view->sfc, PAD, 1, 1, "-- PAD --");
+    ui_render();
+    getch();
+#endif
+    ui_render();
     return (0);
 }
 //------------------------------------------------------------------------------
@@ -217,7 +241,7 @@ void view_boxwin_resize(Init *init) {
     ui_surface_destroy(view->sfc);
     ui_render();
     init_view_boxwin(init);
-    ui_border_title(init->view->sfc, init->view->title);
+    ui_border_title(init->view->sfc, BOX, init->view->title);
     // initialize_line_table(init->view);
 }
 /** @brief Calculate the dimensions and position of the box window for C-Menu

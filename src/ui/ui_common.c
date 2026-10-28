@@ -147,6 +147,14 @@ UiCell cell_tt;
 UiCell cell_bt;
 UiCell cell_cr;
 UiCell cell_sp;
+UiCell cell_black_bg;
+UiCell cell_red_bg;
+UiCell cell_green_bg;
+UiCell cell_yellow_bg;
+UiCell cell_blue_bg;
+UiCell cell_cyan_bg;
+UiCell cell_magenta_bg;
+UiCell cell_white_bg;
 
 // -----------------------------------------------------------------------
 // Standard Color Pairs
@@ -164,10 +172,14 @@ ushort cp_ln;        /**< line numbers */
 ushort cp_default;   /**< default color pair */
 ushort cp_fill_char; /**< field fill characters */
 ushort cp_brackets;  /**< field enclosure brackets */
-ushort cp_red;       /**< red background - for testing */
-ushort cp_green;     /**< green background - for testing */
-ushort cp_yellow;    /**< yellow background - for testing */
-ushort cp_blue;      /**< blue background - for testing */
+ushort cp_black;     /**< black */
+ushort cp_red;       /**< red */
+ushort cp_green;     /**< green */
+ushort cp_yellow;    /**< yellow */
+ushort cp_blue;      /**< blue */
+ushort cp_cyan;      /**< cyan */
+ushort cp_magenta;   /**< magenta */
+ushort cp_white;     /**< white */
 
 // -----------------------------------------------------------------------
 // Standard VGA Colors
@@ -221,10 +233,15 @@ void ui_initialize_sio(SIO *sio) {
     cp_title = ui_add_pair(CLR_TITLE_FG, CLR_TITLE_BG);
     cp_ln = ui_add_pair(CLR_LN_FG, CLR_LN_BG);
     cp_cmdln = ui_add_pair(CLR_CMDLN_FG, CLR_CMDLN_BG);
+
+    cp_black = ui_add_pair(CLR_FG, CLR_BLACK);
     cp_red = ui_add_pair(CLR_FG, CLR_RED);
     cp_green = ui_add_pair(CLR_FG, CLR_GREEN);
     cp_yellow = ui_add_pair(CLR_BG, CLR_YELLOW);
     cp_blue = ui_add_pair(CLR_FG, CLR_BLUE);
+    cp_cyan = ui_add_pair(CLR_FG, CLR_CYAN);
+    cp_magenta = ui_add_pair(CLR_FG, CLR_MAGENTA);
+    cp_white = ui_add_pair(CLR_FG, CLR_WHITE);
     //
     // Initialize Standardized UiCells
     //
@@ -243,6 +260,7 @@ void ui_initialize_sio(SIO *sio) {
     cell_box = ui_cell_from_ucp(bw_sp, &sio->box_fg, &sio->box_bg);
     cell_cmdln = ui_cell_from_ucp(bw_sp, &sio->cmdln_fg, &sio->cmdln_bg);
     cell_title = ui_cell_from_ucp(bw_sp, &sio->title_fg, &sio->title_bg);
+    cell_sp = ui_cell_from_ucp(bw_sp, &sio->nt_fg, &sio->nt_bg);
     cell_ln = ui_cell_from_ucp(bw_sp, &sio->ln_fg, &sio->ln_bg);
     cell_ind = ui_cell_from_ucp(bw_sp, &sio->ind_fg, &sio->ind_bg);
     cell_ran = ui_cell_from_ucp(bw_ran, &sio->ran_fg, &sio->ran_bg);
@@ -258,7 +276,14 @@ void ui_initialize_sio(SIO *sio) {
     cell_tt = ui_cell_from_ucp(&bw_tt, &sio->box_fg, &sio->box_bg);
     cell_bt = ui_cell_from_ucp(&bw_bt, &sio->box_fg, &sio->box_bg);
     cell_cr = ui_cell_from_ucp(&bw_cr, &sio->box_fg, &sio->box_bg);
-    cell_sp = ui_cell_from_ucp(bw_sp, &sio->box_fg, &sio->box_bg);
+    cell_black_bg = ui_cell_from_ucp(bw_sp, &sio->white, &sio->black);
+    cell_red_bg = ui_cell_from_ucp(bw_sp, &sio->white, &sio->red);
+    cell_green_bg = ui_cell_from_ucp(bw_sp, &sio->black, &sio->green);
+    cell_yellow_bg = ui_cell_from_ucp(bw_sp, &sio->black, &sio->yellow);
+    cell_blue_bg = ui_cell_from_ucp(bw_sp, &sio->white, &sio->blue);
+    cell_cyan_bg = ui_cell_from_ucp(bw_sp, &sio->black, &sio->cyan);
+    cell_magenta_bg = ui_cell_from_ucp(bw_sp, &sio->black, &sio->magenta);
+    cell_white_bg = ui_cell_from_ucp(bw_sp, &sio->black, &sio->white);
 }
 
 bool ui_init_clr_palette(SIO *sio) {
@@ -465,7 +490,7 @@ int ui_tracked_sfc_split_box(uint wlines, uint wcols, uint split_y, uint split_x
     UiSurface *sfc = ui_surface[sfc_ptr];
 
     ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
-    ui_border_ysplit(sfc, wlines + 1);
+    ui_border_ysplit(sfc, WIN, wlines + 1);
     ui_surface_addwin(sfc, WIN2, BOX, 2, wcols, wlines + 2, 1);
     ui_curs_set(0);
     return 0;
@@ -488,23 +513,23 @@ int ui_cm_surface_destroy(UiSurface *sfc) {
 // -----------------------------------------------------------------------------
 // ui_border_draw
 // -----------------------------------------------------------------------------
-int ui_border_draw(UiSurface *sfc) {
-    uint maxy = ui_getmaxy(sfc, BOX);
-    uint maxx = ui_getmaxx(sfc, BOX);
+int ui_border_draw(UiSurface *sfc, ss_t w) {
+    uint maxy = ui_getmaxy(sfc, w);
+    uint maxx = ui_getmaxx(sfc, w);
     uint y = 0;
     uint x = 0;
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_tl, 1);
+    ui_mvwadd_wchnstr(sfc, w, y, x++, &cell_tl, 1);
     for (x = 1; x < maxx - 1; x++)
-        ui_mvwadd_wchnstr(sfc, BOX, y, x, &cell_ho, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_tr, 1);
+        ui_mvwadd_wchnstr(sfc, w, y, x, &cell_ho, 1);
+    ui_mvwadd_wchnstr(sfc, w, y, maxx - 1, &cell_tr, 1);
     for (y = 1; y < maxy - 1; y++) {
-        ui_mvwadd_wchnstr(sfc, BOX, y, 0, &cell_ve, 1);
-        ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_ve, 1);
+        ui_mvwadd_wchnstr(sfc, w, y, 0, &cell_ve, 1);
+        ui_mvwadd_wchnstr(sfc, w, y, maxx - 1, &cell_ve, 1);
     }
-    ui_mvwadd_wchnstr(sfc, BOX, y, 0, &cell_bl, 1);
+    ui_mvwadd_wchnstr(sfc, w, y, 0, &cell_bl, 1);
     for (x = 1; x < maxx - 1; x++)
-        ui_mvwadd_wchnstr(sfc, BOX, y, x, &cell_ho, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_br, 1);
+        ui_mvwadd_wchnstr(sfc, w, y, x, &cell_ho, 1);
+    ui_mvwadd_wchnstr(sfc, w, y, maxx - 1, &cell_br, 1);
     return 0;
 }
 /** ui_border-ysplit
@@ -518,12 +543,12 @@ int ui_border_draw(UiSurface *sfc) {
    page 00) and extends across the width of the box. Use this function when you
    want to visually separate two sections within a window, such as for a header
    and content area. */
-int ui_border_ysplit(UiSurface *sfc, uint y) {
-    uint maxx = ui_getmaxx(sfc, BOX);
-    ui_mvwadd_wchnstr(sfc, BOX, y, 0, &cell_lt, 1);
+int ui_border_ysplit(UiSurface *sfc, ss_t w, uint y) {
+    uint maxx = ui_getmaxx(sfc, w);
+    ui_mvwadd_wchnstr(sfc, w, y, 0, &cell_lt, 1);
     for (uint x = 1; x < maxx - 1; x++)
-        ui_mvwadd_wchnstr(sfc, BOX, y, x, &cell_ho, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, maxx - 1, &cell_rt, 1);
+        ui_mvwadd_wchnstr(sfc, w, y, x, &cell_ho, 1);
+    ui_mvwadd_wchnstr(sfc, w, y, maxx - 1, &cell_rt, 1);
     return 0;
 }
 /** ui_border_ysplit_text
@@ -577,30 +602,31 @@ int ui_border_ysplit_text(UiSurface *sfc, char *text_in, uint separator_line) {
    is displayed in the center of the top edge of the box, and the horizontal line
    is drawn on either side of the title. Use this function when you want to
    visually label a window with a title. */
-int ui_border_title(UiSurface *sfc, const char *title) {
+int ui_border_title(UiSurface *sfc, ss_t w, const char *title) {
     if (!title || !*title)
         return 0;
     uint y = 0;
     uint x = 0;
     uint l;
-    uint maxx = ui_getmaxx(sfc, BOX);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_tl, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
+    uint maxx = ui_getmaxx(sfc, w);
+    ui_mvwadd_wchnstr(sfc, w, y, x++, &cell_tl, 1);
+    ui_mvwadd_wchnstr(sfc, w, y, x++, &cell_rt, 1);
+    ui_mvwadd_wchnstr(sfc, w, y, x++, &cell_sp, 1);
     wchar_t *title_wc;
     title_wc = ui_mbstr_to_wcstr(title);
     l = wcswidth(title_wc, wcslen(title_wc));
     l = min(l, maxx - 7);
-    ui_bkgdset(sfc, BOX, &cell_title);
-    ui_mvwaddnwstr(sfc, BOX, y, x, title_wc, l);
-    ui_bkgdset(sfc, BOX, &cell_box);
+    ui_bkgdset(sfc, w, &cell_title);
+    ui_mvwaddnwstr(sfc, w, y, x, title_wc, l);
+    ui_bkgdset(sfc, w, &cell_box);
     x += l;
     free(title_wc);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_sp, 1);
-    ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_lt, 1);
+    ui_mvwadd_wchnstr(sfc, w, y, x++, &cell_sp, 1);
+    ui_mvwadd_wchnstr(sfc, w, y, x++, &cell_lt, 1);
     while (x < maxx - 1) {
-        ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
+        ui_mvwadd_wchnstr(sfc, w, y, x++, &cell_ho, 1);
     }
+    ui_render();
     return 0;
 }
 // -----------------------------------------------------------------------
@@ -1377,9 +1403,9 @@ char *ui_iso8601_timestamp(char *buf, size_t n, bool local) {
     time_t t = time(NULL);
     struct tm *tp = local ? localtime(&t) : gmtime(&t);
     if (local) {
-        strftime(buf, n, _("%Y-%m-%dT%H:%M:%S.NNNNNNNNN%z"), tp);
+        strftime(buf, n, _("%Y-%m-%dT%H:%M:%S%z"), tp);
     } else {
-        strftime(buf, n, _("%Y-%m-%dT%H:%M:%S.NNNNNNNNNZ"), tp);
+        strftime(buf, n, _("%Y-%m-%dT%H:%M:%SZ"), tp);
     }
     return buf;
 }
