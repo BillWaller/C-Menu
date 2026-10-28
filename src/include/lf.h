@@ -555,7 +555,6 @@ void initialize_thread_timer(LfCtx *lf, LogCtx *log_ctx);
 extern void log_open(LfCtx *lf, LogCtx *log_ctx, size_t thread_id);
 ATTR_FORMAT(printf, 7, 8)
 void log_write(const ll_e level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...);
-
 #define lf_log(level, fmt, ...)                                     \
     {                                                               \
         log_write(level, lf, log_ctx, __FILE__, __func__, __LINE__, \

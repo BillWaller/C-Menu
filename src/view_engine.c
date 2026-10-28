@@ -2626,6 +2626,9 @@ int display_prompt(View *view, char *s) {
         ui_getyx(sfc, CMDLN, &view->cmd_line, &view->curx);
         ui_cursor_move(sfc, CMDLN, view->cmd_line, view->curx);
     }
+#ifdef DEBUG_IMMED_UI
+    ui_render();
+#endif
     return (view->curx);
 }
 /** @brief Display View Help File

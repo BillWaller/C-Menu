@@ -861,7 +861,7 @@ UiSurface *ui_surface_box(UiSurface *parent, ss_t p, uint lines, uint cols, uint
 int ui_tracked_sfc_box(uint wlines, uint wcols, uint wbegy, uint wbegx, const char *wtitle);
 int ui_tracked_sfc_split_box(uint wlines, uint wcols, uint split_y, uint split_x, uint wbegy, uint wbegx, const char *wtitle);
 int ui_surface_addwin(UiSurface *s, ss_t w, ss_t p, uint lines, uint cols, uint y, uint x);
-int ui_surface_addpad(UiSurface *s, ss_t w, ss_t view_win, uint lines, uint cols, uint y, uint x);
+int ui_surface_addpad(UiSurface *s, ss_t w, ss_t view_win, uint lines, uint cols, uint y, uint x, bool hidden);
 void ui_surface_destroy(UiSurface *s);
 int ui_cm_surface_destroy(UiSurface *sfc);
 int ui_border_draw(UiSurface *sfc, ss_t w);
@@ -1167,10 +1167,8 @@ void ui_compile_chyron(UiChyron *);
 // ---------------------------------------------------------------
 extern char *ui_iso8601_timestamp(char *buf, size_t n, bool local);
 extern int ui_open_log();
-
 ATTR_FORMAT(printf, 5, 6)
 void ui_log_write(const UiLogLevel level, const char *file, const char *func, const int line, const char *fmt, ...);
-
 #define ui_log(level, fmt, ...)                                                    \
     {                                                                              \
         if (level <= ui_log_ctx.min_level) {                                       \

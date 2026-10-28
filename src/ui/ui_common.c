@@ -490,9 +490,16 @@ int ui_tracked_sfc_split_box(uint wlines, uint wcols, uint split_y, uint split_x
     UiSurface *sfc = ui_surface[sfc_ptr];
 
     ui_surface_addwin(sfc, WIN, BOX, wlines, wcols, 1, 1);
-    ui_border_ysplit(sfc, WIN, wlines + 1);
+    ui_bkgd(sfc, WIN, &cell_nt);
+    ui_werase(sfc, WIN);
+    ui_border_ysplit(sfc, BOX, wlines + 1);
     ui_surface_addwin(sfc, WIN2, BOX, 2, wcols, wlines + 2, 1);
+    ui_bkgd(sfc, WIN2, &cell_nt);
+    ui_werase(sfc, WIN2);
     ui_curs_set(0);
+#ifdef DEBUG_IMMED_UI
+    ui_render();
+#endif
     return 0;
 }
 // -----------------------------------------------------------------------------
@@ -530,6 +537,9 @@ int ui_border_draw(UiSurface *sfc, ss_t w) {
     for (x = 1; x < maxx - 1; x++)
         ui_mvwadd_wchnstr(sfc, w, y, x, &cell_ho, 1);
     ui_mvwadd_wchnstr(sfc, w, y, maxx - 1, &cell_br, 1);
+#ifdef DEBUG_IMMED_UI
+    ui_render();
+#endif
     return 0;
 }
 /** ui_border-ysplit
@@ -549,6 +559,9 @@ int ui_border_ysplit(UiSurface *sfc, ss_t w, uint y) {
     for (uint x = 1; x < maxx - 1; x++)
         ui_mvwadd_wchnstr(sfc, w, y, x, &cell_ho, 1);
     ui_mvwadd_wchnstr(sfc, w, y, maxx - 1, &cell_rt, 1);
+#ifdef DEBUG_IMMED_UI
+    ui_render();
+#endif
     return 0;
 }
 /** ui_border_ysplit_text
@@ -590,6 +603,9 @@ int ui_border_ysplit_text(UiSurface *sfc, char *text_in, uint separator_line) {
     while (x < maxx - 1)
         ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_ho, 1);
     ui_mvwadd_wchnstr(sfc, BOX, y, x++, &cell_rt, 1);
+#ifdef DEBUG_IMMED_UI
+    ui_render();
+#endif
     return 0;
 }
 /** border_title
@@ -626,7 +642,9 @@ int ui_border_title(UiSurface *sfc, ss_t w, const char *title) {
     while (x < maxx - 1) {
         ui_mvwadd_wchnstr(sfc, w, y, x++, &cell_ho, 1);
     }
+#ifdef DEBUG_IMMED_UI
     ui_render();
+#endif
     return 0;
 }
 // -----------------------------------------------------------------------

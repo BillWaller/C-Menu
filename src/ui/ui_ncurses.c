@@ -339,7 +339,7 @@ UiSurface *ui_surface_box(UiSurface *parent, ss_t p, uint lines, uint cols, uint
     ui_scrollok(s, BOX, false);
     ui_border_draw(s, BOX);
     ui_border_title(s, BOX, wtitle);
-#ifdef DEBUG_UI
+#ifdef DEBUG_IMMED_UI
     immedok(s->mwin[BOX], true);
 #endif
     return s;
@@ -378,17 +378,18 @@ void fast_exit(UiSurface *s) {
  * @param begx The x-coordinate (column) for the new pad's position (ignored in this implementation).
  * @return 0 on success, or -1 on failure.
  */
-int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t v, uint lines, uint cols, uint begy, uint begx) {
+int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t v, uint lines, uint cols, uint begy, uint begx, hidden) {
+    (void)hidden;
     (void)begy;
     (void)begx;
     UiLogLevel level = INFO;
     s->mwin[pad] = newpad(lines, cols);
     if (s->mwin[pad] == nullptr) {
         level = ERROR;
-        ui_log(level, "%s = newpad(lines=%d, cols=%d) failed", ss_n[pad], lines, cols);
+        ui_log(level, "%s = newpad(lines=%d, cols=%d, hidden=%s) failed", ss_n[pad], lines, cols, hidden ? "true" : "false");
         return -1;
     }
-    ui_log(level, "ui_surface_addpad(%s, %s, lines=%d, cols=%d) success", ss_n[pad], ss_n[v], lines, cols);
+    ui_log(level, "%s = newpad(lines=%d, cols=%d, hidden=%s) success", lines, cols, hidden ? "true" : "false");
 #ifdef ASDFJKL
     s->mwin[v] = subpad(s->mwin[PAD], lines, cols, 0, 0);
     if (s->mwin[v] == nullptr) {
@@ -403,7 +404,7 @@ int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t v, uint lines, uint cols, uin
 #endif
     immedok(s->mwin[pad], true);
     scrollok(s->mwin[pad], true);
-#ifdef DEBUG_UI
+#ifdef DEBUG_IMMED_UI
 #endif
     return 0;
 }
@@ -432,7 +433,7 @@ int ui_surface_addwin(UiSurface *s, ss_t w, ss_t p, uint lines, uint cols, uint 
     keypad(s->mwin[w], true);
     immedok(s->mwin[w], true);
 
-#ifdef DEBUG_UI
+#ifdef DEBUG_IMMED_UI
 #endif
     return 0;
 }

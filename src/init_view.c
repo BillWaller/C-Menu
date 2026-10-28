@@ -51,6 +51,7 @@ int init_view_full_screen(Init *init) {
     // -------------------> 1. WIN <-------------------
     view->sfc = ui_surface_new(WIN, nullptr, 0, view->lines, view->cols, 0, 0);
     ui_bkgd(view->sfc, WIN, &cell_nt);
+    ui_werase(view->sfc, WIN);
     // -------------------> 2. LNNO <-------------------
     if (view->f_ln) {
         ui_surface_addwin(view->sfc, LNNO, WIN, view->scroll_lines, view->ln_win_cols, 0, 0);
@@ -70,7 +71,7 @@ int init_view_full_screen(Init *init) {
     // ui_surface_addwin(view->sfc, VIEWPORT, WIN, view->lines - 1, view->cols -
     // view->ln_win_cols, 0, view->ln_win_cols);
     // -------------------> 5. PAD <-------------------
-    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols + 1);
+    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols + 1, false);
     // ui_scrollok(view->sfc, PAD, true);
     // ui_setscrreg(view->sfc, PAD, 0, view->scroll_lines);
     ui_keypad(view->sfc, PAD, true);
@@ -153,15 +154,19 @@ int init_view_boxwin(Init *init) {
     ui_bkgd(view->sfc, BOX, &cell_magenta_bg);
     ui_bkgdset(view->sfc, BOX, &cell_magenta_bg);
     ui_mvwaddstr(view->sfc, BOX, 1, 1, "-- BOX --");
+#endif
+#ifdef DEBUG_IMMED_UI
     ui_render();
-    getch();
 #endif
     ui_surface_addwin(view->sfc, WIN, BOX, view->lines, view->cols, 1, 1);
+    ui_bkgd(view->sfc, WIN, &cell_nt);
+    ui_werase(view->sfc, WIN);
 #ifdef DEBUG_Z_STACK
     ui_bkgd(view->sfc, WIN, &cell_cyan_bg);
     ui_mvwaddstr(view->sfc, WIN, 1, 1, "-- WIN --");
+#endif
+#ifdef DEBUG_IMMED_UI
     ui_render();
-    getch();
 #endif
     // -------------------> 2. LNNO <-------------------
     if (view->f_ln) {
@@ -174,8 +179,9 @@ int init_view_boxwin(Init *init) {
         ui_bkgd(view->sfc, LNNO, &cell_blue_bg);
         ui_bkgdset(view->sfc, LNNO, &cell_blue_bg);
         ui_mvwaddstr(view->sfc, LNNO, 1, 1, "-- LNNO --");
+#endif
+#ifdef DEBUG_IMMED_UI
         ui_render();
-        getch();
 #endif
     }
     // -------------------> 3. CMDLN <-------------------
@@ -189,8 +195,9 @@ int init_view_boxwin(Init *init) {
     ui_bkgd(view->sfc, CMDLN, &cell_red_bg);
     ui_bkgdset(view->sfc, CMDLN, &cell_red_bg);
     ui_mvwaddstr(view->sfc, CMDLN, 1, 1, "-- CMDLN --");
+#endif
+#ifdef DEBUG_IMMED_UI
     ui_render();
-    getch();
 #endif
     // -------------------> 4. VIEWPORT <-------------------
 #ifdef NOT_NEEDED
@@ -206,17 +213,18 @@ int init_view_boxwin(Init *init) {
     ui_bkgd(view->sfc, VIEWPORT, &cell_green_bg);
     ui_bkgdset(view->sfc, VIEWPORT, &cell_green_bg);
     ui_mvwaddstr(view->sfc, VIEWPORT, 1, 1, "-- VIEWPORT --");
-    ui_render();
-    getch();
 #endif
     ui_log(INFO, _("created view->sfc->viewport"));
     // -------------------> 4. PAD <-------------------
-    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols + 1);
+    ui_surface_addpad(view->sfc, PAD, WIN, view->lines - 1, PAD_COLS - 1, 0, view->ln_win_cols + 1, true);
+    ui_bkgd(view->sfc, PAD, &cell_nt);
     UiCaps caps;
     ui_get_caps(&caps);
     if (caps.pad_relative_yx) {
         view->sminrow = 0;
         view->smincol = 0;
+        view->smaxrow = view->lines - 1;
+        view->smaxcol = view->cols - 1;
     }
     // ui_scrollok(view->sfc, PAD, true)
     //
@@ -224,8 +232,6 @@ int init_view_boxwin(Init *init) {
     ui_bkgd(view->sfc, PAD, &cell_yellow_bg);
     ui_bkgdset(view->sfc, PAD, &cell_yellow_bg);
     ui_mvwaddstr(view->sfc, PAD, 1, 1, "-- PAD --");
-    ui_render();
-    getch();
 #endif
     ui_render();
     return (0);
@@ -299,7 +305,7 @@ void view_calc_boxwin_dimensions(Init *init) {
     view->pminrow = 0;
     view->pmincol = 0;
     view->sminrow = view->begy + 1;
-    view->smincol = view->begx + view->ln_win_cols + 1;
+    view->smincol = view->begx + view->ln_win_cols;
     view->smaxrow = view->begy + view->lines;
     view->smaxcol = view->begx + view->cols;
 

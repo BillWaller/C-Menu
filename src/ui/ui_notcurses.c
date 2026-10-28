@@ -36,6 +36,8 @@ UiCell bkgd_cell;
 int sfc_ptr = -1;
 NcPlane *stdplane;
 
+void ui_plane_get_abs_yx(UiSurface *s, ss_t w, int *absy, int *absx);
+
 /* -------------------------------------------------------------------------
    Backend identification and capability query
    ------------------------------------------------------------------------- */
@@ -346,10 +348,17 @@ UiSurface *ui_surface_box(UiSurface *parent, ss_t p, uint lines, uint cols, uint
  * for the new padded surface and sets its background and scrolling properties.
  * If any step fails, it cleans up and returns -1.
  */
-int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t win, uint lines, uint cols, uint y, uint x) {
+int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t win, uint lines, uint cols, uint y, uint x, bool hidden) {
     uint plines, pcols;
-    s->meta[pad].hidden = false;
-    ui_surface_addwin(s, VIEWPORT, win, s->meta[win].lines, s->meta[win].cols - x, y, x);
+    ui_surface_addwin(s, VIEWPORT, win, lines, s->meta[win].cols - x, y, x);
+    if (!s->mplane[VIEWPORT]) {
+        ui_log(INFO, "ui_surface_addwin(%s, parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[VIEWPORT], ss_n[win], lines, cols, 0, 0);
+        notcurses_stop(ui->nc);
+        f_notcurses_open = false;
+        return -1;
+    }
+    ui_log(INFO, "ui_surface_addwin(%s, parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) success", ss_n[VIEWPORT], ss_n[win], lines, cols, 0, 0);
+    int offset = 0;
     ui_surface_addwin(s, pad, VIEWPORT, lines, cols, 0, 0);
     if (!s->mplane[pad]) {
         ui_log(INFO, "ui_surface_addwin(%s, parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[pad], ss_n[VIEWPORT], lines, cols, 0, 0);
@@ -359,17 +368,21 @@ int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t win, uint lines, uint cols, u
     }
     ui_log(INFO, "ui_surface_addwin(%s, parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) success", ss_n[pad], ss_n[VIEWPORT], lines, cols, 0, 0);
     ncplane_dim_yx(stdplane, &plines, &pcols);
-    if (y != 0 || x != 0 || lines != plines) {
+    if (hidden) {
         s->meta[pad].hidden = true;
-        ncplane_move_yx(s->mplane[pad], -s->meta[pad].lines - 1, 0);
-        ui_log(INFO, "ncplane_move(%s, begy=%d, begx=%d) success", ss_n[pad], 0, 0);
+        int absy, absx;
+        ui_plane_get_abs_yx(s, VIEWPORT, &absy, &absx);
+        offset = absy + s->meta[VIEWPORT].lines + 1;
+        ncplane_move_yx(s->mplane[pad], -offset, 0);
     }
-    uint64_t channels = cell_nt.channels;
-    ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
-    ncplane_set_base(s->mplane[pad], " ", 0, cell_nt.channels);
+    ui_log(INFO, "ncplane_move(%s, begy=%d, begx=%d) success", ss_n[pad], -offset - 1, 0);
+    // uint64_t channels = cell_nt.channels;
+    // ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
+    // ncplane_set_base(s->mplane[pad], " ", 0, cell_nt.channels);
     // Step 6 fix: Ensure UI elements are stacked safely above the
     // bleeding PAD
-    if (!s->meta[pad].hidden) {
+    ncplane_move_above(s->mplane[VIEWPORT], s->mplane[win]);
+    if (!hidden) {
         ncplane_move_above(s->mplane[pad], s->mplane[VIEWPORT]);
         ui_log(INFO, "ncplane_move_above(s->mplane[%s], s->mplane[%s]) success", ss_n[pad], ss_n[VIEWPORT]);
         // PAD sits right on top of its background
@@ -732,6 +745,10 @@ void ui_abs_yx(UiSurface *s, ss_t w, int *y, int *x) {
         return;
     ncplane_abs_yx(s->mplane[w], y, x);
 }
+void ui_plane_get_abs_yx(UiSurface *s, ss_t w, int *absy, int *absx) {
+    ncplane_translate(s->mplane[w], NULL, absy, absx);
+    return;
+}
 /** @brief Get the current cursor position within a window of a UI surface.
  * @param s Pointer to the UiSurface containing the window.
  * @param w The index of the window within the surface.
@@ -986,10 +1003,10 @@ int ui_prefresh(UiSurface *s, ss_t w, int pminrow, int pmincol, int sminrow, int
         int dst_x = smincol;
         int src_y = pminrow;
         int src_x = pmincol;
-        int ylen = smaxrow - sminrow + 1;
-        int xlen = smaxcol - smincol + 1;
+        int ylen = smaxrow - sminrow;
+        int xlen = smaxcol - smincol;
         ui_plane_cpy(s->mplane[VIEWPORT], s->mplane[PAD], dst_y, dst_x, src_y, src_x, ylen, xlen);
-        ui_log(INFO, "ui_plane_cpy(dst: %s, src: %s, pminrow=%d, pmincol=%d, sminrow=%d, smincol=%d, smaxrow=%d, smaxcol=%d success)", ss_n[VIEWPORT], ss_n[PAD], pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol);
+        ui_log(INFO, "ui_plane_cpy(dst: %s, src: %s, dst_y=%d, dst_x=%d, src_y=%d, src_x=%d, ylen=%d, xlen=%d success)", ss_n[VIEWPORT], ss_n[PAD], pminrow, pmincol, sminrow, smincol, smaxrow, smaxcol);
     }
     notcurses_render(ui->nc);
     ui_log(INFO, "notcurses_render(ui->nc)");
