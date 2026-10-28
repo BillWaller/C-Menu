@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-28T01:52:33-05:00* - Notcurses library is very powerful, but it can be daunting at times. The UAL_UI is designed to handle the complexities of the Notcurses library in a simplified and user friendly manner. 
+
+*2026-10-25T16:06:18-05:00* - Update CHANGELOG.md 
+
 *2026-10-25T16:05:52-05:00* - DOCUMENTATION: Update README.md 
 
 *2026-10-25T15:58:27-05:00* - Update CHANGELOG.md 
