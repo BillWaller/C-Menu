@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-28T16:57:12-05:00* - CLEAN-UP: Modified default arena sizes and expanded PATH_MAX to 4096 in lf.h. This had no measurable effect on performance benchmarks. 
+
+*2026-10-28T15:45:05-05:00* - Update CHANGELOG.md 
+
 *2026-10-28T15:44:46-05:00* - FIXES: #1045 view: Recent upgrades to the UAL internals fundamentally changed the way view interacts with planes larger than the terminal. Rather than continuing to battle the Notcurses way of doing things, I have decided to embrace it. The fix is to use a hidden pad plane to hold the content and use a viewport parent plane to establish bounds for the visible part of the pad. This is essentially the way NCurses works internally, so the UAL is just abstracting away those details of the Notcurses API into a more intuitive interface. This is not a shortcoming of Notcurses, but an example of what makes it great. Unlike NCurses, Notcurses doesn't hide low-level capabilities from the developer, allowing more control and flexibility. 
 
 *2026-10-28T02:10:03-05:00* - Update CHANGELOG.md 
