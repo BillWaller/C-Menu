@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-29T08:04:08-05:00* - DOCUMENTATION: README.md: Corrected "Coders Timestamp" description to include nanoseconds. 
+
+*2026-10-28T21:17:42-05:00* - Update CHANGELOG.md 
+
 *2026-10-28T21:17:14-05:00* - CLEAN-UP: remove unused code from notcurses.c. 
 
 *2026-10-28T19:34:07-05:00* - Update CHANGELOG.md 
