@@ -8,20 +8,10 @@ With C-Menu, you can leverage the raw speed and power of a terminal interface wi
 
 More sophisticated applications can be be built using the C-Menu API that is fully integrated with modern development environments like Vim and Neovim. As you type C-Menu API function names, the editor provides auto-completion and inline documentation, making it easy to learn and use. That's why C-Menu is an indispensable tool for skill levels ranging from shell script hobbyists to professional developers and system administrators.
 
-## Uniform Abstraction Layer (UAL) API
-
-The Uniform Abstraction Layer (UAL) API is a new feature in C-Menu that provides a
-consistent interface for terminal-based applications across different UI backends. The UAL allows developers to write applications that can run on multiple terminal environments without modification, while still taking advantage of advanced features such as mouse support, color management, and improved performance.
-
-Currently, the UAL API supports two backends: NCurses and Notcurses. The NCurses backend provides a traditional terminal interface, while the Notcurses backend provides a more modern interface with advanced features such as true color support, high-performance rendering, and multimedia capabilities.
-
-The UAL API is fully integrated with the C-Menu components, and developer tools
-such as Vim and Neovim provide auto-completion and inline documentation for the UAL functions. This makes it easy for developers to learn and use the UAL API, and to create terminal-based applications that are both powerful and user-friendly.
-
-The image below shows a screenshot of the UAL API in action, with
-auto-completion and inline documentation provided by the Neovim editor. The UAL API is a powerful tool for developers who want to create terminal-based applications that are both fast and user-friendly, and it is an important part of the C-Menu toolkit.
+The image below shows a screenshot of the C-Menu's UAL API in action, with auto-completion and inline documentation provided by the Neovim editor. The UAL API allows building with either NCurses or Notcurses. It is a powerful tool for developers who want to create terminal-based applications that are fast, user-friendly, and portable.
 
 ![UAL API Screenshot](screenshots/UAL_API.png)
+
 
 ---
 
@@ -87,6 +77,16 @@ The core C-Menu components are visually and functionally identical across both N
 See [UAL_UI Documentation](docs/UAL_UI.md) for more information on the UAL and its features.
 
 ---
+
+## Uniform Abstraction Layer (UAL) API
+
+The Uniform Abstraction Layer (UAL) API is a new feature in C-Menu that provides a
+consistent interface for terminal-based applications across different UI backends. The UAL allows developers to write applications that can run on multiple terminal environments without modification, while still taking advantage of advanced features such as mouse support, color management, and improved performance.
+
+Currently, the UAL API supports two backends: NCurses and Notcurses. The NCurses backend provides a traditional terminal interface, while the Notcurses backend provides a more modern interface with advanced features such as true color support, high-performance rendering, and multimedia capabilities.
+
+The UAL API is fully integrated with the C-Menu components, and developer tools
+such as Vim and Neovim provide auto-completion and inline documentation for the UAL functions. This makes it easy for developers to learn and use the UAL API, and to create terminal-based applications that are both powerful and user-friendly.
 
 The following snippet is actually a complete program that opens a bordered
 window and displays some text. It shows just how easy it is to use the UAL_UI.

@@ -351,22 +351,8 @@ UiSurface *ui_surface_box(UiSurface *parent, ss_t p, uint lines, uint cols, uint
 int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t win, uint lines, uint cols, uint y, uint x, bool hidden) {
     uint plines, pcols;
     ui_surface_addwin(s, VIEWPORT, win, lines, s->meta[win].cols - x, y, x);
-    if (!s->mplane[VIEWPORT]) {
-        ui_log(INFO, "ui_surface_addwin(%s, parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[VIEWPORT], ss_n[win], lines, cols, 0, 0);
-        notcurses_stop(ui->nc);
-        f_notcurses_open = false;
-        return -1;
-    }
-    ui_log(INFO, "ui_surface_addwin(%s, parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) success", ss_n[VIEWPORT], ss_n[win], lines, cols, 0, 0);
     int offset = 0;
     ui_surface_addwin(s, pad, VIEWPORT, lines, cols, 0, 0);
-    if (!s->mplane[pad]) {
-        ui_log(INFO, "ui_surface_addwin(%s, parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) failed", ss_n[pad], ss_n[VIEWPORT], lines, cols, 0, 0);
-        notcurses_stop(ui->nc);
-        f_notcurses_open = false;
-        return -1;
-    }
-    ui_log(INFO, "ui_surface_addwin(%s, parent=%s, lines=%d, cols=%d, begy=%d, begx=%d) success", ss_n[pad], ss_n[VIEWPORT], lines, cols, 0, 0);
     ncplane_dim_yx(stdplane, &plines, &pcols);
     if (hidden) {
         s->meta[pad].hidden = true;
@@ -376,11 +362,6 @@ int ui_surface_addpad(UiSurface *s, ss_t pad, ss_t win, uint lines, uint cols, u
         ncplane_move_yx(s->mplane[pad], -offset, 0);
     }
     ui_log(INFO, "ncplane_move(%s, begy=%d, begx=%d) success", ss_n[pad], -offset - 1, 0);
-    // uint64_t channels = cell_nt.channels;
-    // ncchannels_set_bg_alpha(&channels, NCALPHA_TRANSPARENT);
-    // ncplane_set_base(s->mplane[pad], " ", 0, cell_nt.channels);
-    // Step 6 fix: Ensure UI elements are stacked safely above the
-    // bleeding PAD
     ncplane_move_above(s->mplane[VIEWPORT], s->mplane[win]);
     if (!hidden) {
         ncplane_move_above(s->mplane[pad], s->mplane[VIEWPORT]);
