@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-28T21:17:14-05:00* - CLEAN-UP: remove unused code from notcurses.c. 
+
+*2026-10-28T19:34:07-05:00* - Update CHANGELOG.md 
+
 *2026-10-28T19:29:57-05:00* - FIXES: Pick started interspersing blank lines along with valid data. The problem was that lf, for some reason emitted a series of binary zeros. It was time for lf3 to replace lf anyway, so lf is gone and lf3 has been renamed to lf. Now, it works as expected. 
 
 *2026-10-28T17:04:01-05:00* - Update CHANGELOG.md 
