@@ -6,15 +6,15 @@
 # billxwaller@gmail.com
 # @date 2026-06-10
 #
-BUILD_TYPE=Debug
 BUILD_TYPE=Release
+BUILD_TYPE=Debug
 # UI?=-DUAL_UI
 # UI?=-DNCURSES_UI
 # UI?=-DNOTCURSES_UI
 include UI.mk
 # EXP= Experimental executable name, e.g. lf2
 EXP1=
-EXP2=lf3
+# EXP2=lf3
 # CC_EXTRA = -fsanitize=thread
 ifneq ($(CMENU_HOME),)
 	PREFIX:=$(HOME)/menuapp

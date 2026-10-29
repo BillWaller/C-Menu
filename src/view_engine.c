@@ -103,6 +103,7 @@
 #define _Refresh(view)     \
     {                      \
         pad_refresh(view); \
+        ui_render();       \
     }
 
 char prev_regex_pattern[MAXLEN];
@@ -735,8 +736,8 @@ int get_cmd_char(View *view, off_t *n) {
     cmd_str[0] = '\0';
     UiSurface *sfc = view->sfc;
     UiEvent event;
-    pad_refresh(view);
     ui_render();
+    pad_refresh(view);
     ui_mvwadd_wch(sfc, CMDLN, view->cmd_line, view->curx++, &cell_ran);
     ui_top_surface(sfc, CMDLN);
     ui_cursor_enable_yx(sfc, CMDLN, 0, view->curx, true);
@@ -1386,8 +1387,8 @@ void view_display_page(View *view) {
             view->cur.sl_idx = view->page_top_sl_idx;
         display_line(view);
 #ifdef DEBUG_IMMED_UI
-        pad_refresh(view);
         ui_render();
+        pad_refresh(view);
 #endif
         view->ln_no++;
     }
@@ -1399,8 +1400,8 @@ void view_display_page(View *view) {
     view->page_bot_end_pos = view->file_pos - 1;
     view->page_bot_pos = view->file_pos;
     view->page_bot_ln_no = view->ln_no;
-    // pad_refresh(view);
     // ui_render();
+    // pad_refresh(view);
 }
 /** @brief Display Line on Pad
     @ingroup view_display

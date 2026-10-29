@@ -157,12 +157,12 @@ int init_pick(Init *init, int argc, char **argv, uint by, uint bx) {
         // sig_prog_mode();
     }
     close(pipe_fd[P_READ]);
+    ui_log(INFO, "pick->m_cnt = %d", pick->m_cnt);
     stdio_fdnames(stdio_names_str, "pick_engine.c 160");
     if (pick->m_cnt == 0) {
         ui_perror(_("No pick objects available"));
         return (1);
     }
-
     // Open Pick Window so we can build chyron
     if (open_pick_win(init)) {
         ui_perror(_("Failed to open pick window"));
@@ -922,7 +922,6 @@ int picker(Init *init, char *field) {
                 pick->tbl_line = (pick->d_idx / pick->tbl_cols) % pick->lines;
                 pick->y = pick->tbl_line + pick->y_offset;
 
-                /** box display_pick_page_info */
                 ssnprintf(tmp_str, MAXLEN - 1, _("Line %d, Page %d/%d"),
                           pick->tbl_line + 1, pick->tbl_page + 1,
                           pick->tbl_pages);

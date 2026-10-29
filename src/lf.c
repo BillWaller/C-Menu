@@ -1,4 +1,4 @@
-/** @file lf.c
+/** @file lf3.c
     @brief list files based on matching criteria
     @author Bill Waller
     Copyright (c) 2026
@@ -6,14 +6,17 @@
     billxwaller@gmail.com
     @date 2026-09-22
  */
+#include <ncursesw/panel.h>
 #define _GNU_SOURCE
-#include "cm.h"
+#include "lf.h"
 #include <argp.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <grp.h>
+#include <inttypes.h>
 #include <linux/limits.h>
+#include <locale.h>
 #include <pthread.h>
 #include <pwd.h>
 #include <regex.h>
@@ -31,64 +34,6 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-
-#define QUEUE_CAPACITY 16384
-#define QUEUE_MASK (QUEUE_CAPACITY - 1)
-#define MAX_PATH_LEN _POSIX_PATH_MAX
-#define MAX_DEPTH 64
-#define DIR_BUF_SIZE 16384
-#define CACHE_LINE_SIZE 64
-
-#define PATH_ARENA_CAPACITY (10 * 1024 * 1024)
-typedef struct PathNode PathNode;
-struct PathNode {
-    char *path;
-    PathNode *parent;
-};
-typedef struct {
-    PathNode *nodes;
-    _Atomic off_t pos;
-    off_t capacity;
-} PathArena;
-static PathArena path_arena = {NULL, 0, 0};
-
-#define CYCLE_ARENA_MAX_NODES (32 * 1024 * 1024)
-typedef struct CycleNode CycleNode;
-struct CycleNode {
-    dev_t dev;
-    ino_t ino;
-    CycleNode *parent;
-};
-typedef struct {
-    CycleNode *nodes;
-    _Atomic size_t index;
-    size_t capacity;
-} CycleArena;
-static CycleArena cycle_arena = {NULL, 0, 0};
-
-typedef struct QueuePayload QueuePayload;
-struct QueuePayload {
-    size_t path_len;
-    uint16_t depth;
-    char path[MAX_PATH_LEN];
-    CycleNode *ctx;
-};
-
-typedef struct {
-    alignas(CACHE_LINE_SIZE) _Atomic size_t enqueue_pos;
-    alignas(CACHE_LINE_SIZE) _Atomic size_t dequeue_pos;
-    alignas(CACHE_LINE_SIZE) _Atomic atomic_int active_tasks;
-    alignas(CACHE_LINE_SIZE) _Atomic atomic_int shut_down;
-    alignas(CACHE_LINE_SIZE) _Atomic size_t sequence[QUEUE_CAPACITY];
-    QueuePayload nodes[QUEUE_CAPACITY];
-} MPMCQueue;
-
-typedef enum {
-    TS_SUCCESS = 0,
-    TS_ERROR = 1,
-    TS_MATCH = 2,
-    TS_MATCH_PLUS_ERROR = 3,
-} TerminationStatus;
 
 struct linux_dirent64 {
     unsigned long long d_ino; /* 64-bit inode number */
@@ -114,52 +59,6 @@ bool is_dirsys(const char *);
 static char args_doc[] = "[DIRECTORY] [REGULAR_EXPRESSION]";
 
 TerminationStatus termination_status;
-typedef struct {
-    MPMCQueue *q;
-    pthread_t *threads;
-    unsigned int nthreads;
-    atomic_size_t file_count;
-    atomic_size_t error_count;
-    pthread_mutex_t output_mutex;
-    uintmax_t user_id;
-    off_t file_size_min;
-    FILE *err_fd;
-    char error_file_spec[MAX_PATH_LEN];
-    bool error_file_open;
-    long flags;
-    time_t after;
-    time_t before;
-    int max_depth;
-    int reg_flags;
-    char *base_path;
-    char *re;
-    char *ere;
-    char *user_name;
-    char *sbuffer;
-    regex_t compiled_re;
-    regex_t compiled_ere;
-    unsigned char include_perms;
-    unsigned char include_types;
-    unsigned char suppress_types;
-    bool report_error_count;
-    bool ignore_case;
-    bool sort;
-    bool sort_reverse;
-    bool include_hidden;
-    bool hidden_only;
-    bool follow_links;
-    bool debug;
-    bool report_config;
-    bool report_info;
-    bool report_warnings;
-    bool report_errors;
-    bool report_badlinks;
-    bool report_trace;
-    bool report_all;
-    bool count;
-    bool count_silently;
-    bool only_errors;
-} LfContext;
 
 typedef struct {
     char data[256 * MAX_PATH_LEN];
@@ -167,7 +66,7 @@ typedef struct {
 } OutputBuffer;
 
 #define DT_LNK_DIR 14
-unsigned char const lf_mask[15] = {
+unsigned char const lf_type_mask[15] = {
     0, 0b00000001, 0b00000010, 0, 0b00000100, 0, 0b00001000, 0, 0b00010000, 0,
     0b00100000, 0, 0b01000000, 0, 0b10000000};
 
@@ -177,33 +76,44 @@ char *exec;
 char *file_types_p;
 char *perms_p;
 char *debug_p;
-void debug_out(LfContext *lf, int, char **);
-bool init_lf(LfContext *lf, int, char **);
-int sort_lf_output(LfContext *lf, int, char **);
-MPMCQueue *mpmc_queue_init();
-bool mpmc_enqueue(LfContext *, const QueuePayload *child_node);
-bool mpmc_dequeue(LfContext *lf, QueuePayload *output_node);
+char *log_p;
+void debug_out(LfCtx *lf, int, char **);
+bool init_lf(LfCtx *lf, int, char **);
+int sort_lf_output(LfCtx *lf, int, char **);
 void *worker(void *arg);
-void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node, OutputBuffer *output, char *dir_buf, char *full_path);
-int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf, const unsigned char, struct stat *, bool stat_cached, OutputBuffer *);
-bool build_full_path(char *, size_t, const char *, const char *, size_t *);
-void flush_output_buffer(LfContext *, OutputBuffer *);
-bool append_output_buffer(LfContext *, OutputBuffer *, const char *, size_t, bool);
-int err_out(LfContext *lf, const char *format, ...);
-void cycle_arena_init(void);
-void cycle_arena_destroy(void);
-static CycleNode *cycle_arena_alloc(dev_t dev, ino_t ino, CycleNode *parent);
-bool is_link_cycle(dev_t dev, ino_t ino, CycleNode *parent);
-void path_arena_init(void);
-void path_arena_destroy(void);
-static PathNode *path_arena_alloc(char *path, PathNode *parent);
+void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char *dir_buf, char *current_dir_path, char *full_path, size_t thread_id, LogCtx *log_ctx);
+int print_file(LfCtx *lf, const unsigned char effective_type, struct stat *cached_sb, bool stat_cached, OutputBuffer *output, char *full_path);
+bool build_current_dir_path(char *, size_t, const char *, const char *, size_t *);
+void flush_output_buffer(LfCtx *, OutputBuffer *);
+bool append_output_buffer(LfCtx *, OutputBuffer *, const char *, size_t,
+                          bool);
+__attribute__((format(printf, 7, 8))) void log_write(const ll_e level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...);
+void get_filename(PathArena *path_arena, QueuePayload *qnode, char *current_dir_path, size_t len);
+void finalize_directory_node(LfCtx *lf, size_t node_offset);
+void queue_arena_create(LfCtx *lf, size_t max_nodes);
+void queue_arena_destroy(LfCtx *lf);
+uint32_t queue_arena_push_root(LfCtx *lf, size_t path_offset, size_t path_len, dev_t dev, ino_t ino);
+bool mpmc_enqueue(LfCtx *, const QueuePayload *new_node, size_t thread_id, LogCtx *log_ctx);
+bool mpmc_dequeue(LfCtx *lf, QueuePayload *dequeued_node, size_t thread_id);
+void path_arena_init(LfCtx *lf, LogCtx *log_ctx);
+void path_arena_destroy(LfCtx *lf);
+static size_t path_arena_alloc(LfCtx *lf, const char *path, size_t len);
+void directory_arena_init(LfCtx *lf);
+void directory_arena_destroy(LfCtx *lf);
+DirectoryNode *directory_arena_alloc(LfCtx *lf, size_t path_offset, size_t path_len, uint16_t depth, uint32_t parent_idx);
+void cycle_arena_init(LfCtx *lf);
+void cycle_arena_destroy(LfCtx *lf);
+CycleNode *cycle_arena_alloc(LfCtx *lf, dev_t dev, ino_t ino, size_t parent_idx);
+void flush_ch(LfCtx *lf, QueuePayload *stage, size_t stage_buffer_count, size_t thread_id, LogCtx *log_ctx);
+void iso8601_timestamp(LfCtx *lf, LogCtx *log_ctx);
 // ---------------------------------------------------------------
 
 static struct argp_option options[] = {
     {_("after"), 'a', _("time"), 0, _("Last Modified after YYYY-MM-DDTHH:MM:SS"), 0},
     {_("before"), 'b', _("time"), 0, _("Last Modified before YYYY-MM-DDTHH:MM:SS"), 0},
     {_("max_depth"), 'd', _("number"), 0, _("Depth into directory tree"), 0},
-    {_("error_file_spec"), 'E', _("file_spec"), 0, _("Error message output file"), 0},
+    {_("depth_first"), 'W', _("bool"), 0, _("Depth first order (widdershins)"), 0},
+    {_("unlink"), 'U', _("bool"), 0, _("unlink (delete) implies depth_first"), 0},
     {_("ere"), 'e', _("regex"), 0, _("Exclude regular expression"), 0},
     {_("ignore_case"), 'i', 0, 0, _("Search ignore case"), 0},
     {_("include_perms"), 'p', _("sgrwx"), 0,
@@ -215,9 +125,13 @@ static struct argp_option options[] = {
     {_("file_size_min"), 's', _("size"), 0,
      _("No Suffix-bytes, K-kilobytes, M-Megabytes, or G-Gigabytes"), 0},
     {_("user"), 'u', _("user name"), 0, _("User Name of file owner "), 0},
-    {_("debug"), 'D', "123456789", 0,
-     _("1-config, 2-info, 3-warnings, 4-errors, 5-badlinks, 6-trace, 7-all, 8-only_errors, 9-report_error_count"),
-     0},
+
+    {_("file_level_mask"), 'l', "2345EDAC", 0, _("2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE, D-DEQUEUE, A-ALL, C-COUNT_ERRORS"), 0},
+
+    {_("timestamp_style"), 'y', "CZL", 0, _("timestamp_style for logging 1-CODER, 2-ISO8601_ZULU, 3-ISO8601_LOCAL"), 0},
+
+    {_("disp_level_mask"), 'D', "12345EDACO", 0, _("1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE, D-DEQUEUE, A-ALL, C-COUNT_ERRORS, O-ONLY_ERRORS"), 0},
+
     {_("include_hidden"), 'H', "o", OPTION_ARG_OPTIONAL, _("Include hidden files (o=hidden only)"), 0},
     {_("follow_links"), 'L', 0, 0, _("Follow symbolic links"), 0},
     {_("sort_reverse"), 'R', 0, 0, _("Sort in Reverse order"), 0},
@@ -228,7 +142,7 @@ static struct argp_option options[] = {
 
 /** @brief Parse a single option.  */
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
-    LfContext *lf = state->input;
+    LfCtx *lf = state->input;
     int i = 0;
     bool a_toi_error = false;
 
@@ -258,64 +172,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         if (arg && arg[0] != '\0')
             lf->max_depth = a_toi(arg, &a_toi_error);
         break;
-    case 'D':
-        lf->debug = true;
-        if (arg && arg[0] != '\0') {
-            debug_p = strdup(arg);
-            i = 0;
-            lf->report_errors = true;
-            while (debug_p[i]) {
-                switch (debug_p[i]) {
-                case '1': // CONFIG
-                    lf->report_config = true;
-                    lf->only_errors = true;
-                    break;
-                case '2': // INFO
-                    lf->report_info = true;
-                    break;
-                case '3': // WARNINGS
-                    lf->report_warnings = true;
-                    break;
-                case '4': // ERRORS
-                    lf->report_errors = true;
-                    break;
-                case '5': // BADLINKS
-                    lf->report_badlinks = true;
-                    lf->report_errors = true;
-                    break;
-                case '6': // TRACE
-                    lf->report_trace = true;
-                    lf->report_badlinks = true;
-                    lf->report_errors = true;
-                    break;
-                case '7': // ALL
-                    lf->report_config = true;
-                    lf->report_info = true;
-                    lf->report_warnings = true;
-                    lf->report_errors = true;
-                    lf->report_badlinks = true;
-                    break;
-                case '8': // ONLY ERRORS
-                    lf->only_errors = true;
-                    lf->report_errors = true;
-                    break;
-                case '9': // ERROR COUNT
-                    lf->report_error_count = true;
-                    break;
-                default:
-                    break;
-                }
-                i++;
-            }
-            free(debug_p);
-        }
-        break;
     case 'e':
         lf->ere = strdup(arg);
         lf->flags |= LF_EXC_REGEX;
-        break;
-    case 'E':
-        strncpy(lf->error_file_spec, arg, MAX_PATH_LEN - 1);
         break;
     case 'H':
         lf->include_hidden = true; // Include hidden files
@@ -329,6 +188,95 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'i':
         lf->ignore_case = true;
+        break;
+    case 'D':
+        // "1-CONFIG, 2-INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE
+        // D-DEQUEUE, A-ALL, C-COUNT_ERRORS, O-ONLY_ERRORS"
+        // "12345EDACO"
+        if (arg && arg[0] != '\0') {
+            log_p = strdup(arg);
+            while (log_p[i]) {
+                switch (log_p[i]) {
+                case '1': // CONFIG
+                    lf->disp_level_mask |= ll_t[CONFIG].bits;
+                    break;
+                case '2': // INFO:
+                    lf->disp_level_mask |= ll_t[INFO].bits;
+                    break;
+                case '3': // ERROR
+                    lf->disp_level_mask |= ll_t[ERROR].bits;
+                    break;
+                case '4': // DEBUG
+                    lf->disp_level_mask |= ll_t[DEBUG].bits;
+                    break;
+                case '5': // CYCLE
+                    lf->disp_level_mask |= ll_t[CYCLE].bits;
+                    break;
+                case 'E': // ENQUEUE
+                    lf->disp_level_mask |= ll_t[ENQUEUE].bits;
+                    break;
+                case 'D': // DEQUEUE
+                    lf->disp_level_mask |= ll_t[DEQUEUE].bits;
+                    break;
+                case 'A': // ALL
+                    lf->disp_level_mask |= ll_t[ALL].bits;
+                    break;
+                case 'C': // COUNT_ERRORS
+                    lf->disp_level_mask |= ll_t[COUNT_ERRORS].bits;
+                    break;
+                case 'O': // ONLY_ERRORS
+                    lf->disp_level_mask |= ll_t[ONLY_ERRORS].bits;
+                    break;
+                default:
+                    break;
+                }
+                i++;
+            }
+            free(log_p);
+        }
+        break;
+    case 'l':
+        // "          2-INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE
+        // D-DEQUEUE, A-ALL, C-COUNT_ERRORS, O-ONLY_ERRORS"
+        // "12345EDACO"
+        if (arg && arg[0] != '\0') {
+            log_p = strdup(arg);
+            while (log_p[i]) {
+                switch (log_p[i]) {
+                case '2': // INFO:
+                    lf->file_level_mask |= ll_t[INFO].bits;
+                    break;
+                case '3': // ERROR
+                    lf->file_level_mask |= ll_t[ERROR].bits;
+                    break;
+                case '4': // DEBUG
+                    lf->file_level_mask |= ll_t[DEBUG].bits;
+                    break;
+                case '5': // CYCLE
+                    lf->file_level_mask |= ll_t[CYCLE].bits;
+                    break;
+                case 'E': // ENQUEUE
+                    lf->file_level_mask |= ll_t[ENQUEUE].bits;
+                    break;
+                case 'D': // DEQUEUE
+                    lf->file_level_mask |= ll_t[DEQUEUE].bits;
+                    break;
+                case 'A': // ALL
+                    lf->file_level_mask |= ll_t[ALL].bits;
+                    break;
+                case 'C': // COUNT_ERRORS
+                    lf->file_level_mask |= ll_t[COUNT_ERRORS].bits;
+                    break;
+                case 'O': // ONLY_ERRORS
+                    lf->file_level_mask |= ll_t[ONLY_ERRORS].bits;
+                    break;
+                default:
+                    break;
+                }
+                i++;
+            }
+            free(log_p);
+        }
         break;
     case 'L':
         lf->follow_links = true; // follow symbolic links
@@ -366,6 +314,12 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         break;
     case 'S':
         lf->sort = true;
+        break;
+    case 'W':
+        lf->depth_first = true;
+        break;
+    case 'U':
+        lf->unlink = true;
         break;
     case 's':
         lf->file_size_min = (intmax_t)(a_to_ul(arg));
@@ -415,10 +369,16 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         if (pwd) {
             lf->user_id = (uintmax_t)pwd->pw_uid;
             lf->flags |= LF_USER;
-        } else {
+        } else
             fprintf(stderr, _("User '%s' not found.\n"), arg);
-            exit(EXIT_FAILURE);
-        }
+        break;
+    case 'y':
+        if (arg && arg[0] == 'Z')
+            lf->timestamp_style = ISO8601_ZULU;
+        else if (arg && arg[0] == 'L')
+            lf->timestamp_style = ISO8601_LOCAL;
+        else
+            lf->timestamp_style = CODER;
         break;
     case ARGP_KEY_ARG:
         if (state->arg_num == 0 || state->arg_num == 1) {
@@ -439,27 +399,32 @@ static struct argp argp = {options, parse_opt, args_doc, doc,
                            nullptr, nullptr, nullptr};
 
 int main(int argc, char **argv) {
-    LfContext *lf = (LfContext *)calloc(1, sizeof(LfContext));
+    LfCtx *lf = (LfCtx *)calloc(1, sizeof(LfCtx));
 
     lf->count = 0;
     termination_status = TS_ERROR;
     lf->error_count = 0;
-    lf->report_error_count = false;
+    lf->disp_level_mask = 0;
+    lf->file_level_mask = 0;
+    lf->f_logging = false;
+    lf->log_fd = -1;
+    lf->log_error_count = false;
     lf->nthreads = 0;
     lf->ignore_case = false;
     lf->sort = false;
     lf->sort_reverse = false;
+    lf->timestamp_style = CODER;
     lf->include_hidden = false; // By default, hidden files are suppressed.
     lf->hidden_only = false;
     lf->flags |= LF_HIDE; // Turn hide flag on
+    lf->depth_first = false;
+    lf->unlink = false;
     lf->follow_links = false;
     lf->count = false;
     lf->count_silently = false;
-    lf->report_badlinks = false;
     lf->sbuffer = _("4G");
-    lf->error_file_spec[0] = '\0';
-    lf->error_file_open = false;
 
+    setlocale(LC_NUMERIC, "");
     char tmp_str[MAX_PATH_LEN];
     argp_parse(&argp, argc, argv, 0, 0, lf);
     if (lfargc > 0) {
@@ -520,7 +485,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, _("Files: %zu\n"), count);
     }
     atomic_load(&lf->error_count);
-    if (lf->report_error_count && lf->error_count > 0) {
+    if (lf->log_error_count && lf->error_count > 0) {
         fprintf(stderr, _("Errors: %zu\n"), lf->error_count);
         termination_status |= TS_ERROR;
     }
@@ -534,12 +499,12 @@ int main(int argc, char **argv) {
     exit(termination_status);
 }
 /** @brief Sort the output of the lf command using the system's sort utility.
-    @param lf A pointer to the LfContext struct containing the search settings.
+    @param lf A pointer to the LfCtx struct containing the search settings.
     @param argc The number of command-line arguments.
     @param argv An array of command-line argument strings.
-    @details This function sets up a pipeline to sort the output of the lf command. It creates a pipe, forks a child process to execute the sort command, and redirects the standard input and output streams accordingly. The sort command is executed with optional flags for parallel processing and buffer size, as well as a reverse sort option if specified in the LfContext. The function waits for the child process to complete before returning.
+    @details This function sets up a pipeline to sort the output of the lf command. It creates a pipe, forks a child process to execute the sort command, and redirects the standard input and output streams accordingly. The sort command is executed with optional flags for parallel processing and buffer size, as well as a reverse sort option if specified in the LfCtx. The function waits for the child process to complete before returning.
    */
-int sort_lf_output(LfContext *lf, int argc, char **argv) {
+int sort_lf_output(LfCtx *lf, int argc, char **argv) {
     // char tmp_str[MAXLEN];
     char *eargv[MAXARGS];
     int eargc = 0;
@@ -569,7 +534,7 @@ int sort_lf_output(LfContext *lf, int argc, char **argv) {
         fprintf(stderr, _("Failed to execute sort: %s\n"), strerror(errno));
         return TS_ERROR;
     }
-    // fclose(stdout);
+    fclose(stdout);
     dup2(fds[1], STDOUT_FILENO);         // Clone write pipe to STDOUT_FILENO
     stdout = fdopen(STDOUT_FILENO, "w"); // Reopen STDOUT as a stream
     setvbuf(stdout, NULL, _IOLBF, 0);    //  line buffering
@@ -585,158 +550,170 @@ int sort_lf_output(LfContext *lf, int argc, char **argv) {
 // DEBUG_OUT
 // ----------------------------------------------------------------------
 /** @brief Display everything and the kitchen sink on stderr
-    @param lf A pointer to the LfContext struct containing the debug settings.
+    @param lf A pointer to the LfCtx struct containing the debug settings.
     @param argc The number of command-line arguments.
     @param argv An array of command-line argument strings.
-    @details This function outputs debug information to stderr if debugging is enabled in the LfContext. It includes a timestamp, user information, IP addresses, command-line arguments, and various configuration settings. The output is formatted for readability and includes details about file types, permissions, regex patterns, and other relevant settings.
+    @details This function outputs debug information to stderr if debugging is enabled in the LfCtx. It includes a timestamp, user information, IP addresses, command-line arguments, and various configuration settings. The output is formatted for readability and includes details about file types, permissions, regex patterns, and other relevant settings.
    */
-void debug_out(LfContext *lf, int argc, char **argv) {
+void debug_out(LfCtx *lf, int argc, char **argv) {
     char user_str[100];
     char ip_str[MAXLEN];
     int len = 0;
     int i;
     bool addspace_before = false;
-    if (lf->debug && (lf->report_config || lf->report_info)) {
-        fprintf(stderr, "%s,%s,%s,", get_local_timestamp(), get_user_str(user_str, 100), get_ip_addresses(ip_str, MAXLEN));
-        for (i = 0; i < argc; i++) {
-            len = len + strlen(argv[i]);
-            if (len > 72) {
-                fprintf(stderr, "\n");
-                len = strlen(argv[i]);
-                addspace_before = false;
-            }
-            if (addspace_before) {
-                fprintf(stderr, " ");
-                len++;
-            }
-            fprintf(stderr, "%s", argv[i]);
-            addspace_before = true;
+    if (!(lf->disp_level_mask & ll_t[CONFIG].bits))
+        return;
+    fprintf(stderr, "%s,%s,%s,", get_local_timestamp(), get_user_str(user_str, 100), get_ip_addresses(ip_str, MAXLEN));
+    for (i = 0; i < argc; i++) {
+        len = len + strlen(argv[i]);
+        if (len > 72) {
+            fprintf(stderr, "\n");
+            len = strlen(argv[i]);
+            addspace_before = false;
         }
-        fprintf(stderr, "\n\n");
-        fprintf(stderr, "%s\n\n", CM_VERSION);
-        fprintf(stderr, _("lf debug      %s\n"),
-                lf->debug ? _("true") : _("     false"));
-        fprintf(stderr, _("  1-config      %s\n"),
-                lf->report_config ? _("true") : _("|    false"));
-        fprintf(stderr, _("  2-info        %s\n"),
-                lf->report_info ? _("true") : _("|    false"));
-        fprintf(stderr, _("  3-warnings    %s\n"),
-                lf->report_warnings ? _("true") : _("|    false"));
-        fprintf(stderr, _("  4-errors      %s\n"),
-                lf->report_errors ? _("true") : _("|    false"));
-        fprintf(stderr, _("  5-badlinks    %s\n"),
-                lf->report_errors ? _("true") : _("|    false"));
-        fprintf(stderr, _("  6-trace       %s\n"),
-                lf->report_errors ? _("true") : _("|    false"));
-        fprintf(stderr, _("  8-only_errors %s\n"),
-                lf->report_errors ? _("true") : _("|    false"));
-        fprintf(stderr, "\n");
-        fprintf(stderr, _("Count files: %s\n"),
-                lf->report_errors ? _("true") : _("|    false"));
-        fprintf(stderr, _("Count only: %s\n"),
-                lf->report_errors ? _("true") : _("|    false"));
-        fprintf(stderr, "\n");
-        fprintf(stderr, _("Search directory: %s\n\n"), lf->base_path);
-        if (lf->max_depth == 0)
-            fprintf(stderr, _("Max depth 0 (unlimited)\n\n"));
-        else
-            fprintf(stderr, _("Max depth %d\n\n"), lf->max_depth);
-        fprintf(stderr, _("Using %d threads\n\n"), lf->nthreads);
-        fprintf(stderr, _("File types preceeded by an asterisk (\"*\") will be included:\n\n"));
-        fprintf(stderr, _("  LF type        DT type\n"));
-        print_file_type(lf->include_types, LF_FIFO, DT_FIFO, _("FIFO    p-named pipe"));
-        print_file_type(lf->include_types, LF_CHR, DT_CHR, _("CHR     c-character device"));
-        print_file_type(lf->include_types, LF_DIR, DT_DIR, _("DIR     d-directory"));
-        print_file_type(lf->include_types, LF_BLK, DT_BLK, _("BLK     b-block device"));
-        print_file_type(lf->include_types, LF_REG, DT_REG, _("REG     f-regular file"));
-        print_file_type(lf->include_types, LF_LNK, DT_LNK, _("LINK    l-symbolic link"));
-        print_file_type(lf->include_types, LF_SOCK, DT_SOCK, _("SOCK    s-socket"));
-        print_file_type(lf->include_types, LF_UNKNOWN, DT_UNKNOWN, _("UNKNOWN u-unknown"));
-        fprintf(stderr, "\n");
-        fprintf(stderr, "f->include_types  = %08b\n", lf->include_types);
-        fprintf(stderr, "f->suppress_types = %08b\n", lf->suppress_types);
-        fprintf(stderr, "\n");
-        if (lf->flags & LF_USER)
-            fprintf(stderr, _("User: %s (%ju)\n"), lf->user_name, lf->user_id);
-        if (lf->include_perms) {
-            if (lf->include_perms & LF_IXUSR)
-                fprintf(stderr, _("    %08b Execute\n"), LF_IXUSR);
-            if (lf->include_perms & LF_IWUSR)
-                fprintf(stderr, _("    %08b Write\n"), LF_IWUSR);
-            if (lf->include_perms & LF_IRUSR)
-                fprintf(stderr, _("    %08b Read\n"), LF_IRUSR);
-            if (lf->include_perms & LF_ISUID)
-                fprintf(stderr, _("    %08b SETUID\n"), LF_ISUID);
-            if (lf->include_perms & LF_ISGID)
-                fprintf(stderr, _("    %08b SETGID\n"), LF_ISGID);
+        if (addspace_before) {
+            fprintf(stderr, " ");
+            len++;
         }
-        fprintf(stderr, "\n");
-        if (lf->flags & LF_REGEX)
-            fprintf(stderr, _("Include regex: %s\n\n"), lf->re);
-        if (lf->flags & LF_EXC_REGEX)
-            fprintf(stderr, _("Exclude regex: %s\n\n"), lf->ere);
-
-        if (lf->after) {
-            char buf[32];
-            format_local_timestamp(lf->after, buf, sizeof(buf));
-            fprintf(stderr, _("Modified after: %s\n\n"), buf);
-        }
-
-        if (lf->before) {
-            char buf[32];
-            format_local_timestamp(lf->before, buf, sizeof(buf));
-            fprintf(stderr, _("Modified before: %s\n\n"), buf);
-        }
-
-        if (lf->file_size_min) {
-            const char *units[] = {"b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
-            off_t size = lf->file_size_min;
-            i = 0;
-            while (size >= 1024 && i < 6) {
-                size /= 1024;
-                i++;
-            }
-            char buffer[32];
-            ssnprintf(buffer, 32, "%ld %s", size, units[i]);
-            fprintf(stderr, _("Minimum file size: %s\n\n"), buffer);
-        }
-        if (lf->max_depth)
-            fprintf(stderr, _("Max depth: %d\n\n"), lf->max_depth);
-        if (lf->ignore_case)
-            fprintf(stderr, _("Ignore case in regex matching.\n\n"));
-        if (lf->include_hidden)
-            fprintf(stderr, _("Include hidden files.\n\n"));
-        if (lf->follow_links)
-            fprintf(stderr, _("Follow symbolic links.\n\n"));
-        if (lf->sort)
-            fprintf(stderr, _("Sort output in ascending order.\n\n"));
-        if (lf->sort_reverse)
-            fprintf(stderr, _("Sort output in reverse order.\n\n"));
+        fprintf(stderr, "%s", argv[i]);
+        addspace_before = true;
     }
+    // "1-CONFIG, 2-INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, E-ENQUEUE
+    // D-DEQUEUE, C-COUNT_ERRORS, A-ALL, O-ONLY_ERRORS"
+    // "12345EDCAO"
+    fprintf(stderr, "\n\n");
+    fprintf(stderr, "%s\n\n", CM_VERSION);
+    fprintf(stderr, "%s\n", _("Display Log Level"));
+    fprintf(stderr, _("  1-config       %s\n"),
+            lf->disp_level_mask & ll_t[CONFIG].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  2-info         %s\n"),
+            lf->disp_level_mask & ll_t[INFO].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  3-errors       %s\n"),
+            lf->disp_level_mask & ll_t[ERROR].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  4-debug        %s\n"),
+            lf->disp_level_mask & ll_t[DEBUG].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  5-cycle        %s\n"),
+            lf->disp_level_mask & ll_t[CYCLE].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  E-enqueue      %s\n"),
+            lf->disp_level_mask & ll_t[ENQUEUE].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  D-dequeue      %s\n"),
+            lf->disp_level_mask & ll_t[DEQUEUE].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  A-all           %s\n"),
+            lf->disp_level_mask & ll_t[ALL].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  C-count errors %s\n"),
+            lf->disp_level_mask & ll_t[COUNT_ERRORS].bits ? _("true") : _("|    false"));
+    fprintf(stderr, _("  O-only errors   %s\n"),
+            lf->disp_level_mask & ll_t[ONLY_ERRORS].bits ? _("true") : _("|    false"));
+
+    fprintf(stderr, "\n");
+    fprintf(stderr, _("Search directory: %s\n\n"), lf->base_path);
+    if (lf->max_depth == 0)
+        fprintf(stderr, _("Max depth 0 (unlimited)\n\n"));
+    else
+        fprintf(stderr, _("Max depth %d\n\n"), lf->max_depth);
+    fprintf(stderr, _("Using %d threads\n\n"), lf->nthreads);
+    fprintf(stderr, _("File types preceeded by an asterisk (\"*\") will be included:\n\n"));
+    fprintf(stderr, _("  LF type        DT type\n"));
+    print_file_type(lf->include_types, LF_FIFO, DT_FIFO, _("FIFO    p-named pipe"));
+    print_file_type(lf->include_types, LF_CHR, DT_CHR, _("CHR     c-character device"));
+    print_file_type(lf->include_types, LF_DIR, DT_DIR, _("DIR     d-directory"));
+    print_file_type(lf->include_types, LF_BLK, DT_BLK, _("BLK     b-block device"));
+    print_file_type(lf->include_types, LF_REG, DT_REG, _("REG     f-regular file"));
+    print_file_type(lf->include_types, LF_LNK, DT_LNK, _("LINK    l-symbolic link"));
+    print_file_type(lf->include_types, LF_SOCK, DT_SOCK, _("SOCK    s-socket"));
+    print_file_type(lf->include_types, LF_UNKNOWN, DT_UNKNOWN, _("UNKNOWN u-unknown"));
+    fprintf(stderr, "\n");
+    fprintf(stderr, "f->include_types  = %08b\n", lf->include_types);
+    fprintf(stderr, "f->suppress_types = %08b\n", lf->suppress_types);
+    fprintf(stderr, "\n");
+    if (lf->flags & LF_USER)
+        fprintf(stderr, _("User: %s (%ju)\n"), lf->user_name, lf->user_id);
+    if (lf->include_perms) {
+        if (lf->include_perms & LF_IXUSR)
+            fprintf(stderr, _("    %08b Execute\n"), LF_IXUSR);
+        if (lf->include_perms & LF_IWUSR)
+            fprintf(stderr, _("    %08b Write\n"), LF_IWUSR);
+        if (lf->include_perms & LF_IRUSR)
+            fprintf(stderr, _("    %08b Read\n"), LF_IRUSR);
+        if (lf->include_perms & LF_ISUID)
+            fprintf(stderr, _("    %08b SETUID\n"), LF_ISUID);
+        if (lf->include_perms & LF_ISGID)
+            fprintf(stderr, _("    %08b SETGID\n"), LF_ISGID);
+    }
+    fprintf(stderr, "\n");
+    if (lf->flags & LF_REGEX)
+        fprintf(stderr, _("Include regex: %s\n\n"), lf->re);
+    if (lf->flags & LF_EXC_REGEX)
+        fprintf(stderr, _("Exclude regex: %s\n\n"), lf->ere);
+
+    if (lf->after) {
+        char buf[32];
+        format_local_timestamp(lf->after, buf, sizeof(buf));
+        fprintf(stderr, _("Modified after: %s\n\n"), buf);
+    }
+
+    if (lf->before) {
+        char buf[32];
+        format_local_timestamp(lf->before, buf, sizeof(buf));
+        fprintf(stderr, _("Modified before: %s\n\n"), buf);
+    }
+
+    if (lf->file_size_min) {
+        const char *units[] = {"b", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb"};
+        off_t size = lf->file_size_min;
+        i = 0;
+        while (size >= 1024 && i < 6) {
+            size /= 1024;
+            i++;
+        }
+        char buffer[32];
+        ssnprintf(buffer, 32, "%ld %s", size, units[i]);
+        fprintf(stderr, _("Minimum file size: %s\n\n"), buffer);
+    }
+    if (lf->max_depth)
+        fprintf(stderr, _("Max depth: %d\n\n"), lf->max_depth);
+    if (lf->ignore_case)
+        fprintf(stderr, _("Ignore case in regex matching.\n\n"));
+    if (lf->include_hidden)
+        fprintf(stderr, _("Include hidden files.\n\n"));
+    if (lf->follow_links)
+        fprintf(stderr, _("Follow symbolic links.\n\n"));
+    if (lf->sort)
+        fprintf(stderr, _("Sort output in ascending order.\n\n"));
+    if (lf->sort_reverse)
+        fprintf(stderr, _("Sort output in reverse order.\n\n"));
     return;
 }
 // ----------------------------------------------------------------------
 // INIT_FIND
 // ----------------------------------------------------------------------
 /** @brief Initialize the file search process.
-    @param lf A pointer to the LfContext struct containing the search settings.
+    @param lf A pointer to the LfCtx struct containing the search settings.
     @param argc The number of command-line arguments.
     @param argv An array of command-line argument strings.
     @return true if initialization is successful, false otherwise.
     @details This function initializes the file search process based on the
-    provided settings in the LfContext struct. It sets up file type inclusion
+    provided settings in the LfCtx struct. It sets up file type inclusion
     and suppression, compiles regular expressions if specified, and creates a
     multi-producer, multi-consumer queue for managing directory traversal tasks.
     It also initializes threads for concurrent processing of directory entries.
    */
-bool init_lf(LfContext *lf, int argc, char **argv) {
-    /** suppress file types that aren't included */
+bool init_lf(LfCtx *lf, int argc, char **argv) {
+    if (lf->disp_level_mask || lf->file_level_mask)
+        lf->f_logging = true;
+    LogCtx x_log_ctx = {
+        .start_nsec = 0,
+        .start_sec = 0,
+        .p_int_nsec = 0,
+        .p_int_sec = 0,
+        .record[0] = '\0',
+    };
+    lf->f_logging = true;
+    LogCtx *log_ctx = &x_log_ctx;
     if (!lf->include_types)
         lf->include_types = 0xff;
     if (lf->include_types)
         lf->suppress_types = lf->include_types ^ 0xff;
-    // LF_HIDE = 0 - include hidden files,
-    // LF_HIDE = 1 - suppress hidden files
     lf->include_hidden = !(lf->flags & LF_HIDE);
     int reti = 0;
     lf->reg_flags = REG_EXTENDED;
@@ -745,7 +722,10 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
     if (lf->flags & LF_REGEX) {
         reti = regcomp(&lf->compiled_re, lf->re, lf->reg_flags);
         if (reti) {
-            fprintf(stderr, _("lf: '%s' Invalid pattern\n"), lf->re);
+            ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, _("lf->re: '%s' Invalid pattern\n"), lf->re);
+            fprintf(stderr, "%s", lf->log_record);
+            if (lf->f_logging)
+                lf_log(ERROR, "%s", lf->log_record);
             regfree(&lf->compiled_re);
             return false;
         }
@@ -753,14 +733,14 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
     if (lf->flags & LF_EXC_REGEX) {
         reti = regcomp(&lf->compiled_ere, lf->ere, lf->reg_flags);
         if (reti) {
-            fprintf(stderr, _("lf: '%s' Invalid exclude pattern\n"), lf->ere);
+            ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, _("lf->ere: '%s' Invalid pattern\n"), lf->ere);
+            fprintf(stderr, "%s", lf->log_record);
+            lf_log(ERROR, "%s", lf->log_record);
             regfree(&lf->compiled_ere);
             return false;
         }
     }
     debug_out(lf, argc, argv);
-    //--------------------------------------------------------------------
-    // Create and enqueue the first QueuePayload
     termination_status = TS_SUCCESS;
     int rc = 0;
     struct stat sb;
@@ -770,190 +750,253 @@ bool init_lf(LfContext *lf, int argc, char **argv) {
     rc = stat(lf->base_path, &sb);
     if (rc != 0)
         return false;
-    lf->q = mpmc_queue_init();
-    QueuePayload root_node;
-    cycle_arena_init();
-    if (S_ISDIR(sb.st_mode)) {
-        root_node.path_len = strnz__cpy(root_node.path, lf->base_path, MAX_PATH_LEN - 1);
-        root_node.depth = 0;
-        CycleNode *root_ctx = cycle_arena_alloc(sb.st_dev, sb.st_ino, nullptr);
-        root_node.ctx = root_ctx;
-        if (!mpmc_enqueue(lf, &root_node)) {
-            fprintf(stderr, _("Failed to enqueue initial directory\n"));
-            return false;
-        }
-        atomic_fetch_add_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
-        //------------------------------------------------------------
-        // INITIALIZE THREADS
-        //------------------------------------------------------------
-        lf->threads = calloc(lf->nthreads, sizeof(pthread_t));
-        if (!lf->threads) {
-            fprintf(stderr, _("Out of memory allocating threads\n"));
-            return false;
-        }
-        for (unsigned int i = 0; i < lf->nthreads; i++) {
-            rc = pthread_create(
-                &lf->threads[i],
-                NULL,
-                worker,
-                lf);
-            if (rc != 0) {
-                fprintf(stderr, _("Error: Unable to create thread %d\n"), rc);
-                lf->q->shut_down = 1;
-                termination_status = TS_ERROR;
-                return false;
-            }
-        }
-        //------------------------------------------------------------
-        // END THREADS
-        //------------------------------------------------------------
-        for (unsigned int i = 0; i < lf->nthreads; i++)
-            pthread_join(lf->threads[i], NULL);
-        rc = pthread_mutex_destroy(&lf->output_mutex);
-        if (rc != 0)
-            perror(_("Mutex destroy failed"));
-        if (lf->flags & LF_REGEX)
-            regfree(&lf->compiled_re);
-        if (lf->flags & LF_EXC_REGEX)
-            regfree(&lf->compiled_ere);
-        return true;
-    } else {
-        fprintf(stderr,
-                _("Warning: Base path '%s' is not a directory. No "
-                  "files will be found.\n"),
-                lf->base_path);
+    // --------------------------------------------------------------------
+    // INITIALIZE ARENAS
+    // --------------------------------------------------------------------
+    lf_log(INFO, "Initializing MPMC queue");
+    lf->q = (MPMCQueue *)calloc(1, sizeof(MPMCQueue));
+    if (lf->q == nullptr)
+        return false;
+    for (size_t i = 0; i < QUEUE_NODES; i++)
+        atomic_init(&lf->q->sequence[i], i);
+    atomic_init(&lf->q->enqueue_pos, 0);
+    atomic_init(&lf->q->dequeue_pos, 0);
+    atomic_init(&lf->q->active_tasks, 0);
+    atomic_init(&lf->q->shut_down, 0);
+    lf_log(INFO, _("Initializing Queue Arena"));
+    queue_arena_create(lf, QUEUE_NODES);
+    lf_log(INFO, _("Initializing Path Arena"));
+    path_arena_init(lf, log_ctx);
+    lf_log(INFO, _("Initializing Directory Arena"));
+    directory_arena_init(lf);
+    lf_log(INFO, _("Initializing Cycle Arena"));
+    cycle_arena_init(lf);
+    atomic_init(&lf->thread_id, 0);
+    if (!lf->path_arena || !lf->directory_arena ||
+        !lf->cycle_arena || !lf->queue_arena) {
         termination_status = TS_ERROR;
-        return false;
+        goto endlf;
     }
-    if (reti)
-        return false;
+    // --------------------------------------------------------------------
+    // CREATE_ROOT_NODE
+    // --------------------------------------------------------------------
+
+    // 4. Resolve the root path string and stat details to populate slot 0
+    size_t path_len = strlen(lf->base_path);
+    if (stat(lf->base_path, &sb) == -1) {
+        perror("Failed to stat base_path");
+        queue_arena_destroy(lf);
+        termination_status = TS_ERROR;
+        goto endlf;
+    }
+    if (!S_ISDIR(sb.st_mode)) {
+        ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1,
+                  _("Warning: Base path '%s' is not a directory. No "
+                    "files will be found.\n"),
+                  lf->base_path);
+        fprintf(stderr, "%s\n", lf->log_record);
+        lf_log(ERROR, "%s", lf->log_record);
+        termination_status = TS_ERROR;
+        goto endlf;
+    }
+    lf_log(INFO, _("Root path: %s"), lf->base_path);
+
+    // 5. Store the root path string in the path arena
+    size_t offset = path_arena_alloc(lf, lf->base_path, path_len);
+    // 6. Push the root node into the queue arena
+    uint32_t root_node_idx = queue_arena_push_root(lf, offset,
+                                                   path_len, sb.st_dev, sb.st_ino);
+    // 7. Enqueue the root node index task into the MPMC Queue to wake up worker
+    // 1
+    QueuePayload root_node = lf->queue_arena->nodes[root_node_idx];
+    // Mark global active tasks as 1
+    atomic_store_explicit(&lf->q->active_tasks, 1, memory_order_release);
+    mpmc_enqueue(lf, &root_node, 0, log_ctx);
+
+    // ------------------------------------------------------------
+    // LOOSE THE THREADS
+    // ------------------------------------------------------------
+    lf_log(INFO, _("Starting threads"));
+    lf->threads = calloc(lf->nthreads, sizeof(pthread_t));
+    if (!lf->threads) {
+        lf_log(ERROR, _("Out of memory allocating threads"));
+        fprintf(stderr, _("Out of memory allocating threads\n"));
+        goto endlf;
+    }
+    for (unsigned int i = 0; i < lf->nthreads; i++) {
+        rc = pthread_create(&lf->threads[i], NULL,
+                            worker, lf);
+        if (rc != 0) {
+            lf_log(ERROR, _("Error: Unable to create thread %d\n"), rc);
+            fprintf(stderr, _("Error: Unable to create thread %d\n"), rc);
+            lf->q->shut_down = 1;
+            termination_status = TS_ERROR;
+            goto endlf;
+        }
+    }
+// ------------------------------------------------------------
+// THREAD SHUTDOWN
+// ------------------------------------------------------------
+endlf:
+    lf_log(INFO, "Waiting for threads to finish...");
+    for (unsigned int i = 0; i < lf->nthreads; i++)
+        pthread_join(lf->threads[i], NULL);
+    rc = pthread_mutex_destroy(&lf->output_mutex);
+    if (rc != 0)
+        perror(_("Mutex destroy failed"));
+    if (lf->flags & LF_REGEX)
+        regfree(&lf->compiled_re);
+    if (lf->flags & LF_EXC_REGEX)
+        regfree(&lf->compiled_ere);
+    path_arena_destroy(lf);
+    cycle_arena_destroy(lf);
+    directory_arena_destroy(lf);
+    queue_arena_destroy(lf);
     return true;
 }
-// ----------------------------------------------------------------------
-// CYCLE_ARENA_INIT
-// ----------------------------------------------------------------------
-/** @brief Initialize the cycle arena for tracking visited directories.
-    @details This function initializes a global cycle arena structure that is used to track visited directories during the file search process. It reserves virtual memory space for the arena using mmap, allowing for efficient allocation of CycleNode structures without immediate physical memory allocation. The arena is designed to handle a maximum number of nodes defined by CYCLE_ARENA_MAX_NODES.
-   */
-void cycle_arena_init(void) {
-    cycle_arena.capacity = CYCLE_ARENA_MAX_NODES;
-    size_t total_bytes = cycle_arena.capacity * sizeof(CycleNode);
-    cycle_arena.nodes = mmap(NULL, total_bytes,
-                             PROT_READ | PROT_WRITE,
-                             MAP_ANONYMOUS | MAP_PRIVATE,
-                             -1, 0);
-    if (cycle_arena.nodes == MAP_FAILED) {
-        perror(_("mmap failed to reserve tracking arena memory"));
-        exit(EXIT_FAILURE);
-    }
-    atomic_init(&cycle_arena.index, 0);
-}
-// ----------------------------------------------------------------------
-// CYCLE_ARENA_DESTROY
-// ----------------------------------------------------------------------
-/** @brief Destroy the cycle arena and release allocated resources.
-    @details This function releases the resources allocated for the global cycle arena structure. It unmaps the virtual memory space reserved for the arena using munmap, allowing the operating system to reclaim the memory. This function should be called when the cycle arena is no longer needed to prevent memory leaks.
-   */
-void cycle_arena_destroy(void) {
-    if (cycle_arena.nodes != NULL && cycle_arena.nodes != MAP_FAILED) {
-        size_t total_bytes = cycle_arena.capacity * sizeof(CycleNode);
-        munmap(cycle_arena.nodes, total_bytes);
-    }
-}
-// ----------------------------------------------------------------------
-// CYCLE_ARENA_ALLOC
-// ----------------------------------------------------------------------
-/** @brief Allocate a new CycleNode in the cycle arena.
-    @param dev The device ID of the directory being allocated.
-    @param ino The inode number of the directory being allocated.
-    @param parent A pointer to the parent CycleNode, or nullptr if this is the root.
-    @return A pointer to the newly allocated CycleNode, or nullptr if allocation fails (e.g., if the arena is full).
-    @details This function allocates a new CycleNode structure in the global cycle arena. It uses atomic operations to ensure thread-safe allocation of nodes. If the arena has reached its maximum capacity, the function returns nullptr to indicate that no more nodes can be allocated. The allocated node is initialized with the provided device ID, inode number, and parent pointer.
-   */
-static CycleNode *cycle_arena_alloc(dev_t dev, ino_t ino, CycleNode *parent) {
-    size_t idx = atomic_fetch_add_explicit(&cycle_arena.index, 1, memory_order_relaxed);
-    if (idx >= cycle_arena.capacity) {
-        return NULL;
-    }
-    CycleNode *node = &cycle_arena.nodes[idx];
-    node->dev = dev;
-    node->ino = ino;
-    node->parent = parent;
-    return node;
-}
-
 // ----------------------------------------------------------------------
 // PATH_ARENA
 // ----------------------------------------------------------------------
-
-void path_arena_init(void) {
-    path_arena.nodes = mmap(NULL, PATH_ARENA_CAPACITY,
-                            PROT_READ | PROT_WRITE,
-                            MAP_ANONYMOUS | MAP_PRIVATE,
-                            -1, 0);
-    if (path_arena.nodes == MAP_FAILED) {
-        perror(_("mmap failed to reserve tracking arena memory"));
-        exit(EXIT_FAILURE);
+void path_arena_init(LfCtx *lf, LogCtx *log_ctx) {
+    lf->path_arena = calloc(PATH_ARENA_BYTES, sizeof(char *));
+    lf->path_arena->capacity = PATH_ARENA_BYTES;
+    size_t total_bytes = lf->path_arena->capacity;
+    lf->path_arena->bytes = mmap(NULL, total_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    if (lf->path_arena->bytes == MAP_FAILED) {
+        lf_log(ERROR, "mmap failed to reserve path_arena memory");
+        perror(_("mmap failed to reserve path_arena memory"));
     }
-    atomic_init(&path_arena.pos, 0);
+    atomic_init(&lf->path_arena->cursor, 0);
 }
-void path_arena_destroy(void) {
-    if (path_arena.nodes != NULL && path_arena.nodes != MAP_FAILED)
-        munmap(path_arena.nodes, PATH_ARENA_CAPACITY);
+void path_arena_destroy(LfCtx *lf) {
+    if (lf->path_arena->bytes != NULL && lf->path_arena->bytes != MAP_FAILED)
+        munmap(lf->path_arena->bytes, PATH_ARENA_BYTES);
+    if (lf->path_arena != NULL)
+        free(lf->path_arena);
 }
-static PathNode *path_arena_alloc(char *path, PathNode *parent) {
-    size_t pos = atomic_fetch_add_explicit(&path_arena.pos, 1, memory_order_relaxed);
-    if (pos >= PATH_ARENA_CAPACITY)
+static size_t path_arena_alloc(LfCtx *lf, const char *path, size_t len) {
+    // Reserve len + 1 bytes to safely encapsulate the null terminator
+    size_t offset = atomic_fetch_add_explicit(&lf->path_arena->cursor, len + 1, memory_order_relaxed);
+    if (offset + len + 1 >= PATH_ARENA_BYTES) {
+        fprintf(stderr, "Fatal: Path arena exhausted (%zu / %d bytes)\n", offset + len + 1, PATH_ARENA_BYTES);
+    }
+    memcpy(&lf->path_arena->bytes[offset], path, len);
+    lf->path_arena->bytes[offset + len] = '\0';
+    return offset; // Return back to worker to record in dir_ctx.path_offset
+}
+// ----------------------------------------------------------------------
+// DIRECTORY_ARENA
+// ----------------------------------------------------------------------
+void directory_arena_init(LfCtx *lf) {
+    lf->directory_arena = (DirectoryArena *)calloc(DIRECTORY_NODES, sizeof(DirectoryNode));
+    size_t total_bytes = DIRECTORY_NODES * sizeof(DirectoryNode);
+    lf->directory_arena->nodes = mmap(NULL, total_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    if (lf->directory_arena->nodes == MAP_FAILED) {
+        perror(_("mmap failed to reserve directory_arena memory"));
+    }
+    atomic_init(&lf->directory_arena->index, 0);
+}
+void directory_arena_destroy(LfCtx *lf) {
+    if (lf->directory_arena->nodes != NULL && lf->directory_arena->nodes != MAP_FAILED)
+        munmap(lf->directory_arena->nodes, DIRECTORY_NODES);
+    if (lf->directory_arena != NULL)
+        free(lf->directory_arena);
+}
+DirectoryNode *directory_arena_alloc(LfCtx *lf, size_t path_offset, size_t path_len, uint16_t depth, uint32_t parent_idx) {
+    size_t idx = atomic_fetch_add_explicit(&lf->directory_arena->index, 1, memory_order_relaxed);
+    if (idx >= DIRECTORY_NODES)
         return NULL;
-    PathNode *node = &path_arena.nodes[pos];
-    size_t len = strlen(path) + 1;
-    memcpy(node->path, path, len);
-    node->parent = parent;
-    path_arena.pos = pos + len + 1;
+    DirectoryNode *node = &lf->directory_arena->nodes[idx];
+    node->parent_idx = parent_idx;
+    node->depth = depth ? depth + 1 : 0;
+    node->child_dirs_remaining = 0;
+    node->path_offset = path_offset;
+    node->path_len = path_len;
     return node;
 }
 // ----------------------------------------------------------------------
-// BUILD_FULL_PATH
+// CYCLE_ARENA
 // ----------------------------------------------------------------------
-/** @brief Build a full file path by concatenating a directory path and a file
- * name.
-    @param dst A pointer to the destination buffer where the full path will be stored.
-    @param dst_size The size of the destination buffer.
-    @param dir_path The directory path to be concatenated.
-    @param name The file name to be concatenated.
-    @param out_len A pointer to a size_t variable where the length of the resulting full path will be stored (optional).
-    @return true if the full path was successfully built, false if an error occurred (e.g., null pointers or insufficient buffer size).
-    @details This function constructs a full file path by concatenating the provided directory path and file name. It ensures that there is a single '/' separator between the directory and file name, and it checks for sufficient buffer size before performing the concatenation. If successful, it null-terminates the resulting string and optionally returns its length.
-   */
-bool build_full_path(char *dst, size_t dst_size, const char *dir_path,
-                     const char *name, size_t *out_len) {
-    if (dst == nullptr || dir_path == nullptr || name == nullptr || dst_size == 0)
-        return false;
-    size_t dir_len = strlen(dir_path);
-    size_t name_len = strlen(name);
-    bool need_sep = dir_len > 0 && dir_path[dir_len - 1] != '/';
-    size_t full_len = dir_len + (need_sep ? 1 : 0) + name_len;
-    if (full_len >= dst_size)
-        return false;
-    memcpy(dst, dir_path, dir_len);
-    size_t pos = dir_len;
-    if (need_sep)
-        dst[pos++] = '/';
-    memcpy(dst + pos, name, name_len);
-    dst[full_len] = '\0';
-    if (out_len)
-        *out_len = full_len;
-    return true;
+void cycle_arena_init(LfCtx *lf) {
+    lf->cycle_arena = (CycleArena *)calloc(CYCLE_NODES, sizeof(CycleNode));
+    size_t total_bytes = CYCLE_NODES * sizeof(CycleNode);
+    lf->cycle_arena->nodes = mmap(NULL, total_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    if (lf->cycle_arena->nodes == MAP_FAILED) {
+        perror(_("mmap failed to reserve cycle_arena memory"));
+    }
+    atomic_init(&lf->cycle_arena->index, 0);
+}
+void cycle_arena_destroy(LfCtx *lf) {
+    if (lf->cycle_arena->nodes != NULL && lf->cycle_arena->nodes != MAP_FAILED)
+        munmap(lf->cycle_arena->nodes, CYCLE_NODES);
+    if (lf->cycle_arena != NULL)
+        free(lf->cycle_arena);
+}
+CycleNode *cycle_arena_alloc(LfCtx *lf, dev_t dev, ino_t ino, size_t parent_idx) {
+    size_t idx = atomic_fetch_add_explicit(&lf->cycle_arena->index, 1, memory_order_relaxed);
+    if (idx >= CYCLE_NODES)
+        return NULL;
+    CycleNode *node = &lf->cycle_arena->nodes[idx];
+    node->parent_idx = parent_idx;
+    node->dev = dev;
+    node->ino = ino;
+    return node;
+}
+// ----------------------------------------------------------------------
+// QUEUE_ARENA
+// ----------------------------------------------------------------------
+void queue_arena_create(LfCtx *lf, size_t max_nodes) {
+    lf->queue_arena = (QueueArena *)malloc(sizeof(QueueArena));
+    if (!lf->queue_arena) {
+        perror("Failed to allocate QueueArena management struct");
+        return;
+    }
+    lf->queue_arena->capacity = max_nodes;
+    atomic_store_explicit(&lf->queue_arena->cursor, 0, memory_order_relaxed);
+    lf->queue_arena->nodes = (QueuePayload *)mmap(NULL, max_nodes * sizeof(QueuePayload), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (lf->queue_arena->nodes == MAP_FAILED) {
+        perror("Failed to mmap memory for QueueArena elements");
+        free(lf->queue_arena);
+    }
+    return;
+}
+// Push the very first root directory into the queue arena
+uint32_t queue_arena_push_root(LfCtx *lf, size_t path_offset, size_t path_len, dev_t dev, ino_t ino) {
+    // Claim slot 0
+    size_t idx = atomic_fetch_add_explicit(&lf->queue_arena->cursor, 1, memory_order_relaxed);
+    QueuePayload *root_node = &lf->queue_arena->nodes[idx];
+    root_node->self_idx = (uint32_t)idx;
+    root_node->dir_ctx = directory_arena_alloc(lf, path_offset, path_len, 0, NO_PARENT);
+    root_node->cycle_ctx = cycle_arena_alloc(lf, dev, ino, NO_PARENT);
+    // Directory node setup
+    root_node->dir_ctx->path_offset = path_offset;
+    root_node->dir_ctx->path_len = path_len;
+    root_node->dir_ctx->depth = 0;
+    root_node->dir_ctx->parent_idx = NO_PARENT; // Sentinel value (UINT32_MAX)
+    atomic_init(&root_node->dir_ctx->child_dirs_remaining, 0);
+
+    // Cycle tracking root setup
+    root_node->cycle_ctx->dev = dev;
+    root_node->cycle_ctx->ino = ino;
+    root_node->cycle_ctx->parent_idx = NO_PARENT;
+
+    return (uint32_t)idx;
+}
+void queue_arena_destroy(LfCtx *lf) {
+    if (!lf->queue_arena)
+        return;
+    munmap(lf->queue_arena->nodes, lf->queue_arena->capacity * sizeof(QueuePayload));
+    free(lf->queue_arena);
 }
 // ----------------------------------------------------------------------
 // FLUSH_OUTPUT_BUFFER
 // ----------------------------------------------------------------------
 /** @brief Flush the output buffer to stdout in a thread-safe manner.
-    @param lf A pointer to the LfContext struct containing the output mutex.
+    @param lf A pointer to the LfCtx struct containing the output mutex.
     @param output A pointer to the OutputBuffer struct containing the data to be flushed.
     @details This function writes the contents of the output buffer to stdout using fwrite_unlocked for efficiency. It uses a mutex to ensure that only one thread can write to stdout at a time, preventing interleaved output from multiple threads. After flushing, it resets the length of the output buffer to zero.
    */
-void flush_output_buffer(LfContext *lf, OutputBuffer *output) {
+void flush_output_buffer(LfCtx *lf, OutputBuffer *output) {
     if (lf == nullptr || output == nullptr || output->len == 0)
         return;
     pthread_mutex_lock(&lf->output_mutex);
@@ -965,7 +1008,7 @@ void flush_output_buffer(LfContext *lf, OutputBuffer *output) {
 // APPEND_OUTPUT_BUFFER
 // ----------------------------------------------------------------------
 /** @brief Append a path to the output buffer, flushing if necessary.
-    @param lf A pointer to the LfContext struct containing the output mutex.
+    @param lf A pointer to the LfCtx struct containing the output mutex.
     @param output A pointer to the OutputBuffer struct where the path will be appended.
     @param path The path string to append to the output buffer.
     @param path_len The length of the path string.
@@ -973,7 +1016,7 @@ void flush_output_buffer(LfContext *lf, OutputBuffer *output) {
     @return true if the path was successfully appended or printed, false if an error occurred (e.g., null pointers).
     @details This function appends a given path to an output buffer. If the buffer is full, it flushes the buffer to stdout. If the path is too long to fit in the buffer, it prints it directly to stdout. The function uses a mutex to ensure thread-safe access to stdout when printing directly.
    */
-bool append_output_buffer(LfContext *lf, OutputBuffer *output, const char *path,
+bool append_output_buffer(LfCtx *lf, OutputBuffer *output, const char *path,
                           size_t path_len, bool append_slash) {
     if (lf == nullptr || output == nullptr || path == nullptr)
         return false;
@@ -997,52 +1040,40 @@ bool append_output_buffer(LfContext *lf, OutputBuffer *output, const char *path,
     return true;
 }
 // ----------------------------------------------------------------------
-// MPMC_QUEUE_INIT
-// ----------------------------------------------------------------------
-/** @brief Initialize the MPMCQueue.
-    @param q A pointer to the MPMCQueue struct representing the queue.
-    @details This function initializes the MPMCQueue by setting up the sequence numbers for each node in the queue and initializing the enqueue and dequeue indexes. It ensures that the queue is ready for concurrent access by multiple producer and consumer threads.
-   */
-MPMCQueue *mpmc_queue_init() {
-    MPMCQueue *q = calloc(1, sizeof(MPMCQueue));
-    if (q == nullptr)
-        return nullptr;
-    for (size_t i = 0; i < QUEUE_CAPACITY; i++)
-        atomic_init(&q->sequence[i], i);
-    atomic_init(&q->enqueue_pos, 0);
-    atomic_init(&q->dequeue_pos, 0);
-    atomic_init(&q->active_tasks, 0);
-    atomic_init(&q->shut_down, 0);
-    return q;
-}
-// ----------------------------------------------------------------------
 // MPMC_ENQUEUE
 // ----------------------------------------------------------------------
-/** @brief Enqueue a task into the MPMCQueue.
-    @param lf A pointer to the LfContext struct containing the queue.
-    @param dir A pointer to the QueuePayload struct representing the task to enqueue.
-    @return true if the task was successfully enqueued, false if the queue is full or an error occurred.
-    @details This function attempts to enqueue a task into the MPMCQueue. It uses atomic operations to ensure thread-safe access to the queue's enqueue position and sequence numbers. If the queue is full, it returns false, allowing for potential recursion or other handling by the caller. The function also includes a spin-wait mechanism to reduce contention when multiple threads are trying to enqueue tasks simultaneously.
-   */
-bool mpmc_enqueue(LfContext *lf, const QueuePayload *child_node) {
-    size_t pos = atomic_load_explicit(&lf->q->enqueue_pos,
-                                      memory_order_relaxed);
+bool mpmc_enqueue(LfCtx *lf, const QueuePayload *new_node, size_t thread_id, LogCtx *log_ctx) {
+    size_t pos = atomic_load_explicit(&lf->q->enqueue_pos, memory_order_acquire);
     int spin_count = 0;
-    const int SPIN_LIMIT = 16;
+    const int SPIN_LIMIT = 32;
     while (true) {
         size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)pos;
-        if (diff == 0) { // Queue is not full, ready to enqueue
-            if (atomic_compare_exchange_weak_explicit(&lf->q->enqueue_pos, &pos, pos + 1,
-                                                      memory_order_relaxed, memory_order_relaxed)) {
+        if (diff == 0) {
+            if (atomic_compare_exchange_strong_explicit(&lf->q->enqueue_pos, &pos, pos + 1, memory_order_release, memory_order_relaxed))
                 break;
+        } else if (diff < 0) { // Queue is full
+            if (lf->f_logging) {
+                if ((lf->file_level_mask & ll_t[ENQUEUE].bits) ||
+                    (lf->disp_level_mask & ll_t[ENQUEUE].bits)) {
+                    char log_record[MAXLEN];
+                    snprintf(log_record, MAXLEN - 1, "thread %3lu <%10s %12p %6u %6u %6lu/%-6lu %s",
+                             thread_id,
+                             "waiting",
+                             &new_node,
+                             new_node->self_idx,
+                             (new_node->dir_ctx->parent_idx != NO_PARENT ? new_node->dir_ctx->parent_idx : 0),
+                             new_node->dir_ctx->path_offset,
+                             new_node->dir_ctx->path_len,
+                             &lf->path_arena->bytes[new_node->dir_ctx->path_offset]);
+                    lf_log(ENQUEUE, "%s", log_record);
+                    lf_log(ENQUEUE, "Queue full, thread %zu waiting to enqueue", thread_id);
+                }
             }
-        } else if (diff < 0) // Queue is full
-            return false;    // trigger recursion
-        else {
-            pos++;
-            // pos = atomic_load_explicit(&lf->q->enqueue_pos,
-            // memory_order_relaxed);
+            return false;
+        } else {
+            pos = atomic_load_explicit(&lf->q->enqueue_pos, memory_order_acquire);
+            // pos++;
         }
         if (++spin_count > SPIN_LIMIT)
             return false;
@@ -1050,80 +1081,145 @@ bool mpmc_enqueue(LfContext *lf, const QueuePayload *child_node) {
         __builtin_ia32_pause();
 #endif
     }
-    memcpy(&lf->q->nodes[pos & QUEUE_MASK], child_node, sizeof(QueuePayload));
+    memcpy(&lf->q->nodes[pos & QUEUE_MASK], new_node, sizeof(QueuePayload));
+    if (lf->f_logging) {
+        if ((lf->file_level_mask & ll_t[ENQUEUE].bits) ||
+            (lf->disp_level_mask & ll_t[ENQUEUE].bits)) {
+            char log_record[MAX_LOG_REC_LEN];
+            snprintf(log_record, MAX_LOG_REC_LEN - 1, "thread %3lu  -> %12p idx %6u pidx %6u off/len %6lu/%-6lu path %s",
+                     thread_id,
+                     &new_node,
+                     new_node->self_idx,
+                     new_node->dir_ctx->parent_idx != NO_PARENT ? new_node->dir_ctx->parent_idx : 0, new_node->dir_ctx->path_offset,
+                     new_node->dir_ctx->path_len,
+                     &lf->path_arena->bytes[new_node->dir_ctx->path_offset]);
+            lf_log(ENQUEUE, "%s", log_record);
+            if (spin_count > 0) {
+                snprintf(log_record, MAX_LOG_REC_LEN - 1, "thread %3lu  -> %12p idx %6u spin_count %3d",
+                         thread_id,
+                         &new_node,
+                         new_node->self_idx,
+                         spin_count);
+                lf_log(ENQUEUE, "%s", log_record);
+            }
+        }
+    }
     atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + 1, memory_order_release);
     return true;
 }
-// ----------------------------------------------------------------------
-// MPMC_DEQUEUE
-// ----------------------------------------------------------------------
-/** @brief Dequeue a task from the MPMCQueue.
-    @param lf A pointer to the LfContext struct containing the queue.
-    @param task A pointer to the QueuePayload struct where the dequeued task will be stored.
-    @return true if a task was successfully dequeued, false if the queue is empty or shut down.
-    @details This function attempts to dequeue a task from the MPMCQueue. It uses atomic operations to ensure thread-safe access to the queue's dequeue position and sequence numbers. If the queue is empty, it yields the processor to reduce contention. If the queue has been shut down, it returns false, allowing for graceful termination of worker threads.
-   */
-bool mpmc_dequeue(LfContext *lf, QueuePayload *out_node) {
-    size_t pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
+
+bool mpmc_dequeue(LfCtx *lf, QueuePayload *dequeued_node, size_t thread_id) {
+    (void)thread_id;
+    size_t pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_acquire);
     while (true) {
         if (atomic_load_explicit(&lf->q->shut_down, memory_order_relaxed))
             return false;
         size_t seq = atomic_load_explicit(&lf->q->sequence[pos & QUEUE_MASK], memory_order_acquire);
         intptr_t diff = (intptr_t)seq - (intptr_t)(pos + 1);
-        if (diff == 0) { // Full queue, ready to dequeue
-            if (atomic_compare_exchange_strong_explicit(&lf->q->dequeue_pos, &pos, pos + 1,
-                                                        memory_order_relaxed, memory_order_relaxed)) {
+        if (diff == 0) {
+            if (atomic_compare_exchange_strong_explicit(&lf->q->dequeue_pos, &pos, pos + 1, memory_order_release, memory_order_relaxed)) {
                 break;
             }
-        } else if (diff < 0) { // Queue is temporarily empty
-            if (atomic_load_explicit(&lf->q->active_tasks,
-                                     memory_order_relaxed) == 0) {
-                atomic_store_explicit(&lf->q->shut_down, 1,
-                                      memory_order_release);
+        } else if (diff < 0) {
+            if (atomic_load_explicit(&lf->q->active_tasks, memory_order_relaxed) == 0) {
+                atomic_store_explicit(&lf->q->shut_down, 1, memory_order_release);
                 return false;
             }
             sched_yield();
-            pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
+            pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_acquire);
         } else {
-            pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_relaxed);
+            pos = atomic_load_explicit(&lf->q->dequeue_pos, memory_order_acquire);
         }
     }
-    // memcpy(output_node, &lf->q->nodes[pos & QUEUE_MASK],
-    // sizeof(QueuePayload));
-    if (out_node)
-        *out_node = lf->q->nodes[pos & QUEUE_MASK];
-    // current_node = &lf->q->nodes[pos & QUEUE_MASK];
-    atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + QUEUE_CAPACITY, memory_order_release);
+    if (dequeued_node)
+        *dequeued_node = lf->q->nodes[pos & QUEUE_MASK];
+    atomic_store_explicit(&lf->q->sequence[pos & QUEUE_MASK], pos + QUEUE_NODES, memory_order_release);
     return true;
 }
 // ----------------------------------------------------------------------
 // WORKER
 // ----------------------------------------------------------------------
-/** @brief Worker thread function that processes tasks from the MPMCQueue.
-    @param arg A pointer to the LfContext struct containing the queue and other context information.
-    @return NULL upon completion.
-    @details This function runs in a loop, dequeuing tasks from the MPMCQueue and processing them using the finder function. It decrements the active task count after processing each task. If the active task count reaches zero, it sets the shut_down flag to true, signaling other threads to terminate. The function exits when there are no more tasks to process or when a shutdown is detected.
-   */
 void *worker(void *arg) {
-    LfContext *lf = (LfContext *)arg;
-    // current_node is a pointer to the current task being processed, while child_node is a local variable used to hold the next task to be enqueued. The worker thread continuously dequeues tasks from the queue and processes them using the finder function. If the finder function returns NULL, indicating that there are no more tasks to process, the active task count is decremented. If the active task count reaches zero, the shut_down flag is set to true, signaling other threads to terminate.
-    //
-    // thread_local variables
+    LfCtx *lf = (LfCtx *)arg;
+    QueuePayload dqnode;
+    OutputBuffer output = {};
     char full_path[MAX_PATH_LEN];
-    QueuePayload current_node;
-    QueuePayload child_node;
-    OutputBuffer output;
+    alignas(CACHE_LINE_SIZE) char directory_path[MAX_PATH_LEN];
     alignas(struct linux_dirent64) char dir_buf[DIR_BUF_SIZE];
-    while (true) {
-        if (mpmc_dequeue(lf, &current_node) == true) {
-            memset(&child_node, 0, sizeof(QueuePayload));
-            if (finder(lf, &current_node, &child_node, &output, dir_buf, full_path) == NULL) {
-                if (atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_acq_rel) == 1) {
-                    atomic_store_explicit(&lf->q->shut_down, 1, memory_order_release);
-                }
-            }
-        } else
+    LogCtx x_log_ctx;
+    LogCtx *log_ctx = &x_log_ctx;
+    size_t thread_id = atomic_fetch_add_explicit(&lf->thread_id, 1, memory_order_relaxed);
+    log_ctx->thread_id = thread_id;
+    if (lf->f_logging && lf->log_fd == -1)
+        initialize_timer(lf, log_ctx);
+    else
+        initialize_thread_timer(lf, log_ctx);
+    if (lf->f_logging) {
+        if ((lf->file_level_mask & ll_t[DEQUEUE].bits) ||
+            (lf->disp_level_mask & ll_t[DEQUEUE].bits)) {
+            char log_record[MAXLEN];
+            snprintf(log_record, MAXLEN - 1, "thread %3lu  %s", log_ctx->thread_id, "worker starting");
+            lf_log(DEQUEUE, "%s", log_record);
+        }
+    }
+    while (1) {
+        if (mpmc_dequeue(lf, &dqnode, lf->thread_id) == false)
             break;
+        if (lf->f_logging) {
+            if ((lf->file_level_mask & ll_t[DEQUEUE].bits) ||
+                (lf->disp_level_mask & ll_t[DEQUEUE].bits)) {
+                char log_record[MAXLEN];
+                snprintf(log_record, MAXLEN - 1, "thread %3lu  <- %12p idx %6u pidx %6u off/len %6lu/%-6lu path %s",
+                         thread_id,
+                         &dqnode,
+                         dqnode.self_idx,
+                         dqnode.dir_ctx->parent_idx != NO_PARENT ? dqnode.dir_ctx->parent_idx : 0,
+                         dqnode.dir_ctx->path_offset,
+                         dqnode.dir_ctx->path_len,
+                         &lf->path_arena->bytes[dqnode.dir_ctx->path_offset]);
+                lf_log(DEQUEUE, "%s", log_record);
+            }
+        }
+        // STEP 1: Calculate Total Path Length via Index
+        // Backtracking
+        // ----------------------------------------------------------------
+        size_t total_path_len = dqnode.dir_ctx->path_len;
+        uint32_t current_parent = dqnode.dir_ctx->parent_idx;
+        while (current_parent != NO_PARENT) {
+            // Safely resolve the parent out of the global node arena
+            DirectoryNode *dir_ctx = lf->queue_arena->nodes[current_parent].dir_ctx;
+            total_path_len += dir_ctx->path_len + 1; // +1 for the '/' separator
+            current_parent = dir_ctx->parent_idx;
+        }
+        if (total_path_len >= MAX_PATH_LEN) {
+            atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
+            continue;
+        }
+        // ----------------------------------------------------------------
+        // STEP 2: Reconstruct String Right-to-Left into Local Buffer
+        // ----------------------------------------------------------------
+        directory_path[total_path_len] = '\0';
+        size_t write_cursor = total_path_len;
+        // Copy the leaf payload directory first
+        write_cursor -= dqnode.dir_ctx->path_len;
+        memcpy(&directory_path[write_cursor], &lf->path_arena->bytes[dqnode.dir_ctx->path_offset], dqnode.dir_ctx->path_len);
+        current_parent = dqnode.dir_ctx->parent_idx;
+        while (current_parent != NO_PARENT) {
+            DirectoryNode *dir_ctx = lf->queue_arena->nodes[current_parent].dir_ctx;
+            // Add the separator
+            write_cursor -= 1;
+            directory_path[write_cursor] = '/';
+            // Copy parent segment
+            write_cursor -= dir_ctx->path_len;
+            memcpy(&directory_path[write_cursor], &lf->path_arena->bytes[dir_ctx->path_offset], dir_ctx->path_len);
+            current_parent = dir_ctx->parent_idx;
+        }
+        // ----------------------------------------------------------------
+        // STEP 3: Execute Directory Scanning
+        // ----------------------------------------------------------------
+        // We pass the global index of this node so finder can attach it to children
+        finder(lf, &dqnode, &output, dir_buf, directory_path, full_path, thread_id, log_ctx);
+        atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
     }
     return NULL;
 }
@@ -1131,16 +1227,16 @@ void *worker(void *arg) {
 // FINDER
 // ----------------------------------------------------------------------
 /** @brief Process a directory and its entries, enqueueing subdirectories for further searching.
-    @param lf A pointer to the LfContext struct containing the search settings.
-    @param current_node A pointer to the QueuePayload struct representing the current directory being processed.
-    @param child_node A pointer to the QueuePayload struct where new tasks will be enqueued.
+    @param lf A pointer to the LfCtx struct containing the search settings.
+    @param dequeued_node A pointer to the QueuePayload struct representing the current directory being processed.
     @param output A pointer to the OutputBuffer struct for buffering output.
     @param dir_buf A buffer for reading directory entries.
-    @param full_path A buffer for constructing full file paths.
+    @param current_dir_path A buffer for constructing full file paths.
     @return NULL if processing is complete or an error occurred, otherwise returns a pointer to the next task to be enqueued.
     @details This function reads the contents of the current directory, processes each entry, and applies filters based on the user's settings (e.g., file types, regex patterns). It uses fstatat to retrieve metadata for each entry and determines whether to enqueue subdirectories for further searching. The function also handles symbolic links according to the user's options and manages output buffering for efficient writing to stdout.
    */
-void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node, OutputBuffer *output, char *dir_buf, char *full_path) {
+
+void *finder(LfCtx *lf, QueuePayload *dequeued_node, OutputBuffer *output, char *dir_buf, char *current_dir_path, char *full_path, pthread_t thread_id, LogCtx *log_ctx) {
     long nread;
     struct stat sb = {};
     bool stat_cached = false;
@@ -1149,48 +1245,45 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
     ino_t actual_ino = 0, effective_ino = 0;
     unsigned char actual_type;
     unsigned char effective_type;
-    CycleNode *child_ctx;
     int rc;
-    int dir_fd = open(current_node->path, O_RDONLY | O_DIRECTORY);
+    QueuePayload stage[STAGE_BUFFER_SIZE];
+    size_t directory_count = 0;
+    size_t stage_buffer_count = 0;
+
+    int dir_fd = open(current_dir_path, O_RDONLY | O_DIRECTORY | O_CLOEXEC);
     if (dir_fd == -1) {
-        if (lf->report_errors) {
-            err_out(lf, _("OPEN_FAIL,%s,%s\n"), current_node->path, strerror(errno));
+        if (lf->f_logging) {
+            if ((lf->file_level_mask & ll_t[ERROR].bits) ||
+                (lf->disp_level_mask & ll_t[ERROR].bits)) {
+                lf_log(ERROR, "OPEN_FAIL,%s,%s", current_dir_path, strerror(errno));
+            }
         }
         flush_output_buffer(lf, output);
+        // delete goes here - TO BE IMPLEMENTED IN FUTURE
+        // if (lf->unlink)
+        //     finalize_directory_node(&dequeued_node->dir_ctx);
         return NULL;
     }
+
     while (1) {
-        //--------------------------------------------------------------------
-        // READ DIRECTORY
-        //--------------------------------------------------------------------
-        // Read the directory entries and process each one. We use SYS_getdents
-        // to iterate over the entries in the directory. For each entry, we
-        // construct the full path and use fstatat to get the metadata of the
-        // entry. If the entry is a symbolic link, we check if the user has
-        // chosen to follow links and get the metadata of the target it points
-        // to. We then determine the effective type of the entry and apply the
-        // specified filters (e.g., hidden files, max depth) to decide whether
-        // to process it further or enqueue it for searching.
         nread = syscall(SYS_getdents64, dir_fd, dir_buf, DIR_BUF_SIZE);
         if (nread == -1) {
             atomic_fetch_add(&lf->error_count, 1);
-            if (lf->report_errors) {
-                err_out(lf, _("READDIR_FAIL,%s,%s\n"), current_node->path, strerror(errno));
-            }
+            lf_log(ERROR, "READDIR_FAIL,%s,%s", current_dir_path, strerror(errno));
             break;
         }
         if (nread == 0)
             break;
+
         for (size_t bpos = 0; bpos < (size_t)nread;) {
             entry = (struct linux_dirent64 *)(dir_buf + bpos);
             bpos += entry->d_reclen;
-            //--------------------------------------------------------------------
-            // PROCESS DIRECTORY ENTRIES
-            //--------------------------------------------------------------------
-            // Get link's metadata We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata of the symbolic link itself, rather than the target it points to. This allows us to determine if the entry is a symbolic link and handle it according to the user's options (e.g., whether to follow links or not). If fstatat fails, we log the error (if debugging is enabled) and continue to the next entry without processing this one further.
-            full_path[0] = '\0';
+
             actual_type = entry->d_type;
             effective_type = actual_type;
+            // -------------------------------------------------------------------
+            // PROCESS DIRECTORY ENTRIES
+            // -------------------------------------------------------------------
             if (actual_type == DT_DIR) {
                 if (entry->d_name[0] == '.') {
                     if (entry->d_name[1] == '\0')
@@ -1199,46 +1292,45 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                         continue;
                 }
             }
-            if (((lf->follow_links || lf->report_badlinks) &&
-                 (actual_type == DT_LNK || actual_type == DT_DIR)) ||
-                actual_type == DT_UNKNOWN) {
-                //--------------------------------------------------------------------
-                // GET ADVANCED METADATA
-                //--------------------------------------------------------------------
-                // We use fstatat with AT_SYMLINK_NOFOLLOW to get the metadata of the symbolic link itself, rather than the target it points to. This allows us to determine if the entry is a symbolic link and handle it according to the user's options (e.g., whether to follow links or not). If fstatat fails, we log the error (if debugging is enabled) and continue to the next entry without processing this one further.
+            size_t current_dir_len = strlen(current_dir_path);
+            size_t entry_name_len = strlen(entry->d_name);
+            memcpy(full_path, current_dir_path, current_dir_len);
+            full_path[current_dir_len] = '/';
+            memcpy(full_path + current_dir_len + 1, entry->d_name, entry_name_len);
+            size_t full_path_len = current_dir_len + 1 + entry_name_len;
+            full_path[full_path_len] = '\0';
+
+            // -------------------------------------------------------------------
+            // GET ADVANCED METADATA
+            // -------------------------------------------------------------------
+            if (lf->follow_links ||
+                (lf->file_level_mask & ll_t[CYCLE].bits) ||
+                (lf->disp_level_mask & ll_t[CYCLE].bits) ||
+                (actual_type == DT_LNK) ||
+                (actual_type == DT_DIR) ||
+                (actual_type == DT_UNKNOWN)) {
                 memset(&sb, 0, sizeof(struct stat));
                 rc = fstatat(dir_fd, entry->d_name, &sb, AT_SYMLINK_NOFOLLOW);
                 if (rc == -1) {
                     atomic_fetch_add(&lf->error_count, 1);
-                    if (lf->report_badlinks) {
-                        err_out(lf, _("LSTAT_FAIL,%s/%s,%s\n"), current_node->path, entry->d_name, strerror(errno));
-                    }
+                    lf_log(ERROR, "LSTAT_FAIL,%s/%s,%s", current_dir_path, entry->d_name, strerror(errno));
                 } else {
-
                     actual_ino = sb.st_ino;
                     actual_dev = sb.st_dev;
                     actual_type = (sb.st_mode & S_IFMT) >> 12;
                     effective_dev = actual_dev;
                     effective_ino = actual_ino;
                     effective_type = actual_type;
-                    stat_cached = true;
                 }
                 if (S_ISLNK(sb.st_mode)) {
-                    // Determine the real type of the entry. If the entry is a symbolic link, we set actual_type to DT_LNK and then attempt to get the metadata of the target it points to using fstatat without AT_SYMLINK_NOFOLLOW. This allows us to determine the effective type of the entry based on the target's metadata, which is important for deciding how to process it (e.g., whether it's a directory that we should enqueue for further searching). If fstatat fails when trying to get the target's metadata, we log the error (if debugging is enabled) but continue processing the entry based on its symbolic link metadata.
                     if (lf->follow_links) {
-                        //------------------------------------------------------------
+                        // -------------------------------------------------------
                         // GET LINK METADATA
-                        //------------------------------------------------------------
-                        char tmp_str[MAXLEN];
+                        // -------------------------------------------------------
                         rc = fstatat(dir_fd, entry->d_name, &sb, 0);
                         if (rc == -1) {
                             atomic_fetch_add(&lf->error_count, 1);
-                            if (lf->report_errors) {
-                                err_out(lf, _("STAT_FAIL,%s,%s\n"), entry->d_name,
-                                        strerror(errno));
-                                ssnprintf(tmp_str, MAXLEN - 1, _("FSTATAT_FAIL,%s/%s\n"),
-                                          entry->d_name, strerror(errno));
-                            }
+                            lf_log(ERROR, _("STAT_FAIL,%s,%s\n"), full_path, strerror(errno));
                         } else {
                             effective_ino = sb.st_ino;
                             effective_dev = sb.st_dev;
@@ -1249,104 +1341,116 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                     }
                 }
             }
+            // --------------------------------------------------------------------
+            // DIRECTORY
+            // --------------------------------------------------------------------
             if (effective_type == DT_DIR) {
-                //--------------------------------------------------------------------
-                // PROCESS DIRECTORY ENTRY - CREATE CHILD_NODE
-                //--------------------------------------------------------------------
-                // We build the full path for the child directory and check if it exceeds the maximum path length. If it does, we log an error and continue to the next entry. If the child directory is within the allowed depth, we create a new QueuePayload for it, copying the current history of dev/inode pairs for cycle detection. We then attempt to enqueue the child directory for further processing. If the queue is full, we handle it by running the finder function inline recursively.
-                child_ctx = cycle_arena_alloc(effective_dev, effective_ino, current_node->ctx);
-                child_node->ctx = child_ctx;
-                if (!build_full_path(child_node->path,
-                                     MAX_PATH_LEN,
-                                     current_node->path,
-                                     entry->d_name,
-                                     &child_node->path_len)) {
-                    atomic_fetch_add(&lf->error_count, 1);
-                    if (lf->report_errors) {
-                        err_out(lf, _("PATH_TOO_LONG,%s\n"),
-                                child_node->path);
-                    }
+                uint16_t next_depth = dequeued_node->dir_ctx->depth + 1;
+                if (lf->max_depth > 0 && next_depth > lf->max_depth)
                     continue;
-                }
                 bool cycle_found = false;
-                // Determine the effective type of the entry. We use the st_mode
-                // field from the stat struct to determine the file type by
-                // applying the S_IFMT mask and shifting it to get a value that
-                // corresponds to the DT_* constants. If the entry is a symbolic
-                // link and the user has chosen not to follow links, we treat it
-                // as a directory for the purpose of deciding whether to enqueue
-                // it for further searching. This allows us to handle symbolic
-                // links that point to directories in a way that respects the
-                // user's options while still allowing for traversal of linked
-                // directories if desired.
+                // ----------------------------------------------------------------
+                // CYCLE DETECTION (Index-Based)
+                // ----------------------------------------------------------------
                 if (lf->follow_links && actual_type == DT_LNK) {
-                    // -------------------------------------------------------
-                    // CYCLE_DETECTION
-                    // -------------------------------------------------------
-                    // Check for cycles by comparing the current directory's dev/inode with the history of dev/inode pairs from parent directories. If a match is found, it indicates a cycle and we skip processing this directory.
                     char target_path[MAX_PATH_LEN] = {'\0'};
-                    if (lf->report_trace || lf->report_badlinks) {
-                        ssize_t len = readlinkat(dir_fd, entry->d_name, target_path, sizeof(target_path) - 1);
-                        if (len != -1)
-                            target_path[len] = '\0';
-                    }
-                    child_ctx = cycle_arena_alloc(effective_dev, effective_ino, current_node->ctx);
-                    if (child_ctx == nullptr) {
-                        atomic_fetch_add(&lf->error_count, 1);
-                        if (lf->report_errors) {
-                            err_out(lf, _("CYCLE_ARENA_ALLOC_FAIL,%s\n"), current_node->path);
+                    if (lf->f_logging) {
+                        if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
+                            (lf->disp_level_mask & ll_t[CYCLE].bits)) {
+                            ssize_t len = readlinkat(dir_fd, entry->d_name, target_path, sizeof(target_path) - 1);
+                            if (len != -1)
+                                target_path[len] = '\0';
+                            ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1,
+                                      "Target item: dev: %lu, ino: %lu, Name: %s/%s\n",
+                                      effective_dev, effective_ino, current_dir_path, entry->d_name);
+                            lf_log(CYCLE, "%s", lf->log_record);
                         }
-                        continue;
                     }
-                    child_node->ctx = child_ctx;
-                    if (lf->report_trace) {
-                        err_out(lf, _("---CYCLE_DETECTION---\n"));
-                        err_out(lf, "ctx:   %12p, %8lu/%8lu, %s\n", child_ctx, child_ctx->dev, child_ctx->ino, child_node->path);
-                        err_out(lf, _("effective: %8lu/%8lu, %s\n"), effective_dev, effective_ino, target_path);
-                    }
-                    // is_link_cycle(effective_dev, effective_ino,
-                    // current_node->ctx);
-                    CycleNode *parent = current_node->ctx;
-                    while (parent != nullptr) {
-                        if (lf->report_trace) {
-                            err_out(lf, "ctx:       %12p, %8lu/%8lu, %12p, %s\n", parent, parent->dev, parent->ino);
+                    // ------------------------------------------------------------
+                    // BACKTRACK TO CHECK FOR CYCLE
+                    // ------------------------------------------------------------
+                    uint32_t current_parent_idx = dequeued_node->self_idx;
+                    while (current_parent_idx != NO_PARENT) {
+                        // Resolve the parent node safely from the stable global arena
+                        QueuePayload *ancestor = &lf->queue_arena->nodes[current_parent_idx];
+                        if (lf->f_logging) {
+                            if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
+                                (lf->disp_level_mask & ll_t[CYCLE].bits)) {
+                                ssnprintf(lf->log_record,
+                                          MAX_LOG_REC_LEN - 1,
+                                          "Checking Ancestor Index [%u] -> dev: %lu, ino: %lu\n",
+                                          current_parent_idx,
+                                          ancestor->cycle_ctx->dev,
+                                          ancestor->cycle_ctx->ino);
+                                lf_log(CYCLE, "%s", lf->log_record);
+                            }
                         }
-                        if (effective_dev == parent->dev && effective_ino == parent->ino) {
+                        // If both the device and inode match an ancestor, we
+                        // found a cycle loop!
+                        if (effective_dev == ancestor->cycle_ctx->dev && effective_ino == ancestor->cycle_ctx->ino) {
                             cycle_found = true;
                             break;
                         }
-                        parent = parent->parent;
+                        current_parent_idx = ancestor->cycle_ctx->parent_idx;
                     }
                     if (cycle_found) {
-                        if (lf->report_badlinks) {
-                            err_out(lf, _("CYCLER,%lu/%lu,%s,%lu/%lu,%s\n"), child_ctx->dev, child_ctx->ino, child_node->path,
-                                    effective_dev, effective_ino, target_path);
+                        if (lf->f_logging) {
+                            if ((lf->file_level_mask & ll_t[CYCLE].bits) ||
+                                (lf->disp_level_mask & ll_t[CYCLE].bits)) {
+                                ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, ("CYCLER,%lu/%lu,%s/%s,%lu/%lu,%s\n"),
+                                          effective_dev,
+                                          effective_ino,
+                                          current_dir_path,
+                                          entry->d_name,
+                                          effective_dev, effective_ino, target_path);
+                                lf_log(CYCLE, "%s", lf->log_record);
+                            }
                         }
                         atomic_fetch_add(&lf->error_count, 1);
-                        child_node->depth = current_node->depth + 1;
-                        scan_file(child_node->path, &child_node->path_len, lf, effective_type, &sb, stat_cached, output);
+                        print_file(lf, effective_type, &sb, stat_cached, output, full_path);
                         continue;
                     }
                 }
-                // --------------------------------------------------------
-                // BUILD AND ENQUEUE CHILD TASK
-                // --------------------------------------------------------
-                if (lf->max_depth != 0 && current_node->depth + 1 >= lf->max_depth)
-                    continue;
-                child_node->depth = current_node->depth + 1;
-                if (!cycle_found) {
-                    if (mpmc_enqueue(lf, child_node)) {
-                        atomic_fetch_add_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
-                    } else {
-                        QueuePayload local_node;
-                        OutputBuffer local_output;
-                        char local_dir_buf[DIR_BUF_SIZE];
-                        char local_full_path[MAX_PATH_LEN];
-                        finder(lf, child_node, &local_node, &local_output, local_dir_buf, local_full_path);
+                // ----------------------------------------------------------------
+                // STAGE CHILD TASKS
+                // ----------------------------------------------------------------
+                if (stage_buffer_count >= STAGE_BUFFER_SIZE) {
+                    flush_ch(lf, stage, stage_buffer_count, thread_id, log_ctx);
+                    stage_buffer_count = 0;
+                }
+                size_t child_offset = path_arena_alloc(lf, entry->d_name, entry_name_len);
+                // 1. Reserve a permanent slot in the node arena for child
+                size_t global_node_idx = atomic_fetch_add_explicit(&lf->queue_arena->cursor, 1, memory_order_relaxed);
+                // 2. Create child task
+                QueuePayload *child_task = &stage[stage_buffer_count++];
+                directory_count++;
+                child_task->self_idx = (uint32_t)global_node_idx;
+                child_task->dir_ctx = directory_arena_alloc(lf, child_offset, entry_name_len, next_depth, NO_PARENT);
+                child_task->dir_ctx->parent_idx = dequeued_node->self_idx;
+                child_task->cycle_ctx = cycle_arena_alloc(lf, effective_dev, effective_ino, dequeued_node->self_idx);
+                // 3. Write child task into the global arena so future
+                // generations can resolve it
+                lf->queue_arena->nodes[global_node_idx] = *child_task;
+#ifdef DEBUG_CHILD_STAGING
+                if (lf->f_logging) {
+                    if ((lf->file_level_mask & ll_t[STAGING].bits) ||
+                        (lf->disp_level_mask & ll_t[STAGING].bits)) {
+                        ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, "thread %3lu >%10s %12p %6u %6u %6lu/%-6lu %s",
+                                  thread_id,
+                                  "stage",
+                                  (void *)&child_task,
+                                  child_task->self_idx,
+                                  child_task->dir_ctx->parent_idx,
+                                  child_task->dir_ctx->path_offset,
+                                  child_task->dir_ctx->path_len,
+                                  &lf->path_arena->bytes[child_task->dir_ctx->path_offset]);
+
+                        lf_log(STAGING, "%s", lf->log_record);
                     }
                 }
+#endif
                 // --------------------------------------------------------
-                // CONDITIONALLY PRINT THE DIRECTORY
+                // CONDITIONALLY PRINT AS DIRECTORY
                 // --------------------------------------------------------
                 if (entry->d_name[0] == '.') {
                     if (!lf->include_hidden && !lf->hidden_only)
@@ -1356,10 +1460,10 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                         continue;
                 }
                 if (!lf->only_errors)
-                    scan_file(child_node->path, &child_node->path_len, lf, effective_type, &sb, stat_cached, output);
+                    print_file(lf, effective_type, &sb, stat_cached, output, full_path);
             } else {
                 // --------------------------------------------------------
-                // NOT DIRECTORY - CONDITIONALLY PRINT THE ENTRY
+                // CONDITIONALLY PRINT AS FILE
                 // --------------------------------------------------------
                 if (entry->d_name[0] == '.') {
                     if (!lf->include_hidden && !lf->hidden_only)
@@ -1368,50 +1472,124 @@ void *finder(LfContext *lf, QueuePayload *current_node, QueuePayload *child_node
                     if (lf->hidden_only)
                         continue;
                 }
-                size_t path_len;
-                if (full_path[0] == '\0') {
-                    if (!build_full_path(full_path,
-                                         MAX_PATH_LEN,
-                                         current_node->path,
-                                         entry->d_name,
-                                         &path_len)) {
-                        atomic_fetch_add(&lf->error_count, 1);
-                        if (lf->report_errors) {
-                            err_out(lf, _("PATH_TOO_LONG,%s/%s\n"),
-                                    current_node->path, entry->d_name);
-                        }
-                        continue;
-                    }
-                }
+                if (full_path[0] == '\0')
+                    continue;
                 if (!lf->only_errors)
-                    scan_file(full_path, &path_len, lf, effective_type, &sb, stat_cached, output);
+                    print_file(lf, effective_type, &sb, stat_cached, output, full_path);
             }
         }
     }
     close(dir_fd);
     flush_output_buffer(lf, output);
+    if (stage_buffer_count > 0)
+        flush_ch(lf, stage, stage_buffer_count, thread_id, log_ctx);
+    atomic_store_explicit(
+        &dequeued_node->dir_ctx->child_dirs_remaining,
+        directory_count, memory_order_release);
+
+    // atomic_store_explicit(
+    //     &lf->queue_arena->nodes[dequeued_node->self_idx].dir_ctx->child_dirs_remaining,
+    //     directory_count, memory_order_release);
+
+    if ((lf->unlink || lf->depth_first) && directory_count == 0) {
+        // --------------------------------------------------------------------
+        // BOTTOM-UP PROCESSING
+        // --------------------------------------------------------------------
+        uint32_t current_idx = dequeued_node->self_idx;
+        while (current_idx != NO_PARENT) {
+            QueuePayload *node = &lf->queue_arena->nodes[current_idx];
+            // IF ACTIVE CHILDREN, BREAK
+            if (atomic_fetch_sub_explicit(&node->dir_ctx->child_dirs_remaining, 1, memory_order_acq_rel) > 1)
+                break;
+            // This directory and all its subdirectories are 100% processed.
+            // You can safely process or remove the directory here.
+            // Cascade up to the parent index
+            current_idx = node->dir_ctx->parent_idx;
+        }
+    }
     return NULL;
 }
-// ----------------------------------------------------------------------
-// IS_LINK_CYCLE
-// ----------------------------------------------------------------------
-bool is_link_cycle(dev_t dev, ino_t ino, CycleNode *parent) {
-    const CycleNode *current = parent;
-    while (current != NULL) {
-        if (current->ino == ino && current->dev == dev) {
-            return true; // We hit a cycle!
+
+void flush_ch(LfCtx *lf, QueuePayload *stage, size_t stage_buffer_count, size_t thread_id, LogCtx *log_ctx) {
+    if (stage_buffer_count > 0) {
+        // Increment the global active task pool for the incoming children
+        atomic_fetch_add_explicit(&lf->q->active_tasks, stage_buffer_count, memory_order_relaxed);
+        // --------------------------------------------------------------------
+        // mpmc_enqueue
+        // --------------------------------------------------------------------
+        // Push staged directory payloads smoothly to ring nodes buffer
+        for (size_t i = 0; i < stage_buffer_count; ++i) {
+            //  if (mpmc_bulk_enqueue(lf, stage, stage_buffer_count)) {
+            //    SUCCESS: The slots are safely inside the queue structure.
+            //    Publish the count so the bottom-up cleaner can track it.
+            //    atomic_store_explicit(&parent_node->child_dirs_remaining,
+            //    stage_buffer_count, memory_order_release);
+            //  } else {
+            // FALLBACK: Queue is full. Because we haven't touched
+            // parent_node->child_dirs_remaining or modified the queue,
+            // we can safely handle these elements manually or process this
+            // thread's backlog using a thread-local overflow list without
+            // breaking our bottom-up counter tree.
+            //      handle_queue_overflow_fallback(stage, stage_buffer_count);
+            //  }
+#ifdef DEBUG_CHILD_STAGING
+            if (lf->f_logging) {
+                if ((lf->file_level_mask & ll_t[STAGING].bits) ||
+                    (lf->disp_level_mask & ll_t[STAGING].bits)) {
+                    ssnprintf(lf->log_record, MAX_LOG_REC_LEN - 1, "thread %3lu stage[%lu] %12p, >self_idx %6u, parent_idx %6u, offest/len %6lu/%-6lu, path %s",
+                              thread_id,
+                              i,
+                              &stage[i],
+                              stage[i].self_idx,
+                              stage[i].dir_ctx->parent_idx,
+                              stage[i].dir_ctx->path_offset,
+                              stage[i].dir_ctx->path_len,
+                              &lf->path_arena->bytes[stage[i].dir_ctx->path_offset]);
+                    lf_log(STAGING, "%s", lf->log_record);
+                }
+            }
+#endif
+            if (!mpmc_enqueue(lf, &stage[i], thread_id, log_ctx)) {
+                // If an enqueue ever fails due to buffer overflow limits,
+                // handle it or drop safely while decrementing counters
+                atomic_fetch_sub_explicit(&lf->q->active_tasks, 1, memory_order_relaxed);
+            }
         }
-        current = current->parent; // Safe to dereference: addresses never change
+    } else {
+        // NOT_IMPLEMENTED
+        // if (lf->unlink)
+        //     finalize_directory_node(&dequeued_node->dir_ctx);
     }
-    return false;
 }
 // ----------------------------------------------------------------------
-// SCAN_FILE
+// FINALIZE_DIRECTORY_NODE
+// ----------------------------------------------------------------------
+// void finalize_directory_node(LfCtx *lf, size_t node_offset) {
+//     while (node_offset != ROOT_MARKER) {
+//         DirectoryNode *node = (DirectoryNode
+//         *)&lf->path_arena->bytes[node_offset];
+//
+// If this node still has active children running, stop bubbling up
+//         if (atomic_fetch_sub_explicit(&node->child_dirs_remaining, 1,
+//         memory_order_acq_rel) > 1) {
+//             break;
+//         }
+
+// --- SUCCESS: This directory is now completely empty! ---
+// Reconstruct its absolute path safely and execute your post-order processing:
+// rmdir(absolute_path);
+
+// Bubble up to this folder's parent
+//         node_offset = node->parent_node_offset;
+//     }
+// }
+// ----------------------------------------------------------------------
+// PRINT_FILE
 // ----------------------------------------------------------------------
 /** @brief Scan a file or directory and apply filters based on the user's settings.
-    @param file_spec The path to the file or directory to scan.
-    @param path_len A pointer to the length of the file_spec string.
-    @param lf A pointer to the LfContext struct containing the search settings.
+    @param dir_path The path to the file or directory to scan.
+    @param path_len A pointer to the length of the dir_path string.
+    @param lf A pointer to the LfCtx struct containing the search settings.
     @param effective_type The effective type of the file (e.g., DT_REG, DT_DIR).
     @param cached_sb A pointer to a struct stat containing cached metadata for the file.
     @param stat_cached A boolean indicating whether the cached_sb contains valid data.
@@ -1419,16 +1597,15 @@ bool is_link_cycle(dev_t dev, ino_t ino, CycleNode *parent) {
     @return true if the file was successfully scanned and processed, false if an error occurred or if the file was excluded by filters.
     @details This function applies various filters to determine whether a given file or directory should be included in the output. It checks for matching and non-matching regex patterns, user ownership, permissions, modification times, and file sizes. If the file passes all filters, it is added to the output buffer. The function also handles caching of file metadata to avoid redundant system calls.
    */
-int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
-              const unsigned char effective_type, struct stat *cached_sb, bool stat_cached,
-              OutputBuffer *output) {
+int print_file(LfCtx *lf, const unsigned char effective_type, struct stat *cached_sb, bool stat_cached, OutputBuffer *output, char *full_path) {
+    size_t full_path_len = strlen(full_path);
     while (1) {
-        if (lf->suppress_types & lf_mask[effective_type])
+        if (lf->suppress_types & lf_type_mask[effective_type])
             break;
         // Exclude non-matching files
         if (lf->flags & LF_REGEX) {
             int reti =
-                regexec(&lf->compiled_re, file_spec, 0, NULL, 0);
+                regexec(&lf->compiled_re, full_path, 0, NULL, 0);
             if (reti == REG_NOMATCH)
                 break;
             termination_status |= TS_MATCH;
@@ -1436,7 +1613,7 @@ int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
         // Exclude matching files
         if (lf->flags & LF_EXC_REGEX) {
             int reti =
-                regexec(&lf->compiled_ere, file_spec, 0, NULL, 0);
+                regexec(&lf->compiled_ere, full_path, 0, NULL, 0);
             if (reti == 0) {
                 termination_status |= TS_MATCH;
                 break;
@@ -1444,13 +1621,13 @@ int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
         }
         //  Exclude files not owned by specified user
         if (lf->flags & LF_USER) {
-            if (!stat_cached && stat(file_spec, cached_sb) == 0)
+            if (!stat_cached && stat(full_path, cached_sb) == 0)
                 stat_cached = true;
             if (!stat_cached || cached_sb->st_uid != lf->user_id)
                 break;
         }
         if (lf->include_perms) {
-            if (!stat_cached && stat(file_spec, cached_sb) == 0)
+            if (!stat_cached && stat(full_path, cached_sb) == 0)
                 stat_cached = true;
             if (!stat_cached)
                 break;
@@ -1466,19 +1643,19 @@ int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
                 break;
         }
         if (lf->before) { // Last file modification
-            if (!stat_cached && stat(file_spec, cached_sb) == 0)
+            if (!stat_cached && stat(full_path, cached_sb) == 0)
                 stat_cached = true;
             if (stat_cached && cached_sb->st_mtime > lf->before)
                 break;
         }
         if (lf->after) { // Last file modification
-            if (!stat_cached && stat(file_spec, cached_sb) == 0)
+            if (!stat_cached && stat(full_path, cached_sb) == 0)
                 stat_cached = true;
             if (stat_cached && cached_sb->st_mtime < lf->after)
                 break;
         }
         if (lf->file_size_min) {
-            if (!stat_cached && stat(file_spec, cached_sb) == 0)
+            if (!stat_cached && stat(full_path, cached_sb) == 0)
                 stat_cached = true;
             if (stat_cached && cached_sb->st_size < lf->file_size_min)
                 break;
@@ -1487,51 +1664,287 @@ int scan_file(const char *file_spec, const size_t *path_len, LfContext *lf,
             break;
         atomic_fetch_add(&lf->file_count, 1);
         if (!lf->count_silently) {
-            const char *display_path = file_spec;
-            size_t display_len = *path_len;
-            if (display_len > 2 && display_path[0] == '.' && display_path[1] == '/') {
-                display_path += 2;
-                display_len -= 2;
+            full_path_len = strlen(full_path);
+            if (full_path_len > 2 && full_path[0] == '.' && full_path[1] == '/') {
+                full_path += 2;
+                full_path_len -= 2;
             }
-            append_output_buffer(lf, output, display_path, display_len,
-                                 effective_type == DT_DIR);
+            if (full_path_len > 0) {
+                append_output_buffer(lf, output, full_path, full_path_len,
+                                     effective_type == DT_DIR);
+            }
+            break;
         }
-        break;
     }
     return true;
 }
-/** @brief Thread-safe error output function that writes formatted error messages to the specified error file or stderr.
-    @param lf A pointer to the LfContext struct containing the output mutex and error file information.
-    @param format A printf-style format string for the error message.
-    @param ... Additional arguments corresponding to the format string.
-    @return The number of characters written, or a negative value if an error occurred.
-    @details This function locks the output mutex to ensure that only one thread can write to the error output at a time. It checks if an error file has been specified; if not, it defaults to stderr. If an error file is specified but not yet opened, it attempts to open it in append mode. The function uses vfprintf to write the formatted error message and then unlocks the mutex before returning.
-   */
-int err_out(LfContext *lf, const char *format, ...) {
-    pthread_mutex_lock(&lf->output_mutex);
-    va_list args;
-    va_start(args, format);
-    if (lf->error_file_spec[0] == '\0') {
-        if (lf->err_fd == nullptr) {
-            lf->err_fd = stderr;
-            lf->error_file_open = true;
-            setvbuf(lf->err_fd, NULL, _IOLBF, 0); //  line buffering
+
+// -----------------------------------------------------------------------
+// Logging
+// -----------------------------------------------------------------------
+
+/** iso8601_timestamp
+    @brief Generate an ISO 8601 timestamp string
+    @ingroup logging
+    @param buf Buffer to store the timestamp string
+    @param n Size of the buffer
+    @param local If true, use local time; if false, use UTC
+    @return Pointer to the buffer containing the timestamp string */
+void iso8601_timestamp(LfCtx *lf, LogCtx *log_ctx) {
+    char buf[64];
+    time_t tm = time(NULL);
+    struct tm *tp = lf->timestamp_style == ISO8601_LOCAL ? localtime(&tm) : gmtime(&tm);
+    if (lf->timestamp_style == ISO8601_LOCAL)
+        strftime(buf, 64, _("%Y-%m-%dT%H:%M:%S%z"), tp);
+    else
+        strftime(buf, 64, _("%Y-%m-%dT%H:%M:%SZ"), tp);
+    ssnprintf(log_ctx->time_buf, 64, "[%s]", buf);
+    return;
+}
+#include <string.h>
+#include <time.h>
+
+static const char DIV100_TABLE[] =
+    "0001020304050607080910111213141516171819"
+    "2021222324252627282930313233343536373839"
+    "4041424344454647484950515253545556575859"
+    "6061626364656667686970717273747576777879"
+    "8081828384858687888990919293949596979899";
+
+#define WRITE_STR(p, str)      \
+    do {                       \
+        const char *s = (str); \
+        while (*s)             \
+            *p++ = *s++;       \
+    } while (0)
+
+static inline char *write_uint3d(char *p, long val) {
+    long hundreds = val / 100;
+    long remainder = val % 100;
+    *p++ = (char)('0' + hundreds);
+    *p++ = DIV100_TABLE[remainder * 2];
+    *p++ = DIV100_TABLE[remainder * 2 + 1];
+    return p;
+}
+
+static inline char *write_uint2d(char *p, long val) {
+    *p++ = DIV100_TABLE[val * 2];
+    *p++ = DIV100_TABLE[val * 2 + 1];
+    return p;
+}
+
+// Dynamically writes interval seconds. Fits 2 digits or expands gracefully if > 99.
+static inline char *write_interval_sec(char *p, long val) {
+    if (val <= 99) {
+        return write_uint2d(p, val);
+    }
+
+    // Fallback loop for large intervals: builds string backwards, then copies forward
+    char temp[24];
+    int i = 0;
+    while (val > 0) {
+        temp[i++] = (char)('0' + (val % 10));
+        val /= 10;
+    }
+    // Reverse copy into the main buffer
+    while (i > 0) {
+        *p++ = temp[--i];
+    }
+    return p;
+}
+
+void initialize_thread_timer(LfCtx *lf, LogCtx *log_ctx) {
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
+    log_ctx->start_sec = lf->start_sec;
+    log_ctx->start_nsec = lf->start_nsec;
+    log_ctx->p_int_sec = tp.tv_sec;
+    log_ctx->p_int_nsec = tp.tv_nsec;
+}
+void initialize_timer(LfCtx *lf, LogCtx *log_ctx) {
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
+    log_ctx->start_sec = tp.tv_sec;
+    log_ctx->start_nsec = tp.tv_nsec;
+    log_ctx->p_int_sec = tp.tv_sec;
+    log_ctx->p_int_nsec = tp.tv_nsec;
+    lf->start_sec = tp.tv_sec;
+    lf->start_nsec = tp.tv_nsec;
+    lf->p_int_sec = tp.tv_sec;
+    lf->p_int_nsec = tp.tv_nsec;
+}
+
+void coder_timestamp(LogCtx *log_ctx) {
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
+
+    long cur_sec = (tp.tv_sec - log_ctx->start_sec) % 60;
+    long cur_nsec = (tp.tv_nsec - log_ctx->start_nsec);
+    long cur_ms = (cur_nsec / 1000000);
+    long cur_us = (cur_nsec / 1000) % 1000;
+    long cur_ns = cur_nsec % 1000;
+
+#ifdef DEBUG_INTERVAL_LOGGING
+    fprintf(stderr, "DEBUG: thread: %2ld, start_sec: %010ld, start_nsec: %09ld, tp.tv_sec: %010ld, tp.tv_nsec: %09ld, cur: %02ld.%03ld_%03ld_%03ld\n",
+            log_ctx->thread_id, log_ctx->start_sec, log_ctx->start_nsec, tp.tv_sec, tp.tv_nsec,
+            cur_sec, cur_ms, cur_us, cur_ns);
+#endif
+    // Interval calculation: time since last log entry
+    long int_sec = tp.tv_sec - log_ctx->p_int_sec;
+    long int_nsec = tp.tv_nsec - log_ctx->p_int_nsec;
+    if (int_nsec < 0) {
+        int_sec -= 1;
+        int_nsec += 1000000000L;
+    }
+    long int_ms = (int_nsec / 1000000);
+    long int_us = (int_nsec / 1000) % 1000;
+    long int_ns = int_nsec % 1000;
+#ifdef DEBUG_INTERVAL_LOGGING
+    fprintf(stderr, "DEBUG: thread: %2ld, p_int_sec: %010ld, p_int_nsec: %09ld, tp.tv_sec: %010ld, tp.tv_nsec: %09ld, int: %02ld.%03ld_%03ld_%03ld\n",
+            log_ctx->thread_id, log_ctx->p_int_sec, log_ctx->p_int_nsec, tp.tv_sec, tp.tv_nsec,
+            int_sec, int_ms, int_us, int_ns);
+#endif
+    log_ctx->p_int_sec = tp.tv_sec;
+    log_ctx->p_int_nsec = tp.tv_nsec;
+
+#ifdef DEBUG_INTERVAL_LOGGING
+    fprintf(stderr, "DEBUG: thread: %2ld, p_int_sec: %010ld, p_int_nsec: %09ld\n",
+            log_ctx->thread_id, log_ctx->p_int_sec, log_ctx->p_int_nsec);
+#endif
+    char *p = log_ctx->time_buf;
+
+    // --- Block 1: Current Time Timestamp ---
+    *p++ = '[';
+    p = write_uint2d(p, cur_sec);
+    *p++ = '.';
+    WRITE_STR(p, sgr_c[YELLOW]);
+    p = write_uint3d(p, cur_ms);
+    *p++ = '_';
+    p = write_uint3d(p, cur_us);
+    *p++ = '_';
+    p = write_uint3d(p, cur_ns);
+    WRITE_STR(p, sgr_c[RESET]);
+    *p++ = ']';
+
+    // --- Block 2: Interval Time Timestamp ---
+    *p++ = '[';
+    p = write_interval_sec(p, int_sec); // Handles arbitrary size safely
+    *p++ = '.';
+    WRITE_STR(p, sgr_c[YELLOW]);
+    p = write_uint3d(p, int_ms);
+    *p++ = '_';
+    p = write_uint3d(p, int_us);
+    *p++ = '_';
+    p = write_uint3d(p, int_ns);
+    WRITE_STR(p, sgr_c[RESET]);
+    *p++ = ']';
+
+    *p = '\0';
+}
+/** log_open
+    @brief Open the log file for writing
+    @ingroup logging
+    @return FILE pointer to the opened log file */
+void log_open(LfCtx *lf, LogCtx *log_ctx, size_t thread_id) {
+    bool local = true;
+    if (!lf->disp_level_mask && !lf->file_level_mask)
+        return;
+    char log_record[MAXLEN];
+    if (lf->log_fd == -1) {
+        char *user = getenv("USER");
+        char tz_buf[16];
+        char time_s[16];
+        struct timespec tp;
+        clock_gettime(CLOCK_REALTIME, &tp);
+        log_ctx->start_sec = tp.tv_sec;
+        log_ctx->start_nsec = tp.tv_nsec;
+        log_ctx->p_int_sec = tp.tv_sec;
+        log_ctx->p_int_nsec = tp.tv_nsec;
+        lf->start_sec = tp.tv_sec;
+        lf->start_nsec = tp.tv_nsec;
+        lf->p_int_sec = tp.tv_sec;
+        lf->p_int_nsec = tp.tv_nsec;
+        struct tm *tm = local ? localtime(&tp.tv_sec) : gmtime(&tp.tv_sec);
+        strftime(time_s, sizeof(time_s), "%Y%m%dT%H%M%S", tm);
+        if (local) {
+            strftime(tz_buf, sizeof(tz_buf), "%z", tm);
+        } else {
+            snprintf(tz_buf, sizeof(tz_buf), "Z");
         }
-    } else {
-        if (lf->error_file_open == false) {
-            lf->err_fd = fopen(lf->error_file_spec, "a");
-            if (lf->err_fd == nullptr) {
-                lf->err_fd = stderr;
-                fprintf(stderr, _("Failed to open error file %s: %s\n"),
-                        lf->error_file_spec, strerror(errno));
-                return TS_ERROR;
-            }
-            lf->error_file_open = true;
-            setvbuf(lf->err_fd, NULL, _IOLBF, 0); //  line buffering
+        ssnprintf(lf->log_file_spec, MAXLEN - 1, "/tmp/%s_lf_%s%s.log", user, time_s, tz_buf);
+        lf->log_fd = open(lf->log_file_spec, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        if (lf->log_fd == -1) {
+            ssnprintf(em0, MAXLEN - 1, _("Failed to open log file: %s"), lf->log_file_spec);
+            ssnprintf(em1, MAXLEN - 1, _("Error: %s"), strerror(errno));
+            ssnprintf(em2, MAXLEN - 1, "%s: line: %d", __FILE__, __LINE__ - 4);
+            ssnprintf(em3, MAXLEN - 1, _("remedy: delete %s and try again"), lf->log_file_spec);
+            fprintf(stderr, "%s\n%s\n%s\n%s\n", em0, em1, em2, em3);
+            exit(EXIT_FAILURE);
         }
     }
-    int result = vfprintf(lf->err_fd, format, args);
-    pthread_mutex_unlock(&lf->output_mutex);
-    va_end(args);
-    return result;
+    char ttyname[MAXLEN];
+    char cmenu_user[MAXLEN];
+    char *p = getenv(_("USER"));
+    strnz__cpy(cmenu_user, p, MAXLEN - 1);
+    if (ttyname_r(STDERR_FILENO, ttyname, sizeof(ttyname)) == 0)
+        strnz__cpy(log_record, ttyname, MAXLEN - 1);
+    ssnprintf(log_record, MAXLEN - 1, _("Lf_Log started by user %s, thread %lu, on terminal '%s'"), cmenu_user, thread_id, ttyname);
+    lf_log(ALL, "%s:", log_record);
+    return;
+}
+
+void log_write(const ll_e level, LfCtx *lf, LogCtx *log_ctx, const char *file, const char *func, const int line, const char *fmt, ...) {
+
+    if (!(lf->file_level_mask & ll_t[level].bits) && !(lf->disp_level_mask & ll_t[level].bits))
+        return;
+    va_list args;
+    va_start(args, fmt);
+    if ((lf->file_level_mask & ll_t[level].bits) && lf->log_fd == -1)
+        log_open(lf, log_ctx, log_ctx->thread_id);
+    struct stat st;
+    fstat(lf->log_fd, &st);
+    if (lf->log_fd == -1 ||
+        ((fstat(lf->log_fd, &st) == 0) && (st.st_size >= MAX_LOG_SIZE))) {
+        if (lf->log_fd != -1) {
+            close(lf->log_fd);
+            lf->log_fd = -1;
+        }
+        char old_archive[MAXLEN];
+        strnz__cpy(old_archive, lf->log_file_spec, MAXLEN - 1);
+        strnz__cat(old_archive, ".closed", MAXLEN - 1);
+        rename(lf->log_file_spec, old_archive);
+        log_open(lf, log_ctx, log_ctx->thread_id);
+    }
+    switch (lf->timestamp_style) {
+    case ISO8601_ZULU:
+    case ISO8601_LOCAL:
+        iso8601_timestamp(lf, log_ctx);
+        break;
+    case CODER:
+        coder_timestamp(log_ctx);
+        break;
+    case TIMESTAMP_STYLE_COUNT:
+        break;
+    }
+    char log_record[MAX_LOG_REC_LEN];
+    ssnprintf(log_record, sizeof(log_record), "%s[%s%-8s%s]<%s:%-12s:%5d> ",
+              log_ctx->time_buf,
+              ll_t[level].SGR,
+              ll_t[level].name,
+              ANSI_RESET,
+              file, func, line);
+    size_t len = strlen(log_record);
+    vsnprintf(log_record + len, sizeof(log_record) - len, fmt, args);
+    len = strlen(log_record);
+    log_record[len++] = '\n';
+    if (lf->file_level_mask & ll_t[level].bits) {
+        if (write(lf->log_fd, log_record, len) == -1)
+            perror("Failed to write atomic log record");
+    }
+    if (lf->disp_level_mask & ll_t[level].bits) {
+        if (write(lf->err_fd, log_record, len) == -1)
+            perror("Failed to write atomic error record");
+        va_end(args);
+        return;
+    }
 }
