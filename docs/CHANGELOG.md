@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-10-31T09:35:30-05:00* - PERFORMANCE TWEAKING: lf may very well be the fastest file finder on the planet. Here's how it stacks up against the competition on my machine (powered by a decade old Intel Xeon E5-2670 CPU with 32GB RAM and a .5TB Intel Optane SSD):  1) find et: 0.84, 468,731 files, 2) fd et: 0.21, 468,730 files, lf) et 0.08, 468,730 files. lf uses half the memory of fd and had only (0 major + 530 minor page faults) vs fd (1 major + 12,557 minor page faults). 
+
+*2026-10-29T08:05:46-05:00* - Update CHANGELOG.md 
+
 *2026-10-29T08:04:08-05:00* - DOCUMENTATION: README.md: Corrected "Coders Timestamp" description to include nanoseconds. 
 
 *2026-10-28T21:17:42-05:00* - Update CHANGELOG.md 
