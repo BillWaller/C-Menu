@@ -14,10 +14,10 @@
 
 directory="/home/bill"
 echo
-for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16; do
-    echo ./lf3 -H -T"$i" "$directory"
-    /bin/time -o time.out ./lf3 -H -T"$i" "$directory" | wc -l >lf.out 2>/dev/null
+for i in 10 11 12 13 14 15 16; do
+    echo ./lf -H -T"$i" "$directory"
+    /bin/time -o time.out ./lf -H -T"$i" "$directory" | wc -l >lf.out 2>/dev/null
     grep -v "^Command" time.out
-    echo "lf3 found "$(cat lf.out)" files"
+    echo "lf found "$(cat lf.out)" files"
     echo ------------------------------------
 done

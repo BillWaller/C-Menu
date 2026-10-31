@@ -33,13 +33,16 @@ extern "C" {
 #define MAX_DEPTH 64
 #define CACHE_LINE_SIZE 64
 #define STAGE_BUFFER_SIZE 64
+// PATH_MAX is 4096
 #define MAX_PATH_LEN PATH_MAX
 #define MAX_LOG_RECORD_LEN MAX_PATH_LEN
-#define DIR_BUF_SIZE 131072
-#define QUEUE_NODES (2 * 1024 * 1024)
-#define CYCLE_NODES (2 * 1024 * 1024)
-#define DIRECTORY_NODES (2 * 1024 * 1024)
+#define DIR_BUF_SIZE 16384
+#define QUEUE_NODES (1024 * 1024)
+#define CYCLE_NODES (1024 * 1024)
+#define DIRECTORY_NODES (1024 * 1024)
 #define PATH_ARENA_BYTES (32 * 1024 * 1024)
+#define MAX_LOG_REC_LEN 1024
+#define MAX_LOG_SIZE (1024 * 1024)
 
 #define QUEUE_MASK (QUEUE_NODES - 1)
 #define DIRECTORY_MASK (DIRECTORY_NODES - 1)
@@ -87,8 +90,6 @@ extern "C" {
 // Logging
 // ---------------------------------------------------------------
 #define ANSI_RESET "\033[0m"
-#define MAX_LOG_SIZE (10 * 1024 * 1024)
-#define MAX_LOG_REC_LEN 4096
 #define AS_STRINGS(NAME) #NAME,
 #define AS_ENUM(NAME) NAME,
 
@@ -443,8 +444,47 @@ typedef struct {
 } MPMCQueue;
 
 // ---------------------------------------------------------------
+// THREAD LOCAL
+// ---------------------------------------------------------------
+
+typedef struct {
+    char data[16 * MAX_PATH_LEN];
+    size_t len;
+} OutputBuffer;
+
+typedef struct {
+    QueuePayload *node;
+    OutputBuffer *output;
+    unsigned char effective_type;
+    struct stat *cached_sb;
+    bool stat_cached;
+    char *dir_buf;
+    char *path;
+    int path_len;
+    size_t thread_id;
+    LogCtx log_ctx;
+    size_t dir_path_len;
+    QueuePayload *stage;
+    size_t stage_buffer_count;
+} ThreadLocal;
 
 #define MAX_THREADS 64
+// ---------------------------------------------------------------
+// MEMORY USAGE
+// ---------------------------------------------------------------
+typedef struct {
+    uintptr_t stack_max;
+    uintptr_t stack_base;
+    uintptr_t current_sp;
+    void *heap_base;
+    long heap_used;
+    long stack_used;
+} MemMetrics;
+MemMetrics mm;
+void get_proc_memory();
+// ---------------------------------------------------------------
+//
+// ---------------------------------------------------------------
 
 typedef enum {
     TS_SUCCESS = 0,
@@ -453,22 +493,12 @@ typedef enum {
     TS_MATCH_PLUS_ERROR = 3,
 } TerminationStatus;
 
-struct linux_dirent64 {
-    unsigned long long d_ino; /* 64-bit inode number */
-    long long d_off;          /* 64-bit offset to next structure */
-    unsigned short d_reclen;  /* Size of this dirent */
-    unsigned char d_type;     /* File type */
-    char d_name[];            /* Filename (null-terminated) */
-};
-
 char em0[MAXLEN];
 char em1[MAXLEN];
 char em2[MAXLEN];
 char em3[MAXLEN];
 char em4[MAXLEN];
 
-extern char *format_local_timestamp(time_t, char *, size_t);
-extern bool parse_local_timestamp(const char *, time_t *);
 extern unsigned long a_to_ul(const char *);
 extern int a_toi(char *, bool *);
 extern bool is_symlink_to_dir(const char *);
@@ -548,7 +578,7 @@ typedef struct {
 // 1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE, 6-QUEUE, 7-ONLY_ERRORS,
 // 8-COUNT_ERRORS, 9-ALL, S-SPIN_COUNT, T-STAGE
 extern void iso8601_timestamp(LfCtx *lf, LogCtx *log_ctx);
-void coder_timestamp(LogCtx *log_ctx);
+void coders_timestamp(LogCtx *log_ctx);
 void initialize_timer(LfCtx *lf, LogCtx *log_ctx);
 void initialize_thread_timer(LfCtx *lf, LogCtx *log_ctx);
 extern void log_open(LfCtx *lf, LogCtx *log_ctx, size_t thread_id);

@@ -46,7 +46,11 @@ else
 endif
 
 CFLAGS+=$(shell pkg-config --cflags $(PACKAGES))
-CFLAGS+=-Wall -Wextra -Wshadow -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Werror -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-unused-result -Wno-unused-but-set-variable -Wno-unused-label -Wno-unused-value -Wno-unused-const-variable -Wno-unused-macros
+CFLAGS+=-march=native -Wall -Wextra -Wshadow -Wpointer-arith -Wstrict-prototypes \
+	-Wmissing-prototypes -Wmissing-declarations -Werror -Wno-unused-parameter \
+	-Wno-unused-function -Wno-unused-variable -Wno-unused-result \
+	-Wno-unused-but-set-variable -Wno-unused-label -Wno-unused-value  \
+	-Wno-unused-const-variable -Wno-unused-macros
 MAJOR=0
 MINOR=2
 PATCH=9
@@ -192,8 +196,8 @@ ui_visual:	ui_visual.c $(COMMON_OBJS) $(LIB_SHARED)
 	$(CC) $< $(COMMON_OBJS) -o $@ $(LDFLAGS)
 # endif
 
-lf: lf.c $(LIB_SHARED)
-	$(CC) $< -o $@ $(LDFLAGS)
+lf: lf.c include/lf.h
+	$(CC) $< -o $@ -Wl,-rpath,$(RPATH)
 
 $(EXP1): $(EXP1).c $(LIB_SHARED)
 	$(CC) $(CC_EXTRA) $< -o $@ $(LDFLAGS)
