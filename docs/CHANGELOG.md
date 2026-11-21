@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-11-21T15:00:57-06:00* - FIX:  The previous commit for lf was a mistake. It was not the current version  and should not have been committed.  This commit fixes that mistake and adds the correct version of lf. 
+
+*2026-11-21T10:42:28-06:00* - Update CHANGELOG.md 
+
 *2026-11-21T10:38:02-06:00* - REFACTOR lf to incorporate high performance and low latency features. lf is easily 10 times faster than find and twice as fast as fd in recent benchmark testing. Also several bug fixes in C-Menu UAL_UI. 
 
 *2026-10-31T09:46:13-05:00* - Update CHANGELOG.md 
