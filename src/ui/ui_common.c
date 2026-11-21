@@ -1299,6 +1299,7 @@ int ui_display_error(char *msg0, char *msg1, char *msg2, char *msg3) {
     ui_set_chyron_key(chyron, 10, _("F10 Continue"), UIKEY_F10);
     ui_compile_chyron(chyron);
     UiEvent event;
+    ui_werase(sfc, WIN);
     ui_draw_text(sfc, WIN, 0, 1, msg0);
     ui_draw_text(sfc, WIN, 1, 1, msg1);
     ui_draw_text(sfc, WIN, 2, 1, msg2);
@@ -1355,6 +1356,8 @@ int ui_perror(char *emsg_str) {
     ui_set_chyron_key(chyron, 10, _("F10 Continue"), UIKEY_F10);
     ui_compile_chyron(chyron);
     UiEvent event;
+    ui_bkgd(sfc, WIN, &cell_nt);
+    ui_werase(sfc, WIN);
     ui_draw_text(sfc, WIN, 0, 1, emsg_str);
     ui_display_chyron(sfc, WIN, chyron, 1, chyron->l + 1);
     if (f_xwgetch) {

@@ -6,6 +6,7 @@
 # billxwaller@gmail.com
 # @date 2026-06-10
 #
+PREFIX=/home/bill/menuapp
 BUILD_TYPE=Release
 BUILD_TYPE=Debug
 # UI?=-DUAL_UI
@@ -13,12 +14,11 @@ BUILD_TYPE=Debug
 # UI?=-DNOTCURSES_UI
 include UI.mk
 # EXP= Experimental executable name, e.g. lf2
-EXP1=
-# EXP2=lf3
-# CC_EXTRA = -fsanitize=thread
-ifneq ($(CMENU_HOME),)
-	PREFIX:=$(HOME)/menuapp
-endif
+# EXP1=lf3
+DEBUG_FLAGS=
+# = -fsanitize=bounds
+# -fsanitize=address
+# CC_EXTRA=-fsanitize=thread
 DISPLAY_MANIFEST=0
 # UI backend selection:
 #   NCURSES_UI    — legacy ncurses direct-use (default)
@@ -196,13 +196,13 @@ ui_visual:	ui_visual.c $(COMMON_OBJS) $(LIB_SHARED)
 	$(CC) $< $(COMMON_OBJS) -o $@ $(LDFLAGS)
 # endif
 
-lf: lf.c include/lf.h
+lf: lf.c
 	$(CC) $< -o $@ -Wl,-rpath,$(RPATH)
 
-$(EXP1): $(EXP1).c $(LIB_SHARED)
-	$(CC) $(CC_EXTRA) $< -o $@ $(LDFLAGS)
+$(EXP1): $(EXP1).c $(EXP1).h
+	$(CC) $(CC_EXTRA) $< -o $@
 
-$(EXP2): $(EXP2).c include/lf.h $(LIB_SHARED)
+$(EXP2): $(EXP2).c $(EXP2).h $(LIB_SHARED)
 	$(CC) $(CC_EXTRA) $< -o $@ $(LDFLAGS)
 
 %:	%.c $(LIB_SHARED)
@@ -257,7 +257,7 @@ clean:
 	rm -rf $(BINEXES) $(CFLOW_OUTPUT) .user_id .group_id core scan-build* \
 	CMenu.conf manifest.txt manifest.ls perf.* x xx* *.[aeos] *.diff *.so \
 	*.cflow *.gc.. *.out *.1 *.1.gz CMakeFiles cmake_install.cmake \
-   	CMakeCache.txt CMakefile CMAKE_BUILD_TYPE=Debug gdb.log ui/*.o \
+	   	CMakeCache.txt CMakefile CMAKE_BUILD_TYPE=Debug gdb.log ui/*.o \
 	conformance_ncurses conformance_notcurses ui_hello ui_visual
 
 conformance_test: ui/ui_conformance_test.c
@@ -281,12 +281,12 @@ endif
 
 helgrind: lf
 	valgrind --tool=helgrind --log-file=helgrind.out -s \
-		./lf -H $(HOME) 1>/dev/null 2>/dev/null
+	    	./lf3 -H
 
 valgrind: menu
 	valgrind -v \
 		--tool=memcheck \
-    	--log-file=valgrind.out \
+	    --log-file=valgrind.out \
 		--leak-check=full \
 		--show-leak-kinds=definite \
 		--show-reachable=no \

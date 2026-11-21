@@ -37,12 +37,32 @@ Report bugs to billxwaller@gmail.com.
 
 ## find, lf, and fd Performance Comparison
 
+Below is the actual output of timings for find, fd, and lf on a directory with
+469775 files. The directory is /home/bill, and it contains a mix of files and directories. The timings were done on a Linux system with a 16 x Intel® Xeon® E5-2670 @ 2.6GHz, 32GB of RAM, and an NVMe SSD.
+
+```
+find /home/bill
+0.37user 0.47system 0:00.84elapsed 99%CPU (0avgtext+0avgdata 29844maxresident)k
+0inputs+0outputs (0major+10528minor)pagefaults 0swaps
+find found 469776 files
+------------------------------------------------
+fd . -H -I /home/bill
+0.78user 0.63system 0:00.17elapsed 817%CPU (0avgtext+0avgdata 67608maxresident)k
+0inputs+0outputs (0major+16095minor)pagefaults 0swaps
+fd found 469775 files
+------------------------------------------------
+./lf -H /home/bill
+0.22user 0.67system 0:00.08elapsed 1004%CPU (0avgtext+0avgdata 21040maxresident)k
+0inputs+0outputs (0major+536minor)pagefaults 0swaps
+lf found 469775 files
+```
+
 
 | command    | elapsed | CPU% | memory | pagefaults | files  |
 | ---------- | ------- | ---- | ------ | ---------- | ------ |
-| find       | 0.85    | 100  | 33288  | 11754      | 492537 |
-| fd . -H -I | 0.13    | 1036 | 143096 | 5274       | 492536 |
-| lf -H      | 0.08    | 1068 | 10104  | 825        | 492536 |
+| find       | 0.84    | 99   | 29844  | 10528      | 469776 |
+| fd . -H -I | 0.17    | 817  | 67608  |16095      | 469775 |
+| lf -H      | 0.08    | 1004 | 21040  | 536        | 469775 |
 
 
 Notice that lf is the fastest, and uses the least memory. It also has the fewest page faults. fd is faster than find, but uses more memory and has more page faults. find is the slowest, and uses the most memory and has the most page faults.

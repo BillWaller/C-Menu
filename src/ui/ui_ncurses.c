@@ -599,6 +599,7 @@ int ui_werase(UiSurface *s, ss_t w) {
  * @param w The index of the window within the surface to be cleared, or ALLWINS to clear all windows.
  * @return 0 on success, or -1 on failure.
  */
+
 int ui_wclear(UiSurface *s, ss_t w) {
     if (!s)
         return -1;

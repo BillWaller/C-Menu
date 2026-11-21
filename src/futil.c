@@ -520,7 +520,9 @@ bool str_to_upper(char *s) {
     @param d - destination string
     @param s - source string
     @param max_len - maximum length to copy
-    @returns length of resulting string */
+    @returns length of resulting string
+    @note This function is not designed for speed, but for safety and robustness. If you want speed, use memcpy() instead.
+ */
 size_t strnz__cpy(char *d, const char *s, size_t max_len) {
     if (d == nullptr || s == nullptr)
         return 0;
@@ -551,6 +553,7 @@ size_t strnz__cpy(char *d, const char *s, size_t max_len) {
    preventing them from being included in the result. This is particularly
    useful when concatenating user input or file data, where embedded newlines
    could cause issues.
+    @note This function is not designed for speed, but for safety and robustness. If you want speed, use memcpy() instead.
  */
 size_t strnz__cat(char *d, const char *s, size_t max_len) {
     if (d == nullptr || s == nullptr)
