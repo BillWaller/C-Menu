@@ -10,7 +10,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define _GNU_SOURCE
 #define LF_VERSION_MAJOR 0
 #define LF_VERSION_MINOR 3
 #define LF_VERSION_PATCH 3
@@ -332,7 +331,7 @@ typedef struct {
     size_t stage_arena_size;
     size_t stage_queue_size;
     size_t stage_path_size;
-    OutputBuffer *output;
+    OutputBuffer *output_buffer;
     uint_fast32_t parent_idx;           //   4
     uint_fast32_t path_offset;          //   4
     uint_fast32_t path_len;             //   4

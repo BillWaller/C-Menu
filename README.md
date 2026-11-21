@@ -35,35 +35,47 @@ lf is designed to be modular and extensible, so that it can be easily integrated
 
 Report bugs to billxwaller@gmail.com.
 
-## find, lf, and fd Performance Comparison
+## File Finder Benchmarks - November 22, 2026
 
-Below is the actual output of timings for find, fd, and lf on a directory with
-469775 files. The directory is /home/bill, and it contains a mix of files and directories. The timings were done on a Linux system with a 16 x Intel® Xeon® E5-2670 @ 2.6GHz, 32GB of RAM, and an NVMe SSD.
+Below is the actual output of timings for find, fd, and lf. The timings were done on a Linux system with a 16 x Intel® Xeon® E5-2670 @ 2.6GHz, 32GB of RAM, and an NVMe SSD.
 
-```
+find (GNU findutils) version 4.11.0
+fd                   version 10.5.0
+lf                   version 0.3.3
+
+------------------------------------------------
+
 find /home/bill
-0.37user 0.47system 0:00.84elapsed 99%CPU (0avgtext+0avgdata 29844maxresident)k
-0inputs+0outputs (0major+10528minor)pagefaults 0swaps
-find found 469776 files
+0.41user 0.43system 0:00.85elapsed 100%CPU (0avgtext+0avgdata 35456maxresident)k
+0inputs+0outputs (0major+12068minor)pagefaults 0swaps
+found 511682 files
+
 ------------------------------------------------
+
 fd . -H -I /home/bill
-0.78user 0.63system 0:00.17elapsed 817%CPU (0avgtext+0avgdata 67608maxresident)k
-0inputs+0outputs (0major+16095minor)pagefaults 0swaps
-fd found 469775 files
+0.85user 0.71system 0:00.22elapsed 682%CPU (0avgtext+0avgdata 55088maxresident)k
+0inputs+0outputs (0major+14008minor)pagefaults 0swaps
+expected 511682 files, found 511682 files
+
 ------------------------------------------------
+
 ./lf -H /home/bill
-0.22user 0.67system 0:00.08elapsed 1004%CPU (0avgtext+0avgdata 21040maxresident)k
-0inputs+0outputs (0major+536minor)pagefaults 0swaps
-lf found 469775 files
-```
+0.21user 0.68system 0:00.08elapsed 1020%CPU (0avgtext+0avgdata 18076maxresident)k
+0inputs+0outputs (0major+715minor)pagefaults 0swaps
+expected 511682, found 511682 files
+
+------------------------------------------------
+
+Summary:
+
+| Command               | Milliseconds | CPU%  | Memory | Faults | Files   |
+| --------------------- | ------------ | ----- | ------ | ------ | ------- |
+| find /home/bill       | 850          | 100   | 35,456 | 12,068 | 511,682 |
+| fd . -H -I /home/bill | 220          | 682   | 55,088 | 14,008 | 511,682 |
+| lf -H /home/bill      | 80           | 1020 | 18,076 | 715    | 511,682 |
 
 
-| command    | elapsed | CPU% | memory | pagefaults | files  |
-| ---------- | ------- | ---- | ------ | ---------- | ------ |
-| find       | 0.84    | 99   | 29844  | 10528      | 469776 |
-| fd . -H -I | 0.17    | 817  | 67608  |16095      | 469775 |
-| lf -H      | 0.08    | 1004 | 21040  | 536        | 469775 |
-
+------------------------------------------------
 
 Notice that lf is the fastest, and uses the least memory. It also has the fewest page faults. fd is faster than find, but uses more memory and has more page faults. find is the slowest, and uses the most memory and has the most page faults.
 
@@ -71,22 +83,20 @@ NOTE: find counts the root directory as a file, while fd and lf do not. This
 accounts for the one-file difference in the file counts. This is not necessarily
 an error. Just subtract 1 from the find count to get an accurate result.
 
-## Under the Hood
+## lf Quality Control
 
-### Quality Controll
+Helgrind
+Command: ./lf -H
+    ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 127 from 10)
 
-Valgrind output for lf:
-
-```
-==38577== 
-==38577== HEAP SUMMARY:
-==38577==     in use at exit: 0 bytes in 0 blocks
-==38577==   total heap usage: 52 allocs, 52 frees, 4,737,309 bytes allocated
-==38577== 
-==38577== All heap blocks were freed -- no leaks are possible
-==38577== 
-==38577== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
-```
+Valgrind
+Command: ./lf -H
+HEAP SUMMARY:
+    Command: ./lf -H
+        in use at exit: 0 bytes in 0 blocks
+        total heap usage: 60 allocs, 60 frees, 8,415,217 bytes allocated
+        All heap blocks were freed -- no leaks are possible
+        ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
 
 ## Uniform Abstraction Layer User Interface
 

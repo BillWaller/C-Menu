@@ -1,0 +1,14 @@
+Helgrind, a thread error detector
+Copyright (C) 2007-2026, and GNU GPL'd, by OpenWorks LLP et al.
+Using Valgrind-3.29.0.GIT and LibVEX; rerun with -h for copyright info
+Command: ./lf -H
+2026-11-21T20:56:49Z Condensed Format by Bill Waller
+
+cntxt errors action size  at_addr by_addr fn                          thread  line
+----- ------ ------ ---- -------- ------- ------------------------------ --- -----
+      ------
+           0 total errors
+
+      0       0 Conflicts
+         ------ -------------------------------------------------
+total         0 (2 x 0) 

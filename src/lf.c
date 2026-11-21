@@ -1,4 +1,4 @@
-/** @file lf4.c
+/** @file lf.c
     @v0.3.3
     @brief list files based on matching criteria
     @author Bill Waller
@@ -7,6 +7,7 @@
     billxwaller@gmail.com
     @date 2026-09-22
  */
+#define _GNU_SOURCE
 #include "lf.h"
 #include <argp.h>
 #include <dirent.h>
@@ -45,7 +46,6 @@ char em3[MAXLEN];
 char em4[MAXLEN];
 
 struct tm tm_info;
-static inline void mpmc_release_slot(GlobalContext *__G, uint_fast32_t pos);
 
 // char *xpath;
 const char *argp_program_version = LF_VERSION;
@@ -119,9 +119,9 @@ static struct argp_option options[] = {
     {_("max_depth"), 'd', _("number"), 0, _("Depth into directory tree"), 0},
     {_("depth_first"), 'W', _("bool"), 0, _("Depth first order (widdershins)"),
      0},
-    {_("xdev"), 'x', _("bool"), 0, _("Do not traverse mount points)"),
-     0},
     {_("unlink"), 'U', _("bool"), 0, _("unlink (delete) implies depth_first"),
+     0},
+    {_("xdev"), 'x', _("bool"), 0, _("xdev Do not traverse mount points"),
      0},
     {_("ere"), 'e', _("regex"), 0, _("Exclude regular expression"), 0},
     {_("ignore_case"), 'i', 0, 0, _("Search ignore case"), 0},
@@ -485,7 +485,6 @@ int main(int argc, char **argv) {
     unsigned int nprocs = get_nprocs();
     if (nprocs == 0)
         nprocs = 1;
-
     if (__G->nthreads == 0)
         __G->nthreads = (nprocs > 1) ? (nprocs - 1) : 1;
     else {
@@ -499,7 +498,6 @@ int main(int argc, char **argv) {
         init_lf(__G, argc, argv);
     } else
         termination_status = sort_lf_output(__G, argc, argv);
-
     if (__G->count) {
         size_t count = atomic_load(&__G->file_count);
         fprintf(stderr, _("Files: %zu\n"), count);
@@ -821,7 +819,6 @@ bool init_lf(GlobalContext *__G, int argc, char **argv) {
     }
     if (__G->f_logging)
         lf_log(INFO, _("Root path: %s"), __G->base_path);
-
     // Push the root node into the queue arena
     push_root_node(__G, sb.st_dev, sb.st_ino);
     // ------------------------------------------------------------
@@ -931,45 +928,45 @@ void global_arena_destroy(GlobalContext *__G) {
 // ----------------------------------------------------------------------
 // FLUSH_OUTPUT_BUFFER
 // ----------------------------------------------------------------------
-/** @brief Flush the output buffer to stdout in a thread-safe manner.
+/** @brief Flush the output_buffer to stdout in a thread-safe manner.
     @param lf A pointer to the GlobalContext struct containing the output mutex.
-    @param output A pointer to the OutputBuffer struct containing the data to be
+    @param output_buffer A pointer to the OutputBuffer struct containing the data to be
    flushed.
-    @details This function writes the contents of the output buffer to stdout
+    @details This function writes the contents of the output_buffer to stdout
    using fwrite_unlocked for efficiency. It uses a mutex to ensure that only one
    thread can write to stdout at a time, preventing interleaved output from
-   multiple threads. After flushing, it resets the length of the output buffer
+   multiple threads. After flushing, it resets the length of the output_buffer
    to zero.
    */
-void flush_output_buffer(GlobalContext *__G, OutputBuffer *output) {
-    if (__G == nullptr || output == nullptr, output->len == 0)
+void flush_output_buffer(GlobalContext *__G, OutputBuffer *output_buffer) {
+    if (__G == nullptr || output_buffer == nullptr, output_buffer->len == 0)
         return;
     pthread_mutex_lock(&__G->output_mutex);
-    fwrite_unlocked(output->data, 1, output->len, stdout);
+    fwrite_unlocked(output_buffer->data, 1, output_buffer->len, stdout);
     pthread_mutex_unlock(&__G->output_mutex);
-    output->len = 0;
+    output_buffer->len = 0;
 }
 // ----------------------------------------------------------------------
 // APPEND_OUTPUT_BUFFER
 // ----------------------------------------------------------------------
-/** @brief Append a path to the output buffer, flushing if necessary.
+/** @brief Append a path to the output_buffer, flushing if necessary.
     @param lf A pointer to the GlobalContext struct containing the output mutex.
-    @param output A pointer to the OutputBuffer struct where the path will be
+    @param output_buffer A pointer to the OutputBuffer struct where the path will be
    appended.
-    @param path The path string to append to the output buffer.
+    @param path The path string to append to the output_buffer.
     @param path_len The length of the path string.
     @param append_slash A boolean indicating whether to append a slash after the
    path.
     @return true if the path was successfully appended or printed, false if an
    error occurred (e.g., null pointers).
-    @details This function appends a given path to an output buffer. If the
+    @details This function appends a given path to an output_buffer. If the
    buffer is full, it flushes the buffer to stdout. If the path is too long to
    fit in the buffer, it prints it directly to stdout. The function uses a mutex
    to ensure thread-safe access to stdout when printing directly.
    */
-bool append_output_buffer(GlobalContext *__G, OutputBuffer *output, const char *path,
+bool append_output_buffer(GlobalContext *__G, OutputBuffer *output_buffer, const char *path,
                           size_t path_len, bool append_slash) {
-    if (__G == nullptr || output == nullptr || path == nullptr)
+    if (__G == nullptr || output_buffer == nullptr || path == nullptr)
         return false;
     size_t line_len = path_len + (append_slash ? 1 : 0) + 1;
     if (line_len > sizeof(OutputBuffer)) {
@@ -981,13 +978,13 @@ bool append_output_buffer(GlobalContext *__G, OutputBuffer *output, const char *
         pthread_mutex_unlock(&__G->output_mutex);
         return true;
     }
-    if (output->len + line_len > sizeof(output->data))
-        flush_output_buffer(__G, output);
-    memcpy(output->data + output->len, path, path_len);
-    output->len += path_len;
+    if (output_buffer->len + line_len > sizeof(output_buffer->data))
+        flush_output_buffer(__G, output_buffer);
+    memcpy(output_buffer->data + output_buffer->len, path, path_len);
+    output_buffer->len += path_len;
     if (append_slash)
-        output->data[output->len++] = '/';
-    output->data[output->len++] = '\n';
+        output_buffer->data[output_buffer->len++] = '/';
+    output_buffer->data[output_buffer->len++] = '\n';
     return true;
 }
 // ----------------------------------------------------------------------
@@ -1042,8 +1039,8 @@ bool mpmc_bulk_enqueue(GlobalContext *__G, ThreadLocal *__tl) {
         bool queue_full = false;
         uint_fast32_t i;
         uint_fast32_t pos;
-        uint_fast32_t queue_idx;
         uint_fast32_t seq;
+        uint_fast32_t queue_idx;
         for (i = 0; i < __tl->stage_idx; ++i) {
             pos = base_idx + i;
             queue_idx = pos & QUEUE_MASK;
@@ -1107,8 +1104,9 @@ bool mpmc_bulk_enqueue(GlobalContext *__G, ThreadLocal *__tl) {
         // forces unconditional atomic read-write that Helgrind can't
         // misinterpret
         uint_fast32_t target_seq = base_idx + sidx + 1;
-        atomic_store_explicit(&__G->sequence[enqueue_pos],
-                              target_seq, memory_order_release);
+        atomic_exchange_explicit(&__G->sequence[enqueue_pos],
+                                 target_seq, memory_order_release);
+        atomic_thread_fence(memory_order_release);
     }
     __tl->stage_idx = 0;
     __tl->cum_path_offset = 0;
@@ -1137,12 +1135,13 @@ bool mpmc_dequeue(GlobalContext *__G, uint_fast32_t *dequeue_pos) {
             if (atomic_load_explicit(&__G->active_tasks, memory_order_acquire) == 0) {
                 uint_fast32_t check_pos =
                     atomic_load_explicit(&__G->dequeue_pos, memory_order_acquire);
+
                 uint_fast32_t enq_pos = atomic_load_explicit(&__G->enqueue_pos, memory_order_acquire);
                 if (enq_pos == check_pos) {
                     uint_fast32_t check_seq = atomic_load_explicit(
                         &__G->sequence[check_pos & QUEUE_MASK], memory_order_acquire);
                     if ((intptr_t)check_seq - (intptr_t)(check_pos + 1) < 0) {
-                        atomic_store_explicit(&__G->shut_down, 1, memory_order_release);
+                        atomic_exchange_explicit(&__G->shut_down, 1, memory_order_release);
                         return false;
                     }
                 }
@@ -1196,7 +1195,8 @@ void *worker(void *arg) {
     char dir_buf[DIR_BUF_SIZE];
     __tl.dir_buf = dir_buf;
     OutputBuffer output_buffer;
-    __tl.output = &output_buffer;
+    __tl.output_buffer = &output_buffer;
+    __tl.output_buffer->len = 0;
     uint_fast32_t q_pos = 0;
     LogCtx log_ctx = {};
     __tl.log_ctx = log_ctx;
@@ -1293,10 +1293,10 @@ void *finder(GlobalContext *__G, ThreadLocal *__tl) {
     int dir_fd = openat2(AT_FDCWD, __tl->path, &how, sizeof(struct open_how));
     if (dir_fd == -1) {
         if (__G->f_logging) {
-            lf_log(ERROR, "OPENAT2_FAIL,%s,%s", __tl->path, strerror(errno));
+            lf_log(ERROR, "OPEN_FAIL,%s,%s", __tl->path, strerror(errno));
         } else
-            fprintf(stderr, "OPENAT2_FAIL,%s,%d:%s\n", __tl->path, errno, strerror(errno));
-        flush_output_buffer(__G, __tl->output);
+            fprintf(stderr, "OPEN_FAIL,%s,%d:%s\n", __tl->path, errno, strerror(errno));
+        flush_output_buffer(__G, __tl->output_buffer);
         return NULL;
     }
     while (1) {
@@ -1304,7 +1304,7 @@ void *finder(GlobalContext *__G, ThreadLocal *__tl) {
         if (__builtin_expect(nread == -1, 0)) {
             atomic_fetch_add(&__G->error_count, 1);
             if (__G->f_logging)
-                lf_log(ERROR, "GETDENTS64_FAIL,%s,%s", __tl->path, strerror(errno));
+                lf_log(ERROR, "READDIR_FAIL,%s,%s", __tl->path, strerror(errno));
             break;
         }
         if (nread == 0)
@@ -1459,7 +1459,6 @@ void *finder(GlobalContext *__G, ThreadLocal *__tl) {
                        __tl->d_name_len);
                 __tl->cum_path_offset += __tl->d_name_len;
                 __tl->path_data[__tl->cum_path_offset++] = '\0';
-                __tl->path_data[__tl->cum_path_offset++] = '\0';
                 __tl->stage_idx++;
                 // --------------------------------------------------------
                 // CONDITIONALLY PRINT AS DIRECTORY
@@ -1494,7 +1493,7 @@ void *finder(GlobalContext *__G, ThreadLocal *__tl) {
         }
     }
     close(dir_fd);
-    flush_output_buffer(__G, __tl->output);
+    flush_output_buffer(__G, __tl->output_buffer);
     if (__tl->stage_idx > 0) {
         atomic_fetch_add_explicit(&__G->active_tasks, __tl->stage_idx, memory_order_relaxed);
         if (mpmc_bulk_enqueue(__G, __tl) == false) {
@@ -1593,7 +1592,7 @@ int print_file(GlobalContext *__G, ThreadLocal *__tl) {
                 path_len -= 2;
             }
             if (path_len > 0) {
-                append_output_buffer(__G, __tl->output, path, path_len,
+                append_output_buffer(__G, __tl->output_buffer, path, path_len,
                                      __tl->effective_type == DT_DIR);
             }
             break;
@@ -1628,7 +1627,6 @@ static const char DIV100_TABLE[] = "0001020304050607080910111213141516171819"
                                    "4041424344454647484950515253545556575859"
                                    "6061626364656667686970717273747576777879"
                                    "8081828384858687888990919293949596979899";
-
 #define WRITE_STR(p, str)      \
     do {                       \
         const char *s = (str); \
@@ -1745,13 +1743,11 @@ void initialize_timer(GlobalContext *__G, LogCtx *log_ctx) {
 void coders_timestamp(LogCtx *log_ctx) {
     struct timespec tp;
     clock_gettime(CLOCK_REALTIME, &tp);
-
     long cur_sec = (tp.tv_sec - log_ctx->start_sec) % 60;
     long cur_nsec = (tp.tv_nsec - log_ctx->start_nsec);
     long cur_ms = (cur_nsec / 1000000);
     long cur_us = (cur_nsec / 1000) % 1000;
     long cur_ns = cur_nsec % 1000;
-
 #ifdef DEBUG_INTERVAL_LOGGING
     fprintf(
         stderr,
@@ -1921,10 +1917,8 @@ void log_write(const ll_e level, GlobalContext *__G, LogCtx *log_ctx, const char
               file, func, line);
     size_t len = strlen(log_record);
     vssnprintf(log_record + len, sizeof(log_record) - len, fmt, args);
-
     len = strlen(log_record);
     log_record[len++] = '\n';
-
     if (__G->file_level_mask & ll_t[level].bits) {
         if (write(__G->log_fd, log_record, len) == -1)
             perror("Failed to write atomic log record");
@@ -1951,14 +1945,11 @@ bool parse_local_timestamp(const char *s, time_t *out) {
     struct tm tmv;
     memset(&tmv, 0, sizeof tmv);
     tmv.tm_isdst = -1;
-
     if (strptime(s, "%Y-%m-%dT%H:%M:%S", &tmv) == NULL)
         return false;
-
     time_t t = mktime(&tmv);
     if (t == (time_t)-1)
         return false;
-
     *out = t;
     return true;
 }
@@ -2125,7 +2116,6 @@ size_t ssnprintf(char *buf, size_t buf_size, const char *format, ...) {
 bool is_symlink_to_dir(const char *path) {
     struct stat link_stat;
     struct stat target_stat;
-
     if (lstat(path, &link_stat) == 0)
         if (S_ISLNK(link_stat.st_mode))
             if (stat(path, &target_stat) == 0)

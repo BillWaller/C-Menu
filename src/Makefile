@@ -280,8 +280,8 @@ else
 endif
 
 helgrind: lf
-	valgrind --tool=helgrind --log-file=helgrind.out -s \
-	    	./lf3 -H
+	valgrind --tool=helgrind --log-file=helgrind/helgrind.out -s \
+	    	./lf -H
 
 valgrind: menu
 	valgrind -v \
@@ -296,7 +296,7 @@ valgrind: menu
 		--keep-debuginfo=yes \
 		--suppressions=valgrind.supp \
 		--gen-suppressions=all \
-		./lf3 -H
+		./lf -H
 # 		./view -L60 -C90 -w lsp.log
 
 install:
