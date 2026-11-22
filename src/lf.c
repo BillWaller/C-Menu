@@ -121,7 +121,7 @@ static struct argp_option options[] = {
      0},
     {_("unlink"), 'U', _("bool"), 0, _("unlink (delete) implies depth_first"),
      0},
-    {_("xdev"), 'x', _("bool"), 0, _("xdev Do not traverse mount points"),
+    {_("xdev"), 'x', _("bool"), 0, _("Do not traverse mount points"),
      0},
     {_("ere"), 'e', _("regex"), 0, _("Exclude regular expression"), 0},
     {_("ignore_case"), 'i', 0, 0, _("Search ignore case"), 0},
@@ -1106,7 +1106,6 @@ bool mpmc_bulk_enqueue(GlobalContext *__G, ThreadLocal *__tl) {
         uint_fast32_t target_seq = base_idx + sidx + 1;
         atomic_exchange_explicit(&__G->sequence[enqueue_pos],
                                  target_seq, memory_order_release);
-        atomic_thread_fence(memory_order_release);
     }
     __tl->stage_idx = 0;
     __tl->cum_path_offset = 0;
