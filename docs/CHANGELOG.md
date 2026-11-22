@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-11-22T17:31:09-06:00* - DOCUMENTATION UPDATES 
+
+*2026-11-22T17:14:32-06:00* - Update CHANGELOG.md 
+
 *2026-11-22T17:13:42-06:00* - FIXED error in whence.c and updated README.md 
 
 *2026-11-22T15:00:10-06:00* - Update CHANGELOG.md 
