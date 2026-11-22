@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-11-22T14:59:31-06:00* - SYNC lf distribution 
+
+*2026-11-21T15:03:00-06:00* - Update CHANGELOG.md 
+
 *2026-11-21T15:00:57-06:00* - FIX:  The previous commit for lf was a mistake. It was not the current version  and should not have been committed.  This commit fixes that mistake and adds the correct version of lf. 
 
 *2026-11-21T10:42:28-06:00* - Update CHANGELOG.md 
