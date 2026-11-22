@@ -265,6 +265,15 @@ normally ~/menuapp/bin, to your PATH environment variable. See C-Menu_bashrc.md 
 
 Also confirm that libcm.so is in your library path as represented by /etc/ld.so.conf. Then, with root privileges, run the ldconfig command to update the shared library cache.
 
+### Modification
+
+The user is free to modify the source code and build their own version of
+C-Menu. It is highly recommended that you use the CMake build system, as it is more flexible and easier to use than the GNU Makefile system. The CMake build system also provides better support for cross-compilation and building on different platforms.
+
+Additionally, modification should be done in a separate branch or fork of the C-Menu source code, to avoid conflicts with the mainline development. This will also make it easier to merge changes from the mainline into your own version of C-Menu.
+
+Valgrind and Helgrind are recommended for checking for memory leaks and threading issues. The C-Menu source code has been tested with Valgrind and Helgrind, and any issues found have been fixed. However, it is always a good idea to run these tools on your own modified version of C-Menu, to ensure that there are no new issues introduced.
+
 ## Why C-Menu?
 
 C-Menu is built for users who want terminal applications that are:
