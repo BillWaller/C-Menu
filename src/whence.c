@@ -101,8 +101,8 @@ int main(int argc, char **argv) {
     int found = 0;
     argp_parse(&argp, argc, argv, 0, 0, &wh_opts);
     if (wh_opts.path_env != nullptr)
-        path_p = getenv(wh_opts.path_env);
-    else
+        path_p = wh_opts.path_env;
+    if (path_p == nullptr)
         path_p = getenv("PATH");
     if (path_p == nullptr)
         ABEND(argv[0], 0, _("Search PATH not set"));

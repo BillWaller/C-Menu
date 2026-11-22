@@ -219,6 +219,52 @@ make install
 
 ---
 
+### Troubleshooting
+
+Cd to the C-Menu/src directory and type:
+
+```bash
+./chkinst
+```
+
+You should see a list of installed files similar to the following:
+
+```bash
+/home/bill/menuapp/lib64/libcm.so
+/home/bill/menuapp/bin/view
+/home/bill/menuapp/bin/menu
+/home/bill/menuapp/bin/form
+/home/bill/menuapp/bin/pick
+/home/bill/menuapp/bin/whence
+/home/bill/menuapp/bin/lf
+/home/bill/menuapp/bin/stripansi
+```
+
+If the executables are not found, check your PATH environment variable and make sure it includes the directory where the C-Menu binaries were installed. You may also find that you have multiple copies of the executables installed, and the one that is being found first in your path is not the one you just built. You can check which executable is being found by typing:
+
+```bash
+which menu
+which form
+which pick
+which view
+which lf
+```
+
+Simply remove the unneeded copies of the executables from your path, or adjust your PATH environment variable to point to the correct directory.
+
+One particularly pervasive problem is that programs like nvim and vim may be referenced by a symbolic link, /usr/bin/view. If that link occurs before the C-Menu binary directory in your PATH, then it will obscure the C-Menu executable from the shell. You can check for this by typing:
+
+```bash
+which view
+```
+
+If this command returns /usr/bin/view, then you have that problem. You can fix it by removing the /usr/bin/view link, or preferably, by adjusting your PATH environment variable to point to the C-Menu binary directory before /usr/bin.
+
+A good solution to this kind of issue is to prepend your C-Menu binary path,
+normally ~/menuapp/bin, to your PATH environment variable. See C-Menu_bashrc.md for an example of how to do this in your .bashrc file.
+
+Also confirm that libcm.so is in your library path as represented by /etc/ld.so.conf. Then, with root privileges, run the ldconfig command to update the shared library cache.
+
 ## Why C-Menu?
 
 C-Menu is built for users who want terminal applications that are:

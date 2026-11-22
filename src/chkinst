@@ -1,0 +1,22 @@
+IFS="
+"
+libdirs() {
+for x in `cat /etc/ld.so.conf | grep -v "^#"`
+do
+    x1=`echo $x | cut -d' ' -f1`
+    x2=`echo $x | cut -d' ' -f2`
+    if [ "$x1" = "include" ]; then
+        echo $(cat $x2)
+    else
+        echo -n "$x1 "
+    fi
+done | sed 's/ /:/g'
+}
+./whence -a -p $(libdirs) libcm.so
+./whence -a view
+./whence -a menu
+./whence -a form
+./whence -a pick
+./whence -a whence
+./whence -a lf
+./whence -a stripansi
