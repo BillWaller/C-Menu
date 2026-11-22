@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-11-22T17:13:42-06:00* - FIXED error in whence.c and updated README.md 
+
+*2026-11-22T15:00:10-06:00* - Update CHANGELOG.md 
+
 *2026-11-22T14:59:31-06:00* - SYNC lf distribution 
 
 *2026-11-21T15:03:00-06:00* - Update CHANGELOG.md 
