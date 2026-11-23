@@ -2,6 +2,10 @@
 
 ## C-Menu-0.2.9
 
+*2026-11-22T18:29:19-06:00* - UPDATE Example scripts. For example, the rustlings exercises were not working because the rustlings directory was a symbolic link in the C-Menu source directory, and the updated lf correctly only follows symbolic links when the -L option is specified. The lf3 script was added to the menuapp/bin directory, and the lf3.help file was added to the menuapp/help directory. The form script was added to the menuapp/bin directory, and the form.help file was added to the menuapp/help directory. The pick script was added to the menuapp/bin directory, and the pick.help file was added to the menuapp/help directory. The view script was added to the menuapp/bin directory, and the view.help file was added to the menuapp/help directory. The get_lf_log script was added to the menuapp/bin directory, and the get_ui_log script was added to the menuapp/bin directory. The tail_ui_log script was added to the menuapp/bin directory, and the ui_log script was added to the menuapp/bin directory. The iso8601 script was added to the menuapp/bin directory. 
+
+*2026-11-22T17:31:19-06:00* - Update CHANGELOG.md 
+
 *2026-11-22T17:31:09-06:00* - DOCUMENTATION UPDATES 
 
 *2026-11-22T17:14:32-06:00* - Update CHANGELOG.md 
