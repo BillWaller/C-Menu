@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @file ghostty_chfont.sh
 # @brief link selected font configuration file to default_font
 

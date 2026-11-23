@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @file sddm_bg.sh
 # @brief sddm_bg.sh is part of the C-Menu selection, "Select SDDM Background".
 # It provides a list of available background images for the sddm login screen.

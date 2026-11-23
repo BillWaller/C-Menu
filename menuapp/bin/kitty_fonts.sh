@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @file kitty_fonts.sh
 # @brief list font configuration files
 #

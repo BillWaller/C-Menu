@@ -21,7 +21,7 @@
 :     Cash Receipts
 !form receipt.f -i receipt.dat -o receipt.dat
 :     Rustlings Source
-!pick -S "lf rustlings \".*exercises.*\.rs$\" -d4 -S -T9" -v -n 1 -T "Rustlings Source - Edit" -c "nvim %%"
+!pick -S "lf rustlings -L \".*exercises.*\.rs$\" -d4 -S -T9" -v -n 1 -T "Rustlings Source - Edit" -c "nvim %%"
 :     Mixed Files
 !pick -S "lf -S photos -d3" -v -n 1 -T "Mixed Files" -c "gimp %%"
 :     Edit Photos
@@ -34,9 +34,9 @@
 :     -SView C-Menu Source with Tree-Sitter
 !pick -S project_src -n 1 -T "Select Project Source to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
 :     -TView Source with Tree-Sitter
-!pick -S "lf -S -d 5 . \".*\.(rs|c|h|sh|lua|py|cpp|js|html|css)$\"" -T "Select Source File to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
+!pick -n1 -S "lf -S -d 5 . \".*\.(rs|c|h|sh|lua|py|cpp|js|html|css)$\"" -T "Select Source File to Highlight" -c "view -L 60 -C 85 -S \"tree-sitter highlight %%\""
 :   View LSP Log
-!view -w -L60 -C80 ~/menuapp/logs/lsp.log
+!view -w -L60 -C80 ~/.local/state/nvim/logs/lsp.log
 :     Help Menu
 !menu help.m
 :     -BMenu Description With Bat Syntax Highlighting

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @name manifest.sh
 # @brief list files installed by make or cmake
 IFS="

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @name colorize.sh
 # @brief Enclose six-digit hex color strings in ANSI colorizing sequences
 #

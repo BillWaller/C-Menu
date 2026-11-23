@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @brief This script changes the background of the sddm login screen
 # @param $1 The file name of the new background image, which should be located
 # in the sddm backgrounds directory.

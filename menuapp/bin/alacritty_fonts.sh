@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @name alacritty_fonts.sh
 # @brief list font configuration files
 U=$(id -un)

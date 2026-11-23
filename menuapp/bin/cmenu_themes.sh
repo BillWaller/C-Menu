@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @file cmenu_themes.sh
 # @brief list cmenu theme configuration files
 #

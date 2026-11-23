@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @name ts_hl.sh
 # @brief Uses tree-sitter CLI to highlight code
 # @details requires tree-sitter CLI and appropriate parser installed for the language

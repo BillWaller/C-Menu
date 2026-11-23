@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @brief This script displays a Preview image of the sddm login screen
 # @param $1 The file name of the preview image.
 #

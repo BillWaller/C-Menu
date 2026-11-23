@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @file kitty_chtheme.sh
 # @brief link selected theme configuration file to default_theme
 

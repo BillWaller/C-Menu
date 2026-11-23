@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @name doxy_pick.h
 # @brief Pick a Doxygen example to open in Chrome.
 

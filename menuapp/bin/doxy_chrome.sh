@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @name doxy_chrome.sh
 # @description Open Doxygen example in Google Chrome
 DOXY_EXAMPLE_PATH=/usr/local/src/doxygen/build/html/examples

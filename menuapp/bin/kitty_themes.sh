@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @file kitty_themes.sh
 # @brief list theme configuration files
 #

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 sed 's/ghostty/kitty/g' ghostty_fonts.sh >kitty_fonts.sh
 sed 's/ghostty/kitty/g' ghostty_chfont.sh >kitty_chfont.sh

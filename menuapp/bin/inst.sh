@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @name inst.sh
 # @brief install files
 # @author Bill Waller

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+if [ "$1" == "-s" ]; then
+    file=$(ls -rt /tmp | grep "$USER"_lf_ | tail -1)
+    echo $file
+    exit 0
+fi
+file=$(ls -rt /tmp | grep "$USER"_lf_ | tail -1)
+if [ ! =f "/tmp/$file" ]; then
+    echo "No log file found in /tmp"
+    exit 1
+fi
+cp /tmp/$file lf.log
+echo fetched /tmp/$file to lf.log

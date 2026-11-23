@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @file alacritty_chtheme.sh
 # @brief link selected theme configuration file to default_theme
 U=$(id -un)

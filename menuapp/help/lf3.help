@@ -1,0 +1,60 @@
+───────┬────────────────────────────────────────────────────────────────────────
+       │ File: [1mlf3_help[0m
+───────┼────────────────────────────────────────────────────────────────────────
+   1 [31m_[0m │ v0.2.9
+   2   │ [34mUsage: lf3 [OPTION...] [DIRECTORY] [REGULAR_EXPRESSION][0m
+   3 [33m~[0m │ [34mlf list files[0m
+   4 [33m~[0m │ [34mIf specified, DIRECTORY is the top-level[0m
+   5 [33m~[0m │  directory to search. REGULAR_EXPRESSION is a properly
+   6 [33m~[0m │ [34mformatted regular expression for which matching files[0m
+   7 [33m~[0m │ [34mwill be listed.[0m
+   8   │ 
+   9   │   [33m-a[0m, [33m--after[0m[35m=[0m[36mtime[0m           Last Modified after YYYY-MM-DDTHH:MM:SS
+  10   │   [33m-b[0m, [33m--before[0m[35m=[0m[36mtime[0m          Last Modified before YYYY-MM-DDTHH:MM:SS
+  11   │   [33m-c[0m, [33m--count[0m[=s]            Count (s only report count)
+  12   │   [33m-d[0m, [33m--max_depth[0m[35m=[0m[36mnumber[0m     Depth into directory tree
+  13 [33m~[0m │   [33m-D[0m, [33m--disp_level_mask[0m[35m=[0m[36m12345EDACO[0m
+  14 [33m~[0m │                              1-CONFIG, 2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE,
+  15   │                              E-ENQUEUE, D-DEQUEUE, A-ALL, C-COUNT_ERRORS,
+  16   │                              O-ONLY_ERRORS
+  17 [31m_[0m │   [33m-e[0m, [33m--ere[0m[35m=[0m[36mregex[0m            Exclude regular expression
+  18   │   [33m-H[0m, [33m--include_hidden[0m[=o]   Include hidden files (o=hidden only)
+  19   │   [33m-i[0m, [33m--ignore_case[0m          Search ignore case
+  20 [33m~[0m │   [33m-l[0m, [33m--file_level_mask[0m[35m=[0m[36m2345EDAC[0m   2- INFO, 3-ERROR, 4-DEBUG, 5-CYCLE,
+  21 [33m~[0m │                              E-ENQUEUE, D-DEQUEUE, A-ALL, C-COUNT_ERRORS
+  22   │   [33m-L[0m, [33m--follow_links[0m         Follow symbolic links
+  23   │   [33m-p[0m, [33m--include_perms[0m[35m=[0m[36msgrwx[0m  x-execute, w-write, r-read, s-setuid, g-setgid
+  24   │   [33m-r[0m, [33m--re[0m[35m=[0m[36mregex[0m             Regular expression to search for
+  25   │   [33m-R[0m, [33m--sort_reverse[0m         Sort in Reverse order
+  26   │   [33m-s[0m, [33m--file_size_min[0m[35m=[0m[36msize[0m   No Suffix-bytes, K-kilobytes, M-Megabytes, or
+  27   │                              G-Gigabytes
+  28   │   [33m-S[0m, [33m--sort[0m                 Sort in Ascending order
+  29   │   [33m-t[0m, [33m--include_types[0m[35m=[0m[36mpcdbflsu[0m   p-pipe, c-character_dev, d-directory,
+  30   │                              b-block_dev, f-regular_file, l-link, s-socket,
+  31   │                              u-unknown
+  32   │   [33m-T[0m, [33m--nthreads[0m[35m=[0m[36mthreads[0m     Number of nthreads
+  33   │   [33m-u[0m, [33m--user[0m[35m=[0m[36muser[0m name       User Name of file owner 
+  34   │   [33m-U[0m, [33m--unlink[0m[35m=[0m[36mbool[0m          unlink (delete) implies depth_first
+  35   │   [33m-W[0m, [33m--depth_first[0m[35m=[0m[36mbool[0m     Depth first order (widdershins)
+  36   │   [33m-y[0m, [33m--timestamp_style[0m[35m=[0m[36mCZL[0m  timestamp_style for logging 1-CODER,
+  37   │                              2-ISO8601_ZULU, 3-ISO8601_LOCAL
+  38   │   -?, [33m--help[0m                 Give this help list
+  39   │       [33m--usage[0m                Give a short usage message
+  40   │   [33m-V[0m, [33m--version[0m              Print program version
+  41   │ 
+  42   │ [34mMandatory or optional arguments to long options are also mandatory or optional[0m
+  43   │ [34mfor any corresponding short options.[0m
+  44   │ 
+  45   │ [34mReport bugs to billxwaller@gmail.com.[0m
+  46 [32m+[0m │ [34mUsage: lf3 [-iLRS?V] [-a time] [-b time] [-c[s]] [-d number] [-D 12345EDACO][0m
+  47 [32m+[0m │             [[33m-e[0m regex] [[33m-H[0m[o]] [[33m-l[0m 2345EDAC] [[33m-p[0m sgrwx] [[33m-r[0m regex] [[33m-s[0m size]
+  48 [32m+[0m │             [[33m-t[0m pcdbflsu] [[33m-T[0m threads] [[33m-u[0m user name] [[33m-U[0m bool] [[33m-W[0m bool]
+  49 [32m+[0m │             [[33m-y[0m CZL] [[33m--after[0m[35m=[0m[36mtime[0m] [[33m--before[0m[35m=[0m[36mtime[0m] [[33m--count[0m[=s]]
+  50 [32m+[0m │             [[33m--max_depth[0m[35m=[0m[36mnumber[0m] [[33m--disp_level_mask[0m[35m=[0m[36m12345EDACO[0m] [[33m--ere[0m[35m=[0m[36mregex[0m]
+  51 [32m+[0m │             [[33m--include_hidden[0m[=o]] [[33m--ignore_case[0m] [[33m--file_level_mask[0m[35m=[0m[36m2345EDAC[0m]
+  52 [32m+[0m │             [[33m--follow_links[0m] [[33m--include_perms[0m[35m=[0m[36msgrwx[0m] [[33m--re[0m[35m=[0m[36mregex[0m]
+  53 [32m+[0m │             [[33m--sort_reverse[0m] [[33m--file_size_min[0m[35m=[0m[36msize[0m] [[33m--sort[0m]
+  54 [32m+[0m │             [[33m--include_types[0m[35m=[0m[36mpcdbflsu[0m] [[33m--nthreads[0m[35m=[0m[36mthreads[0m] [[33m--user[0m[35m=[0m[36muser[0m name]
+  55 [32m+[0m │             [[33m--unlink[0m[35m=[0m[36mbool[0m] [[33m--depth_first[0m[35m=[0m[36mbool[0m] [[33m--timestamp_style[0m[35m=[0m[36mCZL[0m]
+  56 [32m+[0m │             [[33m--help[0m] [[33m--usage[0m] [[33m--version[0m] [DIRECTORY] [REGULAR_EXPRESSION]
+───────┴────────────────────────────────────────────────────────────────────────

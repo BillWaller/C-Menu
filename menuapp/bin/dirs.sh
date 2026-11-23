@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # @name dirs.sh
 # @brief List directories in the current directory, excluding hidden directories
 # and common build/output directories

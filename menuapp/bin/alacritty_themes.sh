@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # @file alacritty_themes.sh
 # @brief list theme configuration files
 U=$(id -un)

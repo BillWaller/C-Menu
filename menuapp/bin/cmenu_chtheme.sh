@@ -1,4 +1,4 @@
-#!/bin/bash -i
+#!/usr/bin/env bash
 # @file cmenu_chtheme.sh
 # @brief link selected theme configuration file to default
 
