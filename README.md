@@ -12,91 +12,14 @@ The image below shows a screenshot of the C-Menu's UAL API in action, with auto-
 
 ![UAL API Screenshot](screenshots/UAL_API.png)
 
-
 ---
 
-## lf
+###
 
-lf is a high performance file finder that can be used to generate file lists for pick, shell pipelines, or custom scripts. lf is comparable to the popular find command, but it is designed to be more user-friendly and ridiculously fast.
+![lf](screenshots/lf_banner.png)
 
-To say that lf is fast is understated. It is easily ten times faster than find, and, even faster than fd. lf handles huge directories with ease. It can be used to find files based on name, type, date, size, and other attributes, making it a powerful tool for file discovery and filtering. It also has an option that only reports cyclic and broken links.
+[Check out the lf file finder](docs/lf.md) for more information on this powerful component of C-Menu.
 
-![lf help Screenshot](screenshots/lf.help.png)
-
-![lf3 logging](screenshots/lf_log.png)
-
-Above is a screenshot of an lf debugging log in view. Notice that it uses a "Coders Timestamp" instead of the usual ISO_8601 timestamp. The Coders Timestamp is a pair of 64-bit integers that represent the number of milliseconds, microseconds, and nanoseconds elapsed since the program was started as well as an interval timer to track time between log entries. It is used for high-resolution timing and logging in lf, and it provides a far more precise measure of time than the standard ISO_8601 format. Most importantly, it contains meaningful information for developers who are debugging and profiling the performance of lf.
-
-***NOTE:*** Each thread has it's own interval timer, so the Coders Timestamp is not a global timer. It is a per-thread timer that is used to track the time between log entries for each thread. This allows developers to see how long each thread is taking to execute, and to identify any threads that are taking longer than expected. The Coders Timestamp is a valuable tool for debugging and profiling the performance of lf, and it can help developers optimize their code for maximum performance.
-
-lf is already incredibly fast, but because a file finder is a core component of applications that deal with large numbers of files, it is reasonable that there will be developers who find ways to make it even faster. Hopefully they will make their improvements part of the lf project.
-
-lf is designed to be modular and extensible, so that it can be easily integrated into larger workflows and applications. It is also designed to be user-friendly, with a simple and intuitive interface that makes it easy to use for both novice and experienced users. We know you will be impressed with its speed, and we hope you will be just as impressed with its ease of use and flexibility. lf is a powerful tool for file discovery and filtering, and it is an essential component of the C-Menu toolkit.
-
-Report bugs to billxwaller@gmail.com.
-
-## File Finder Benchmarks - November 22, 2026
-
-Below is the actual output of timings for find, fd, and lf. The timings were done on a Linux system with a 16 x Intel® Xeon® E5-2670 @ 2.6GHz, 32GB of RAM, and an NVMe SSD.
-
-find (GNU findutils) version 4.11.0
-fd                   version 10.5.0
-lf                   version 0.3.3
-
-------------------------------------------------
-
-find /home/bill
-0.41user 0.43system 0:00.85elapsed 100%CPU (0avgtext+0avgdata 35456maxresident)k
-0inputs+0outputs (0major+12068minor)pagefaults 0swaps
-found 511682 files
-
-------------------------------------------------
-
-fd . -H -I /home/bill
-0.85user 0.71system 0:00.22elapsed 682%CPU (0avgtext+0avgdata 55088maxresident)k
-0inputs+0outputs (0major+14008minor)pagefaults 0swaps
-expected 511682 files, found 511682 files
-
-------------------------------------------------
-
-./lf -H /home/bill
-0.21user 0.68system 0:00.08elapsed 1020%CPU (0avgtext+0avgdata 18076maxresident)k
-0inputs+0outputs (0major+715minor)pagefaults 0swaps
-expected 511682, found 511682 files
-
-------------------------------------------------
-
-Summary:
-
-| Command               | Milliseconds | CPU%  | Memory | Faults | Files   |
-| --------------------- | ------------ | ----- | ------ | ------ | ------- |
-| find /home/bill       | 850          | 100   | 35,456 | 12,068 | 511,682 |
-| fd . -H -I /home/bill | 220          | 682   | 55,088 | 14,008 | 511,682 |
-| lf -H /home/bill      | 80           | 1020 | 18,076 | 715    | 511,682 |
-
-
-------------------------------------------------
-
-Notice that lf is the fastest, and uses the least memory. It also has the fewest page faults. fd is faster than find, but uses more memory and has more page faults. find is the slowest, and uses the most memory and has the most page faults.
-
-NOTE: find counts the root directory as a file, while fd and lf do not. This
-accounts for the one-file difference in the file counts. This is not necessarily
-an error. Just subtract 1 from the find count to get an accurate result.
-
-## lf Quality Control
-
-Helgrind
-Command: ./lf -H
-    ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 127 from 10)
-
-Valgrind
-Command: ./lf -H
-HEAP SUMMARY:
-    Command: ./lf -H
-        in use at exit: 0 bytes in 0 blocks
-        total heap usage: 60 allocs, 60 frees, 8,415,217 bytes allocated
-        All heap blocks were freed -- no leaks are possible
-        ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
 
 ## Uniform Abstraction Layer User Interface
 
