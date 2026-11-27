@@ -1,4 +1,4 @@
-![lf A New Lightning Fast File Finder](screenshots/lf_banner.png)
+![lf A New Lightning Fast File Finder](../screenshots/lf_banner.png)
 
 # lf
 
@@ -16,7 +16,7 @@ lf is a high performance file finder that can be used to generate file lists for
 
 To say that lf is fast is understated. It is easily ten times faster than find, and, twice as fast as fd. lf handles huge directories with ease. It can be used to find files based on name, type, date, size, and other attributes, making it a powerful tool for file discovery and filtering. It also has an option that only reports cyclic and broken links.
 
-![lf help Screenshot](screenshots/lf.help.png)
+![lf help Screenshot](../screenshots/lf.help.png)
 
 ## What Does lf Stand For?
 
@@ -402,7 +402,7 @@ total         0 (2 x 0)
 
 ### Logging
 
-![lf3 logging](screenshots/lf_log.png)
+![lf3 logging](../screenshots/lf_log.png)
 
 Above is a screenshot of an lf debugging log in view. Notice that it uses a "Coders Timestamp" instead of the usual ISO_8601 timestamp. The Coders Timestamp is a pair of 64-bit integers that represent the number of milliseconds, microseconds, and nanoseconds elapsed since the program was started as well as an interval timer to track time between log entries. It is used for high-resolution timing and logging in lf, and it provides a far more precise measure of time than the standard ISO_8601 format. Most importantly, it contains meaningful information for developers who are debugging and profiling the performance of lf.
 
