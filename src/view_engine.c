@@ -630,7 +630,6 @@ int view_cmd_processor(Init *init) {
         case 'q':
         case 'Q':
         case UIKEY_F09:
-        case '\033':
             ui_mvwadd_wchnstr(sfc, CMDLN, view->cmd_line, view->curx, &cell_sp, 1);
             view->curr_argc = view->argc;
             view->next_file_spec_ptr = nullptr;
